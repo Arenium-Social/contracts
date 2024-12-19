@@ -24,7 +24,7 @@ contract HelperConfig is Script {
     function getSepoliaConfig() public pure returns (NetworkConfig memory) {
         NetworkConfig memory SepoliaConfig = NetworkConfig({
             finder: 0xf4C48eDAd256326086AEfbd1A53e1896815F8f13,
-            currency: 0xC7f2Cf4845C6db0e1a1e91ED41Bcd0FcC1b0E141, // MockArenaToken Deployed
+            currency: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238, // Testnet USDC address
             optimisticOracleV3: 0xFd9e2642a170aDD10F53Ee14a93FcF2F31924944
         });
         return SepoliaConfig;
@@ -33,16 +33,17 @@ contract HelperConfig is Script {
     function getBaseSepoliaConfig() public pure returns (NetworkConfig memory) {
         NetworkConfig memory BaseSepoliaConfig = NetworkConfig({
             finder: 0xfF4Ec014E3CBE8f64a95bb022F1623C6e456F7dB,
-            currency: 0xC7f2Cf4845C6db0e1a1e91ED41Bcd0FcC1b0E141, //MockArenaToken Deployed
+            currency: 0x036CbD53842c5426634e7929541eC2318f3dCF7e, // Testnet USDC address
             optimisticOracleV3: 0x0F7fC5E6482f096380db6158f978167b57388deE
         });
         return BaseSepoliaConfig;
     }
 
+    // AVAX C-MAINNET LAUNCH
     function getAvaxCChainConfig() public pure returns (NetworkConfig memory) {
         NetworkConfig memory AvaxCChainConfig = NetworkConfig({
             finder: 0xCFdC4d6FdeC25e339ef07e25C35a482A6bedcfE0,
-            currency: 0xB8d7710f7d8349A506b75dD184F05777c82dAd0C,
+            currency: 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E, // Mainnet USDC address
             optimisticOracleV3: 0xa4199d73ae206d49c966cF16c58436851f87d47F
         });
         return AvaxCChainConfig;
