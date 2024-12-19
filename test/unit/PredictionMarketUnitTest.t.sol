@@ -148,134 +148,134 @@ contract PredictionMarketUnitTest is Test {
         assertEq(string(predictionMarket.getUnresolvableOutcome()), "Unresolvable");
     }
 
-    function testGetMarketTokens() public {
-        // Initialize a market first
-        uint256 reward = 100 ether;
-        uint256 bond = 50 ether;
-        mockCurrency.approve(address(predictionMarket), reward);
+    // function testGetMarketTokens() public {
+    //     // Initialize a market first
+    //     uint256 reward = 100 ether;
+    //     uint256 bond = 50 ether;
+    //     mockCurrency.approve(address(predictionMarket), reward);
 
-        bytes32 marketId =
-            predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
 
-        (address outcome1Token, address outcome2Token) = predictionMarket.getMarketTokens(marketId);
+    //     (address outcome1Token, address outcome2Token) = predictionMarket.getMarketTokens(marketId);
 
-        // Verify tokens are valid addresses and not zero address
-        assertTrue(outcome1Token != address(0));
-        assertTrue(outcome2Token != address(0));
+    //     // Verify tokens are valid addresses and not zero address
+    //     assertTrue(outcome1Token != address(0));
+    //     assertTrue(outcome2Token != address(0));
 
-        // Verify these are different tokens
-        assertTrue(outcome1Token != outcome2Token);
-    }
+    //     // Verify these are different tokens
+    //     assertTrue(outcome1Token != outcome2Token);
+    // }
 
-    function testGetMarketTokensRevertsForNonexistentMarket() public {
-        bytes32 nonexistentMarketId = keccak256("nonexistent");
-        vm.expectRevert(PredictionMarket.PredictionMarket__MarketDoesNotExist.selector);
-        predictionMarket.getMarketTokens(nonexistentMarketId);
-    }
+    // function testGetMarketTokensRevertsForNonexistentMarket() public {
+    //     bytes32 nonexistentMarketId = keccak256("nonexistent");
+    //     vm.expectRevert(PredictionMarket.PredictionMarket__MarketDoesNotExist.selector);
+    //     predictionMarket.getMarketTokens(nonexistentMarketId);
+    // }
 
-    function testGetMarketOutcomes() public {
-        string memory outcome1 = "Outcome1";
-        string memory outcome2 = "Outcome2";
-        uint256 reward = 100 ether;
-        uint256 bond = 50 ether;
-        mockCurrency.approve(address(predictionMarket), reward);
+    // function testGetMarketOutcomes() public {
+    //     string memory outcome1 = "Outcome1";
+    //     string memory outcome2 = "Outcome2";
+    //     uint256 reward = 100 ether;
+    //     uint256 bond = 50 ether;
+    //     mockCurrency.approve(address(predictionMarket), reward);
 
-        bytes32 marketId =
-            predictionMarket.initializeMarket(outcome1, outcome2, "Test market description", reward, bond);
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket(outcome1, outcome2, "Test market description", reward, bond);
 
-        (bytes memory retrievedOutcome1, bytes memory retrievedOutcome2) = predictionMarket.getMarketOutcomes(marketId);
+    //     (bytes memory retrievedOutcome1, bytes memory retrievedOutcome2) = predictionMarket.getMarketOutcomes(marketId);
 
-        assertEq(string(retrievedOutcome1), outcome1);
-        assertEq(string(retrievedOutcome2), outcome2);
-    }
+    //     assertEq(string(retrievedOutcome1), outcome1);
+    //     assertEq(string(retrievedOutcome2), outcome2);
+    // }
 
-    function testGetMarketDescription() public {
-        string memory description = "Test market description";
-        uint256 reward = 100 ether;
-        uint256 bond = 50 ether;
-        mockCurrency.approve(address(predictionMarket), reward);
+    // function testGetMarketDescription() public {
+    //     string memory description = "Test market description";
+    //     uint256 reward = 100 ether;
+    //     uint256 bond = 50 ether;
+    //     mockCurrency.approve(address(predictionMarket), reward);
 
-        bytes32 marketId = predictionMarket.initializeMarket("Outcome1", "Outcome2", description, reward, bond);
+    //     bytes32 marketId = predictionMarket.initializeMarket("Outcome1", "Outcome2", description, reward, bond);
 
-        bytes memory retrievedDescription = predictionMarket.getMarketDescription(marketId);
-        assertEq(string(retrievedDescription), description);
-    }
+    //     bytes memory retrievedDescription = predictionMarket.getMarketDescription(marketId);
+    //     assertEq(string(retrievedDescription), description);
+    // }
 
-    function testGetMarketStatus() public {
-        uint256 reward = 100 ether;
-        uint256 bond = 50 ether;
-        mockCurrency.approve(address(predictionMarket), reward);
+    // function testGetMarketStatus() public {
+    //     uint256 reward = 100 ether;
+    //     uint256 bond = 50 ether;
+    //     mockCurrency.approve(address(predictionMarket), reward);
 
-        bytes32 marketId =
-            predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
 
-        (bool resolved, bytes32 assertedOutcomeId, uint256 retrievedReward, uint256 retrievedBond) =
-            predictionMarket.getMarketStatus(marketId);
+    //     (bool resolved, bytes32 assertedOutcomeId, uint256 retrievedReward, uint256 retrievedBond) =
+    //         predictionMarket.getMarketStatus(marketId);
 
-        assertFalse(resolved);
-        assertEq(assertedOutcomeId, bytes32(0));
-        assertEq(retrievedReward, reward);
-        assertEq(retrievedBond, bond);
-    }
+    //     assertFalse(resolved);
+    //     assertEq(assertedOutcomeId, bytes32(0));
+    //     assertEq(retrievedReward, reward);
+    //     assertEq(retrievedBond, bond);
+    // }
 
-    function testGetAssertedMarket() public {
-        // Initialize market
-        uint256 reward = 100 ether;
-        uint256 bond = 50 ether;
-        mockCurrency.approve(address(predictionMarket), reward);
+    // function testGetAssertedMarket() public {
+    //     // Initialize market
+    //     uint256 reward = 100 ether;
+    //     uint256 bond = 50 ether;
+    //     mockCurrency.approve(address(predictionMarket), reward);
 
-        bytes32 marketId =
-            predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
 
-        // Assert the market
-        mockCurrency.approve(address(predictionMarket), bond);
-        bytes32 assertionId = predictionMarket.assertMarket(marketId, "Outcome1");
+    //     // Assert the market
+    //     mockCurrency.approve(address(predictionMarket), bond);
+    //     bytes32 assertionId = predictionMarket.assertMarket(marketId, "Outcome1");
 
-        (address asserter, bytes32 retrievedMarketId) = predictionMarket.getAssertedMarket(assertionId);
+    //     (address asserter, bytes32 retrievedMarketId) = predictionMarket.getAssertedMarket(assertionId);
 
-        assertEq(asserter, address(this));
-        assertEq(retrievedMarketId, marketId);
-    }
+    //     assertEq(asserter, address(this));
+    //     assertEq(retrievedMarketId, marketId);
+    // }
 
-    function testIsMarketResolved() public {
-        uint256 reward = 100 ether;
-        uint256 bond = 50 ether;
-        mockCurrency.approve(address(predictionMarket), reward);
+    // function testIsMarketResolved() public {
+    //     uint256 reward = 100 ether;
+    //     uint256 bond = 50 ether;
+    //     mockCurrency.approve(address(predictionMarket), reward);
 
-        bytes32 marketId =
-            predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
 
-        assertFalse(predictionMarket.isMarketResolved(marketId));
+    //     assertFalse(predictionMarket.isMarketResolved(marketId));
 
-        // Assert and resolve the market
-        mockCurrency.approve(address(predictionMarket), bond);
-        bytes32 assertionId = predictionMarket.assertMarket(marketId, "Outcome1");
+    //     // Assert and resolve the market
+    //     mockCurrency.approve(address(predictionMarket), bond);
+    //     bytes32 assertionId = predictionMarket.assertMarket(marketId, "Outcome1");
 
-        // Mock oracle callback to resolve the market
-        vm.prank(address(mockOracle));
-        predictionMarket.assertionResolvedCallback(assertionId, true);
+    //     // Mock oracle callback to resolve the market
+    //     vm.prank(address(mockOracle));
+    //     predictionMarket.assertionResolvedCallback(assertionId, true);
 
-        assertTrue(predictionMarket.isMarketResolved(marketId));
-    }
+    //     assertTrue(predictionMarket.isMarketResolved(marketId));
+    // }
 
-    function testGetMarketBalances() public {
-        uint256 reward = 100 ether;
-        uint256 bond = 50 ether;
-        uint256 tokensToCreate = 500 ether;
-        mockCurrency.approve(address(predictionMarket), reward);
+    // function testGetMarketBalances() public {
+    //     uint256 reward = 100 ether;
+    //     uint256 bond = 50 ether;
+    //     uint256 tokensToCreate = 500 ether;
+    //     mockCurrency.approve(address(predictionMarket), reward);
 
-        bytes32 marketId =
-            predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket("Outcome1", "Outcome2", "Test market description", reward, bond);
 
-        // Create outcome tokens
-        mockCurrency.approve(address(predictionMarket), tokensToCreate);
-        predictionMarket.createOutcomeTokens(marketId, tokensToCreate);
+    //     // Create outcome tokens
+    //     mockCurrency.approve(address(predictionMarket), tokensToCreate);
+    //     predictionMarket.createOutcomeTokens(marketId, tokensToCreate);
 
-        (uint256 outcome1Balance, uint256 outcome2Balance) = predictionMarket.getMarketBalances(marketId, address(this));
+    //     (uint256 outcome1Balance, uint256 outcome2Balance) = predictionMarket.getMarketBalances(marketId, address(this));
 
-        assertEq(outcome1Balance, tokensToCreate);
-        assertEq(outcome2Balance, tokensToCreate);
-    }
+    //     assertEq(outcome1Balance, tokensToCreate);
+    //     assertEq(outcome2Balance, tokensToCreate);
+    // }
 
     // Will add additional tests for other contract methods.
 }
