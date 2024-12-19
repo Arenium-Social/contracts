@@ -16,8 +16,8 @@ contract MockOptimisticOracleV3 is OptimisticOracleV3Interface {
     IERC20 private _defaultCurrency;
     uint256 private _minimumBond;
 
-    constructor(bytes32 defaultIdentifier, IERC20 currency, uint256 minBond) {
-        _defaultIdentifier = defaultIdentifier;
+    constructor(bytes32 setDefaultIdentifier, IERC20 currency, uint256 minBond) {
+        _defaultIdentifier = setDefaultIdentifier;
         _defaultCurrency = currency;
         _minimumBond = minBond;
     }
