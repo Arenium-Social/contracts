@@ -16,5 +16,6 @@ pragma solidity 0.8.16;
  *
  * Reserves for Outcome1Token and Outcome2Token.
  * Liquidity shares for each provider.
+ *
  */
 contract AAMContract {}
