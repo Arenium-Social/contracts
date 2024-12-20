@@ -8,6 +8,7 @@ remappings = [
     "forge-std/=lib/forge-std/src/",
     "@openzeppelin/=lib/openzeppelin-contracts/",
     "@uma/core/contracts/=lib/protocol/packages/core/contracts/",
+    "@v4-core=lib/v4-core",
 ]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
