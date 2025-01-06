@@ -3,7 +3,6 @@ src = "src"
 out = "out"
 libs = ["lib"]
 via-ir = true
-solidity = "0.8.16"
 remappings = [
     "forge-std/=lib/forge-std/src/",
     "@openzeppelin/=lib/openzeppelin-contracts/",

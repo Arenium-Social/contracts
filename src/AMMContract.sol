@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.24;
 
 import {PoolKey} from "@v4-core/src/types/PoolKey.sol";
 import {CurrencyLibrary, Currency} from "@v4-core/src/types/Currency.sol";
@@ -24,7 +24,7 @@ import {ExpandedERC20, ExpandedIERC20} from "@uma/core/contracts/common/implemen
  * Liquidity shares for each provider.
  *
  */
-contract AAMContract {
+contract AMMContract {
     /// @notice Currency is used for token calculations.
     using CurrencyLibrary for Currency;
 

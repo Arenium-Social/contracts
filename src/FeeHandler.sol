@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.24;
 
 /**
  * This contract aggregates the fees collected from different actions in the ecosystem (e.g., trading, minting, or resolving markets) for later distribution.
