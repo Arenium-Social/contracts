@@ -2,8 +2,8 @@
 pragma solidity 0.8.24;
 
 import {IUniswapV3Factory} from "@v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IUniswapV3Pool} from "@v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import {IUniswapV3MintCallback} from "@v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol";
+// import {IUniswapV3Pool} from "@v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+// import {IUniswapV3MintCallback} from "@v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol";
 // import"@v3-core/contracts/libraries/TickMath.sol";
 // import "@v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -29,10 +29,11 @@ contract UniswapV3AMMContract {
     IUniswapV3Factory public immutable magicFactory;
     //ISwapRouter public immutable swapRouter;
 
-    error UniswapV3AMMContract__TokensMustBeDifferent();
-    error UniswapV3AMMContract__PoolAlreadyExists();
-    error UniswapV3AMMContract__PoolCreationFailed();
+    // error UniswapV3AMMContract__TokensMustBeDifferent();
+    // error UniswapV3AMMContract__PoolAlreadyExists();
+    // error UniswapV3AMMContract__PoolCreationFailed();
 
+    /// @notice Struct to store pool data.
     struct PoolData {
         bytes32 marketId;
         address pool;
@@ -42,6 +43,7 @@ contract UniswapV3AMMContract {
         bool poolActive;
     }
 
+    /// @notice Mapping of marketId to pool data struct.
     mapping(bytes32 => PoolData) public marketIdToPool;
 
     event PoolCreated(
@@ -76,15 +78,16 @@ contract UniswapV3AMMContract {
             "Pool Already Exists"
         );
 
-        // Ensure token order for pool creation.
+        //Ensure token order for pool creation.
         if (tokenA > tokenB) {
             (tokenA, tokenB) = (tokenB, tokenA);
         }
 
-        //return statement
+        //Create pool.
         poolAddress = magicFactory.createPool(tokenA, tokenB, fee);
         require(poolAddress != address(0), "Pool Creation Failed");
 
+        //Update pool data in this contract.
         marketIdToPool[marketId] = PoolData({
             marketId: marketId,
             pool: poolAddress,
