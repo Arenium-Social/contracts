@@ -3,11 +3,14 @@ src = "src"
 out = "out"
 libs = ["lib"]
 via-ir = true
-solidity = "0.8.16"
 remappings = [
     "forge-std/=lib/forge-std/src/",
     "@openzeppelin/=lib/openzeppelin-contracts/",
     "@uma/core/contracts/=lib/protocol/packages/core/contracts/",
+    "@v4-core=lib/v4-core",
+   "@v3-core=lib/v3-core",
+   "@v3-periphery=lib/v3-periphery", 
+   "@uniswap/v3-core/contracts/=lib/uniswap-v3-core/contracts/"
 ]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.16;
+pragma solidity 0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {PredictionMarket} from "../../src/PredictionMarket.sol";
@@ -37,7 +37,8 @@ contract PredictionMarketUnitTest is Test {
         mockWhitelist.addToWhitelist(address(mockCurrency));
 
         // Deploy PredictionMarket contract.
-        predictionMarket = new PredictionMarket(address(mockFinder), address(mockCurrency), address(mockOracle));
+        predictionMarket =
+            new PredictionMarket(msg.sender, address(mockFinder), address(mockCurrency), address(mockOracle));
 
         // Mint some mock currency for tests.
         mockCurrency.mint(address(this), 1_000_000 ether);
