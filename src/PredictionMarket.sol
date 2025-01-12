@@ -167,11 +167,12 @@ contract PredictionMarket is
         } // Pull reward.
 
         // Initialize uniswap V3 liquidity pool for trading of outcome tokens.
-        amm.generatePool(
+        amm.generateAndInitializePool(
             address(outcome1Token),
             address(outcome2Token),
             0,
-            marketId
+            marketId,
+            0x100000000000000000000000000000000 // Initial sqrt price is 1:1, i.e. 1 tokenA for 1 tokenB.
         );
 
         emit MarketInitialized(
