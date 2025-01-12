@@ -2,7 +2,6 @@
 
 Welcome to Arenium! This repository contains the core smart contracts powering Arenium, a next-generation prediction market platform built on the Avalanche network. Arenium leverages UMA’s Optimistic Oracle V3 to ensure trustless event resolution and incorporates Automated Market Maker (AMM) functionality for seamless token trading. Tailored for The Arena community, Arenium delivers a secure, transparent, and gamified prediction market experience.
 
-
 ## Overview
 
 ### What is Arenium?
@@ -15,30 +14,33 @@ Arenium is a blockchain-powered prediction market where users can bet on the out
 - **Politics and Global Trends:** Engage in markets covering geopolitical and societal events.
 - **Community Events:** Join markets based on trending cultural or local happenings.
 
-
 ### Key Features
 
 1. **Event Resolution via UMA Optimistic Oracle V3:**
+
    - Ensures secure and trustless settlement of event outcomes.
    - Supports off-chain data resolution for a wide range of markets.
 
 2. **Automated Market Maker (AMM):**
+
    - Facilitates trading of outcome tokens using a liquidity pool and pricing curve.
    - Dynamic token pricing based on supply and demand.
 
 3. **Fee Collection and Distribution:**
+
    - Transparent fee structure with configurable rates for market creation, trading, and settlement.
    - Supports treasury or community-driven fee allocation.
 
 4. **$ARENA Tokens:**
+
    - Native token for placing bets, providing liquidity, and earning rewards.
 
 5. **Community-Centric Design:**
+
    - Gamified features like leaderboards and exclusive challenges for The Arena users.
 
 6. **Built on Avalanche:**
    - Low transaction costs, high scalability, and robust smart contract infrastructure.
-
 
 ## How It Works
 
@@ -47,7 +49,6 @@ Arenium is a blockchain-powered prediction market where users can bet on the out
 3. **Trade on AMM:** Use the AMM to buy or sell outcome tokens based on your predictions.
 4. **Participate in Settlement:** UMA’s Optimistic Oracle V3 resolves event outcomes to finalize markets.
 5. **Earn Rewards:** Accurate predictions lead to token payouts, leaderboard rankings, and more.
-
 
 ## Repository Structure
 
@@ -61,6 +62,10 @@ The repository is organized for clarity and modularity:
 - **`script/`**: Deployment and interaction scripts for the contracts.
 - **`docs/`**: Documentation and specifications for smart contracts.
 
+## Deployment Addresses
+
+- PredictionMarket : https://base-sepolia.blockscout.com/address/0x719Fb09B0335f892fbF916b57e634E58cefA7801
+- AMM : https://base-sepolia.blockscout.com/address/0xE382B600D1b68d645AF14414110eEf0CFEb49Ecc
 
 ## Getting Started
 
@@ -76,7 +81,6 @@ We welcome contributions from the community! Please follow these steps:
 
 4. Submit a pull request for review.
 
-
 ## Community
 
 Join our Discord server to discuss ideas, share feedback, and get the latest updates on Arenium:
@@ -85,11 +89,9 @@ Join our Discord server to discuss ideas, share feedback, and get the latest upd
 
 - **Website:** [Arenium Platform](https://www.arenium.social/)
 
-
 ## License
 
 This repository is licensed under the MIT License. See the `LICENSE` file for more information.
-
 
 ## Stay Ahead with Arenium
 
