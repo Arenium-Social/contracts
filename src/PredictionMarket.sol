@@ -7,15 +7,14 @@ import "@uma/core/contracts/data-verification-mechanism/implementation/Constants
 import {CollateralWhitelist} from "./lib/CollateralWhitelist.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 import {ClaimData} from "./lib/ClaimData.sol";
-import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
-import {OptimisticOracleV3CallbackRecipientInterface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
+import {OptimisticOracleV3Interface} from
+    "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
+import {OptimisticOracleV3CallbackRecipientInterface} from
+    "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {UniswapV3AMMContract} from "./UniswapV3AMMContract.sol";
 
-contract PredictionMarket is
-    OptimisticOracleV3CallbackRecipientInterface,
-    Ownable
-{
+contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownable {
     error PredictionMarket__UnsupportedCurrency();
     error PredictionMarket__EmptyFirstOutcome();
     error PredictionMarket__EmptySecondOutcome();
@@ -69,22 +68,10 @@ contract PredictionMarket is
         uint256 reward,
         uint256 requiredBond
     );
-    event MarketAsserted(
-        bytes32 indexed marketId,
-        string indexed assertedOutcome,
-        bytes32 indexed assertionId
-    );
+    event MarketAsserted(bytes32 indexed marketId, string indexed assertedOutcome, bytes32 indexed assertionId);
     event MarketResolved(bytes32 indexed marketId);
-    event TokensCreated(
-        bytes32 indexed marketId,
-        address indexed account,
-        uint256 indexed tokensCreated
-    );
-    event TokensRedeemed(
-        bytes32 indexed marketId,
-        address indexed account,
-        uint256 indexed tokensRedeemed
-    );
+    event TokensCreated(bytes32 indexed marketId, address indexed account, uint256 indexed tokensCreated);
+    event TokensRedeemed(bytes32 indexed marketId, address indexed account, uint256 indexed tokensRedeemed);
     event TokensSettled(
         bytes32 indexed marketId,
         address indexed account,
@@ -93,12 +80,7 @@ contract PredictionMarket is
         uint256 outcome2Tokens
     );
 
-    constructor(
-        address _finder,
-        address _currency,
-        address _optimisticOracleV3,
-        address _ammContract
-    ) {
+    constructor(address _finder, address _currency, address _optimisticOracleV3, address _ammContract) {
         finder = FinderInterface(_finder);
         if (!_getCollateralWhitelist().isOnWhitelist(_currency)) {
             revert PredictionMarket__UnsupportedCurrency();
@@ -136,16 +118,8 @@ contract PredictionMarket is
         }
 
         // Create position tokens with this contract having minter and burner roles.
-        ExpandedIERC20 outcome1Token = new ExpandedERC20(
-            string(abi.encodePacked(outcome1, " Token")),
-            "O1T",
-            18
-        );
-        ExpandedIERC20 outcome2Token = new ExpandedERC20(
-            string(abi.encodePacked(outcome2, " Token")),
-            "O2T",
-            18
-        );
+        ExpandedIERC20 outcome1Token = new ExpandedERC20(string(abi.encodePacked(outcome1, " Token")), "O1T", 18);
+        ExpandedIERC20 outcome2Token = new ExpandedERC20(string(abi.encodePacked(outcome2, " Token")), "O2T", 18);
         outcome1Token.addMinter(address(this));
         outcome2Token.addMinter(address(this));
         outcome1Token.addBurner(address(this));
@@ -166,15 +140,6 @@ contract PredictionMarket is
             currency.safeTransferFrom(msg.sender, address(this), reward);
         } // Pull reward.
 
-        // Initialize uniswap V3 liquidity pool for trading of outcome tokens.
-        amm.generateAndInitializePool(
-            address(outcome1Token),
-            address(outcome2Token),
-            0,
-            marketId,
-            0x100000000000000000000000000000000 // Initial sqrt price is 1:1, i.e. 1 tokenA for 1 tokenB.
-        );
-
         emit MarketInitialized(
             marketId,
             outcome1,
@@ -189,10 +154,7 @@ contract PredictionMarket is
 
     // Assert the market with any of 3 possible outcomes: names of outcome1, outcome2 or unresolvable.
     // Only one concurrent assertion per market is allowed.
-    function assertMarket(
-        bytes32 marketId,
-        string memory assertedOutcome
-    ) external returns (bytes32 assertionId) {
+    function assertMarket(bytes32 marketId, string memory assertedOutcome) external returns (bytes32 assertionId) {
         Market storage market = markets[marketId];
         if (market.outcome1Token == ExpandedIERC20(address(0))) {
             revert PredictionMarket__MarketDoesNotExist();
@@ -204,20 +166,15 @@ contract PredictionMarket is
             revert PredictionMarket__AssertionActiveOrResolved();
         }
         if (
-            assertedOutcomeId != outcome1Hash &&
-            assertedOutcomeId != outcome2Hash &&
-            assertedOutcomeId != keccak256(UNRESOLVABLE)
+            assertedOutcomeId != outcome1Hash && assertedOutcomeId != outcome2Hash
+                && assertedOutcomeId != keccak256(UNRESOLVABLE)
         ) {
             revert PredictionMarket__InvalidAssertionOutcome();
         }
 
         market.assertedOutcomeId = assertedOutcomeId;
-        uint256 minimumBond = optimisticOracle.getMinimumBond(
-            address(currency)
-        ); // optimisticOraclev3 might require higher bond.
-        uint256 bond = market.requiredBond > minimumBond
-            ? market.requiredBond
-            : minimumBond;
+        uint256 minimumBond = optimisticOracle.getMinimumBond(address(currency)); // optimisticOraclev3 might require higher bond.
+        uint256 bond = market.requiredBond > minimumBond ? market.requiredBond : minimumBond;
         bytes memory claim = _composeClaim(assertedOutcome, market.description);
 
         // Pull bond and make the assertion.
@@ -226,10 +183,7 @@ contract PredictionMarket is
         assertionId = _assertTruthWithDefaults(claim, bond);
 
         // Store the asserter and marketId for the assertionResolvedCallback.
-        assertedMarkets[assertionId] = AssertedMarket({
-            asserter: msg.sender,
-            marketId: marketId
-        });
+        assertedMarkets[assertionId] = AssertedMarket({asserter: msg.sender, marketId: marketId});
 
         emit MarketAsserted(marketId, assertedOutcome, assertionId);
     }
@@ -237,10 +191,7 @@ contract PredictionMarket is
     // Callback from settled assertion.
     // If the assertion was resolved true, then the asserter gets the reward and the market is marked as resolved.
     // Otherwise, assertedOutcomeId is reset and the market can be asserted again.
-    function assertionResolvedCallback(
-        bytes32 assertionId,
-        bool assertedTruthfully
-    ) external {
+    function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external {
         if (msg.sender != address(optimisticOracle)) {
             revert PredictionMarket__NotAuthorized();
         }
@@ -249,10 +200,7 @@ contract PredictionMarket is
         if (assertedTruthfully) {
             market.resolved = true;
             if (market.reward > 0) {
-                currency.safeTransfer(
-                    assertedMarkets[assertionId].asserter,
-                    market.reward
-                );
+                currency.safeTransfer(assertedMarkets[assertionId].asserter, market.reward);
             }
             emit MarketResolved(assertedMarkets[assertionId].marketId);
         } else {
@@ -267,10 +215,7 @@ contract PredictionMarket is
     // Mints pair of tokens representing the value of outcome1 and outcome2. Trading of outcome tokens is outside of the
     // scope of this contract. The caller must approve this contract to spend the currency tokens.
     // TO-DO: We need Uniswap Trading Pairs!
-    function createOutcomeTokens(
-        bytes32 marketId,
-        uint256 tokensToCreate
-    ) external {
+    function createOutcomeTokens(bytes32 marketId, uint256 tokensToCreate) external {
         Market storage market = markets[marketId];
         if (market.outcome1Token == ExpandedIERC20(address(0))) {
             revert PredictionMarket__MarketDoesNotExist();
@@ -284,10 +229,7 @@ contract PredictionMarket is
     }
 
     // Burns equal amount of outcome1 and outcome2 tokens returning settlement currency tokens.
-    function redeemOutcomeTokens(
-        bytes32 marketId,
-        uint256 tokensToRedeem
-    ) external {
+    function redeemOutcomeTokens(bytes32 marketId, uint256 tokensToRedeem) external {
         Market storage market = markets[marketId];
         if (market.outcome1Token == ExpandedIERC20(address(0))) {
             revert PredictionMarket__MarketDoesNotExist();
@@ -306,9 +248,7 @@ contract PredictionMarket is
     // resolved to the second outcome, then the payout equals balance of outcome2Token while outcome1Token provides
     // nothing. If the market was resolved to the split outcome, then both outcome tokens provides half of their balance
     // as currency payout.
-    function settleOutcomeTokens(
-        bytes32 marketId
-    ) external returns (uint256 payout) {
+    function settleOutcomeTokens(bytes32 marketId) external returns (uint256 payout) {
         Market storage market = markets[marketId];
         if (!market.resolved) {
             revert PredictionMarket__MarketNotResolved();
@@ -328,19 +268,10 @@ contract PredictionMarket is
         market.outcome2Token.burnFrom(msg.sender, outcome2Balance);
         currency.safeTransfer(msg.sender, payout);
 
-        emit TokensSettled(
-            marketId,
-            msg.sender,
-            payout,
-            outcome1Balance,
-            outcome2Balance
-        );
+        emit TokensSettled(marketId, msg.sender, payout, outcome1Balance, outcome2Balance);
     }
 
-    function _assertTruthWithDefaults(
-        bytes memory claim,
-        uint256 bond
-    ) internal returns (bytes32 assertionId) {
+    function _assertTruthWithDefaults(bytes memory claim, uint256 bond) internal returns (bytes32 assertionId) {
         assertionId = optimisticOracle.assertTruth(
             claim,
             msg.sender, // Asserter
@@ -354,32 +285,19 @@ contract PredictionMarket is
         );
     }
 
-    function _getCollateralWhitelist()
-        internal
-        view
-        returns (CollateralWhitelist)
-    {
-        return
-            CollateralWhitelist(
-                finder.getImplementationAddress(
-                    OracleInterfaces.CollateralWhitelist
-                )
-            );
+    function _getCollateralWhitelist() internal view returns (CollateralWhitelist) {
+        return CollateralWhitelist(finder.getImplementationAddress(OracleInterfaces.CollateralWhitelist));
     }
 
-    function _composeClaim(
-        string memory outcome,
-        bytes memory description
-    ) internal view returns (bytes memory) {
-        return
-            abi.encodePacked(
-                "As of assertion timestamp ",
-                ClaimData.toUtf8BytesUint(block.timestamp),
-                ", the described prediction market outcome is: ",
-                outcome,
-                ". The market description is: ",
-                description
-            );
+    function _composeClaim(string memory outcome, bytes memory description) internal view returns (bytes memory) {
+        return abi.encodePacked(
+            "As of assertion timestamp ",
+            ClaimData.toUtf8BytesUint(block.timestamp),
+            ", the described prediction market outcome is: ",
+            outcome,
+            ". The market description is: ",
+            description
+        );
     }
 
     function getMarket(bytes32 marketId) external view returns (Market memory) {
