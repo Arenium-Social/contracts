@@ -60,8 +60,13 @@ contract UniswapV3AMMContract {
         address poolAddress = magicFactory.createPool(_tokenA, _tokenB, _fee);
         require(poolAddress != address(0), "Pool Creation Failed");
 
+        // Initialize pool with price = 1 (equal weights for both outcome tokens)
+        IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
+        uint160 sqrtPriceX96 = 79228162514264337593543950336; // sqrt(1) * 2^96
+        pool.initialize(sqrtPriceX96);
+
         //Update pool data in this contract.
-        marketPools[_marketId] = PoolData({
+        PoolData memory poolData = PoolData({
             marketId: _marketId,
             pool: poolAddress,
             tokenA: _tokenA,
@@ -70,8 +75,11 @@ contract UniswapV3AMMContract {
             poolInitialized: true
         });
 
+        marketPools[_marketId] = poolData;
+        addressToPool[poolAddress] = poolData;
         directPools[_tokenA][_tokenB] = poolAddress;
         directPools[_tokenB][_tokenA] = poolAddress;
+        pools.push(poolData); // Add to pools array
 
         emit PoolInitialized(_marketId, poolAddress, _tokenA, _tokenB, _fee);
     }

@@ -48,6 +48,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         bytes outcome1; // Short name of the first outcome.
         bytes outcome2; // Short name of the second outcome.
         bytes description; // Description of the market.
+        uint24 fee; // Uniswap pool fee
     }
 
     struct AssertedMarket {
@@ -66,7 +67,8 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         address outcome1Token,
         address outcome2Token,
         uint256 reward,
-        uint256 requiredBond
+        uint256 requiredBond,
+        uint24 poolFee
     );
     event MarketAsserted(bytes32 indexed marketId, string indexed assertedOutcome, bytes32 indexed assertionId);
     event MarketResolved(bytes32 indexed marketId);
@@ -96,7 +98,8 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         string memory outcome2, // Short name of the second outcome.
         string memory description, // Description of the market.
         uint256 reward, // Reward available for asserting true market outcome.
-        uint256 requiredBond // Expected bond to assert market outcome (optimisticOraclev3 can require higher bond).
+        uint256 requiredBond, // Expected bond to assert market outcome (optimisticOraclev3 can require higher bond).
+        uint24 poolFee // Uniswap pool fee
     ) external returns (bytes32 marketId) {
         if (bytes(outcome1).length == 0) {
             revert PredictionMarket__EmptyFirstOutcome();
@@ -134,11 +137,15 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
             requiredBond: requiredBond,
             outcome1: bytes(outcome1),
             outcome2: bytes(outcome2),
-            description: bytes(description)
+            description: bytes(description),
+            fee: poolFee
         });
         if (reward > 0) {
             currency.safeTransferFrom(msg.sender, address(this), reward);
         } // Pull reward.
+
+        // Initialize Uniswap V3 pool
+        amm.initializePool(address(outcome1Token), address(outcome2Token), poolFee, marketId);
 
         emit MarketInitialized(
             marketId,
@@ -148,7 +155,8 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
             address(outcome1Token),
             address(outcome2Token),
             reward,
-            requiredBond
+            requiredBond,
+            poolFee
         );
     }
 
