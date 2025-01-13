@@ -3,7 +3,10 @@ pragma solidity 0.8.24;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ExpandedERC20, ExpandedIERC20} from "@uma/core/contracts/common/implementation/ExpandedERC20.sol";
-import "@uma/core/contracts/data-verification-mechanism/implementation/Constants.sol";
+import {
+    OracleInterfaces,
+    OptimisticOracleConstraints
+} from "@uma/core/contracts/data-verification-mechanism/implementation/Constants.sol";
 import {CollateralWhitelist} from "./lib/CollateralWhitelist.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 import {ClaimData} from "./lib/ClaimData.sol";
@@ -311,67 +314,6 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     function getMarket(bytes32 marketId) external view returns (Market memory) {
         return markets[marketId];
     }
-
-    // function getMarketTokens(bytes32 marketId) external view returns (address outcome1Token, address outcome2Token) {
-    //     Market storage market = markets[marketId];
-    //     if (market.outcome1Token == ExpandedIERC20(address(0))) {
-    //         revert PredictionMarket__MarketDoesNotExist();
-    //     }
-    //     return (address(market.outcome1Token), address(market.outcome2Token));
-    // }
-
-    // function getMarketOutcomes(bytes32 marketId) external view returns (bytes memory outcome1, bytes memory outcome2) {
-    //     Market storage market = markets[marketId];
-    //     if (market.outcome1Token == ExpandedIERC20(address(0))) {
-    //         revert PredictionMarket__MarketDoesNotExist();
-    //     }
-    //     return (market.outcome1, market.outcome2);
-    // }
-
-    // function getMarketDescription(bytes32 marketId) external view returns (bytes memory) {
-    //     Market storage market = markets[marketId];
-    //     if (market.outcome1Token == ExpandedIERC20(address(0))) {
-    //         revert PredictionMarket__MarketDoesNotExist();
-    //     }
-    //     return market.description;
-    // }
-
-    // function getMarketStatus(bytes32 marketId)
-    //     external
-    //     view
-    //     returns (bool resolved, bytes32 assertedOutcomeId, uint256 reward, uint256 requiredBond)
-    // {
-    //     Market storage market = markets[marketId];
-    //     if (market.outcome1Token == ExpandedIERC20(address(0))) {
-    //         revert PredictionMarket__MarketDoesNotExist();
-    //     }
-    //     return (market.resolved, market.assertedOutcomeId, market.reward, market.requiredBond);
-    // }
-
-    // function getAssertedMarket(bytes32 assertionId) external view returns (address asserter, bytes32 marketId) {
-    //     AssertedMarket storage assertedMarket = assertedMarkets[assertionId];
-    //     return (assertedMarket.asserter, assertedMarket.marketId);
-    // }
-
-    // function isMarketResolved(bytes32 marketId) external view returns (bool) {
-    //     Market storage market = markets[marketId];
-    //     if (market.outcome1Token == ExpandedIERC20(address(0))) {
-    //         revert PredictionMarket__MarketDoesNotExist();
-    //     }
-    //     return market.resolved;
-    // }
-
-    // function getMarketBalances(bytes32 marketId, address account)
-    //     external
-    //     view
-    //     returns (uint256 outcome1Balance, uint256 outcome2Balance)
-    // {
-    //     Market storage market = markets[marketId];
-    //     if (market.outcome1Token == ExpandedIERC20(address(0))) {
-    //         revert PredictionMarket__MarketDoesNotExist();
-    //     }
-    //     return (market.outcome1Token.balanceOf(account), market.outcome2Token.balanceOf(account));
-    // }
 
     function getCurrency() external view returns (address) {
         return address(currency);
