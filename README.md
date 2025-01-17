@@ -1,6 +1,6 @@
 # Arenium
 
-Welcome to Arenium! This repository contains the core smart contracts powering Arenium, a next-generation prediction market platform built on the Base network. Arenium leverages UMA’s Optimistic Oracle V3 to ensure trustless event resolution and incorporates Automated Market Maker (AMM) functionality for seamless token trading. Tailored for The Arena community, Arenium delivers a secure, transparent, and gamified prediction market experience.
+Welcome to Arenium! This repository contains the core smart contracts powering Arenium, a next-generation prediction market platform built on the Avalanche network. Arenium leverages UMA’s Optimistic Oracle V3 to ensure trustless event resolution and incorporates Automated Market Maker (AMM) functionality for seamless token trading. Tailored for The Arena community, Arenium delivers a secure, transparent, and gamified prediction market experience.
 
 ## Overview
 
