@@ -7,7 +7,7 @@ import {
     OracleInterfaces,
     OptimisticOracleConstraints
 } from "@uma/core/contracts/data-verification-mechanism/implementation/Constants.sol";
-import {CollateralWhitelist} from "./lib/CollateralWhitelist.sol";
+import {AddressWhitelist} from "@uma/core/contracts/common/implementation/AddressWhitelist.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 import {OptimisticOracleV3Interface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
@@ -30,7 +30,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     FinderInterface public immutable finder; // UMA protocol Finder used to discover other protocol contracts.
     OptimisticOracleV3Interface public immutable optimisticOracle;
     UniswapV3AMMContract public immutable amm; // Uniswap V4 AMM contract used to manage trading of outcome tokens.
-    CollateralWhitelist public immutable collateralWhitelist;
+    AddressWhitelist public immutable collateralWhitelist;
     IERC20 private immutable currency; // Currency used for all prediction markets.
     uint64 private constant ASSERTION_LIVENESS = 7200; // 2 hours.
     bytes32 private immutable defaultIdentifier; // Identifier used for all prediction markets.
@@ -240,8 +240,8 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         );
     }
 
-    function _getCollateralWhitelist() internal view returns (CollateralWhitelist) {
-        return CollateralWhitelist(finder.getImplementationAddress(OracleInterfaces.CollateralWhitelist));
+    function _getCollateralWhitelist() internal view returns (AddressWhitelist) {
+        return AddressWhitelist(finder.getImplementationAddress(OracleInterfaces.CollateralWhitelist));
     }
 
     function getMarket(bytes32 marketId)
