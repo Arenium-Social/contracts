@@ -9,9 +9,7 @@ contract DeployAMM is Script {
     function run() external {
         HelperConfig helperConfig = new HelperConfig();
         vm.startBroadcast();
-        UniswapV3AMMContract amm = new UniswapV3AMMContract(
-            helperConfig.getBaseSepoliaConfig().uniswapV3Factory
-        );
+        UniswapV3AMMContract amm = new UniswapV3AMMContract(helperConfig.getBaseSepoliaConfig().uniswapV3Factory);
         console2.log("UniswapV3AMMContract deployed to: ", address(amm));
         vm.stopBroadcast();
     }

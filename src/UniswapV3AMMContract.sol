@@ -12,7 +12,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @notice Contract to manage trading of outcome tokens coming from prediction market, using uniswap V3 liquidity pools.
  * @dev Pool creation is automated when a new market is initialized in prediction market.
  */
-
 contract UniswapV3AMMContract {
     /// @notice UniswapV3 contract instance.
     IUniswapV3Factory public immutable magicFactory;
@@ -40,12 +39,7 @@ contract UniswapV3AMMContract {
     /// @notice Mapping of pool address to pool data struct, just for simplifying contract logic.
     mapping(address => PoolData) public addressToPool;
 
-    event PoolCreated(
-        address poolAddress,
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    );
+    event PoolCreated(address poolAddress, address tokenA, address tokenB, uint24 fee);
 
     event PoolInitialized(address poolAddress, uint160 sqrtPriceX96);
 
@@ -70,10 +64,7 @@ contract UniswapV3AMMContract {
         uint160 sqrtPriceX96
     ) external returns (address poolAddress) {
         require(tokenA != tokenB, "Tokens Must Be Different");
-        require(
-            marketIdToPool[marketId].pool == address(0),
-            "Pool Already Exists"
-        );
+        require(marketIdToPool[marketId].pool == address(0), "Pool Already Exists");
 
         //Ensure token order for pool creation.
         if (tokenA > tokenB) {
@@ -112,10 +103,7 @@ contract UniswapV3AMMContract {
      */
     function initializePool(address pool, uint160 sqrtPriceX96) public {
         require(addressToPool[pool].pool == pool, "Pool Does Not Exist");
-        require(
-            addressToPool[pool].poolInitialized == false,
-            "Pool Already Initialized"
-        );
+        require(addressToPool[pool].poolInitialized == false, "Pool Already Initialized");
         IUniswapV3PoolActions(pool).initialize(sqrtPriceX96);
         addressToPool[pool].poolInitialized = true;
         emit PoolInitialized(pool, sqrtPriceX96);
@@ -131,20 +119,11 @@ contract UniswapV3AMMContract {
     /// @param amount The amount of liquidity to mint
     /// @return amount0 The amount of token0 that was paid to mint the given amount of liquidity. Matches the value in the callback
     /// @return amount1 The amount of token1 that was paid to mint the given amount of liquidity. Matches the value in the callback
-    function mintPosition(
-        address pool,
-        address recipient,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 amount
-    ) external returns (uint256 amount0, uint256 amount1) {
-        (amount0, amount1) = IUniswapV3PoolActions(pool).mint(
-            recipient,
-            tickLower,
-            tickUpper,
-            amount,
-            ""
-        );
+    function mintPosition(address pool, address recipient, int24 tickLower, int24 tickUpper, uint128 amount)
+        external
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (amount0, amount1) = IUniswapV3PoolActions(pool).mint(recipient, tickLower, tickUpper, amount, "");
     }
 
     /// @notice Collects tokens owed to a position
@@ -167,13 +146,8 @@ contract UniswapV3AMMContract {
         uint128 amount0Requested,
         uint128 amount1Requested
     ) external returns (uint128 amount0, uint128 amount1) {
-        (amount0, amount1) = IUniswapV3PoolActions(pool).collect(
-            recipient,
-            tickLower,
-            tickUpper,
-            amount0Requested,
-            amount1Requested
-        );
+        (amount0, amount1) =
+            IUniswapV3PoolActions(pool).collect(recipient, tickLower, tickUpper, amount0Requested, amount1Requested);
     }
 
     /// @notice Burn liquidity from the sender and account tokens owed for the liquidity to the position
@@ -184,17 +158,11 @@ contract UniswapV3AMMContract {
     /// @param amount How much liquidity to burn
     /// @return amount0 The amount of token0 sent to the recipient
     /// @return amount1 The amount of token1 sent to the recipient
-    function burn(
-        address pool,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 amount
-    ) external returns (uint256 amount0, uint256 amount1) {
-        (amount0, amount1) = IUniswapV3PoolActions(pool).burn(
-            tickLower,
-            tickUpper,
-            amount
-        );
+    function burn(address pool, int24 tickLower, int24 tickUpper, uint128 amount)
+        external
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (amount0, amount1) = IUniswapV3PoolActions(pool).burn(tickLower, tickUpper, amount);
     }
 
     /// @notice Swap token0 for token1, or token1 for token0
@@ -215,13 +183,8 @@ contract UniswapV3AMMContract {
         uint160 sqrtPriceLimitX96,
         bytes calldata data
     ) external returns (int256 amount0, int256 amount1) {
-        (amount0, amount1) = IUniswapV3PoolActions(pool).swap(
-            recipient,
-            zeroForOne,
-            amountSpecified,
-            sqrtPriceLimitX96,
-            data
-        );
+        (amount0, amount1) =
+            IUniswapV3PoolActions(pool).swap(recipient, zeroForOne, amountSpecified, sqrtPriceLimitX96, data);
     }
 
     /**
@@ -232,11 +195,7 @@ contract UniswapV3AMMContract {
      * @param fee The fee collected upon every swap in the pool, denominated in hundredths of a bip.
      * @return pool The pool address.
      */
-    function getPoolUsingParams(
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    ) external view returns (address pool) {
+    function getPoolUsingParams(address tokenA, address tokenB, uint24 fee) external view returns (address pool) {
         pool = magicFactory.getPool(tokenA, tokenB, fee);
         return pool;
     }
@@ -246,9 +205,7 @@ contract UniswapV3AMMContract {
      * @param marketId The id of the market coming from PredictionMarket.sol.
      * @return pool The struct PoolData for the given marketId.
      */
-    function getPoolUsingMarketId(
-        bytes32 marketId
-    ) external view returns (PoolData memory pool) {
+    function getPoolUsingMarketId(bytes32 marketId) external view returns (PoolData memory pool) {
         pool = marketIdToPool[marketId];
         return pool;
     }
@@ -257,9 +214,7 @@ contract UniswapV3AMMContract {
      * @param poolAddress The address of the pool.
      * @return pool The struct PoolData for the given pool address.
      */
-    function getPoolUsingAddress(
-        address poolAddress
-    ) external view returns (PoolData memory pool) {
+    function getPoolUsingAddress(address poolAddress) external view returns (PoolData memory pool) {
         pool = addressToPool[poolAddress];
         return pool;
     }
