@@ -14,13 +14,8 @@ contract AMMScript is Script {
         address tokenB = 0x808456652fdb597867f38412077A9182bf77359F;
         uint24 fee = 5000000;
         bytes32 marketId = 0x0000000000000000000000000000000000000000000000000000000000000001;
-<<<<<<< HEAD
-        address pool = amm.generateAndInitializePool(tokenA, tokenB, fee, marketId, 100000000);
-        console2.log("Pool Address: ", pool);
-=======
         amm.initializePool(tokenA, tokenB, fee, marketId);
         console2.log("Pool Address: ", address(amm));
->>>>>>> origin/main
         vm.stopBroadcast();
     }
 }

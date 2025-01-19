@@ -14,16 +14,9 @@ contract DeployAll is Script {
         config = helpConfig.getBaseSepoliaConfig();
 
         vm.startBroadcast();
-        UniswapV3AMMContract amm = new UniswapV3AMMContract(
-            config.uniswapV3Factory,
-            config.uniswapV3SwapRouter
-        );
-        PredictionMarket market = new PredictionMarket(
-            config.finder,
-            config.currency,
-            config.optimisticOracleV3,
-            address(amm)
-        );
+        UniswapV3AMMContract amm = new UniswapV3AMMContract(config.uniswapV3Factory, config.uniswapV3SwapRouter);
+        PredictionMarket market =
+            new PredictionMarket(config.finder, config.currency, config.optimisticOracleV3, address(amm));
         vm.stopBroadcast();
         console2.log("PredictionMarket deployed to: ", address(market));
         console2.log("AMM deployed to: ", address(amm));
