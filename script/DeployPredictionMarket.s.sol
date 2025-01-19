@@ -13,12 +13,8 @@ contract DeployPredictionMarket is Script {
         config = helpConfig.getBaseSepoliaConfig();
 
         vm.startBroadcast();
-        PredictionMarket market = new PredictionMarket(
-            msg.sender,
-            config.finder,
-            config.currency,
-            config.optimisticOracleV3
-        );
+        PredictionMarket market =
+            new PredictionMarket(msg.sender, config.finder, config.currency, config.optimisticOracleV3);
         console2.log("PredictionMarket deployed to: ", address(market));
         return market;
     }
