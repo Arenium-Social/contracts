@@ -16,7 +16,7 @@ import "./lib/TickMath.sol";
  * @notice Contract to manage trading of outcome tokens coming from prediction market, using uniswap V3 liquidity pools.
  * @dev Pool creation is automated when a new market is initialized in prediction market.
  */
-contract UniswapV3AMMContract {
+contract UniswapV3AMMContract is Ownable {
     IUniswapV3Factory public immutable magicFactory;
     ISwapRouter public immutable swapRouter;
 
@@ -41,8 +41,10 @@ contract UniswapV3AMMContract {
     event TokensSwapped(
         bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
     );
+    event ProtocolFeeCollected(address recipient, uint256 amountA, uint256 amountB);
+    event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
 
-    constructor(address _uniswapV3Factory, address _swapRouter) {
+    constructor(address _uniswapV3Factory, address _swapRouter) Ownable() {
         magicFactory = IUniswapV3Factory(_uniswapV3Factory);
         swapRouter = ISwapRouter(_swapRouter);
     }
@@ -155,6 +157,26 @@ contract UniswapV3AMMContract {
         swapRouter.exactInputSingle(params);
 
         emit TokensSwapped(_marketId, inputToken, outputToken, _amountIn, _amountOutMinimum);
+    }
+
+    function collectFee(
+        bytes32 marketId,
+        address recipient,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 amount0Requested,
+        uint128 amount1Requested
+    ) external returns (uint128 amount0, uint128 amount1) {
+        PoolData memory poolData = marketPools[marketId];
+        (amount0, amount1) =
+            IUniswapV3Pool(poolData.pool).collect(recipient, tickLower, tickUpper, amount0Requested, amount1Requested);
+        emit FeeCollected(recipient, marketId, amount0, amount1);
+    }
+
+    function collectProtocolFee(address pool, address recipient, uint128 tokenA, uint128 tokenB) external onlyOwner {
+        // Modifications in future, need to figure out how prediction market tokens are valuable to owners.
+        IUniswapV3Pool(pool).collectProtocol(recipient, tokenA, tokenB);
+        emit ProtocolFeeCollected(pool, tokenA, tokenB);
     }
 
     function getPoolUsingParams(address tokenA, address tokenB, uint24 fee) external view returns (address pool) {
