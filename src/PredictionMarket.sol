@@ -9,6 +9,7 @@ import {
 } from "@uma/core/contracts/data-verification-mechanism/implementation/Constants.sol";
 import {AddressWhitelist} from "@uma/core/contracts/common/implementation/AddressWhitelist.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
+import {ClaimData} from "./lib/ClaimData.sol";
 import {OptimisticOracleV3Interface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 import {OptimisticOracleV3CallbackRecipientInterface} from
