@@ -24,8 +24,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     error PredictionMarket__AssertionActiveOrResolved();
     error PredictionMarket__NotAuthorized();
     error PredictionMarket__MarketNotResolved();
-    error PredictionMarket__EmptyFirstOutcome();
-    error PredictionMarket__EmptySecondOutcome();
+    error PredictionMarket__EmptyOutcome();
     error PredictionMarket__OutcomesAreTheSame();
     error PredictionMarket__EmptyDescription();
     error PredictionMarket__MarketAlreadyExists();
@@ -89,8 +88,8 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint256 requiredBond, // Expected bond to assert market outcome (optimisticOraclev3 can require higher bond).
         uint24 poolFee // Uniswap pool fee
     ) external returns (bytes32 marketId) {
-        if (bytes(outcome1).length == 0) revert PredictionMarket__EmptyFirstOutcome();
-        if (bytes(outcome2).length == 0) revert PredictionMarket__EmptySecondOutcome();
+        if (bytes(outcome1).length == 0) revert PredictionMarket__EmptyOutcome();
+        if (bytes(outcome2).length == 0) revert PredictionMarket__EmptyOutcome();
         if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
             revert PredictionMarket__OutcomesAreTheSame();
         }
@@ -283,7 +282,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         )
     {
         PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
+        if (address(market.outcome1Token) == address(0)) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
 
         (address token1, address token2) = PredictionMarketLib.getMarketTokenAddresses(market);
         (string memory out1, string memory out2) = PredictionMarketLib.getMarketOutcomes(market);
@@ -305,7 +306,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     function getMarketTokens(bytes32 marketId) external view returns (address outcome1Token, address outcome2Token) {
         PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
+        if (address(market.outcome1Token) == address(0)) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
         return PredictionMarketLib.getMarketTokenAddresses(market);
     }
 
@@ -315,13 +318,17 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         returns (string memory outcome1, string memory outcome2)
     {
         PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
+        if (address(market.outcome1Token) == address(0)) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
         return PredictionMarketLib.getMarketOutcomes(market);
     }
 
     function getMarketStatus(bytes32 marketId) external view returns (bool resolved, bytes32 assertedOutcomeId) {
         PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
+        if (address(market.outcome1Token) == address(0)) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
         return PredictionMarketLib.getMarketStatus(market);
     }
 
@@ -348,7 +355,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     function getOutcomeTokenBalances(bytes32 marketId, address account) external view returns (uint256, uint256) {
         PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
+        if (address(market.outcome1Token) == address(0)) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
 
         return (market.outcome1Token.balanceOf(account), market.outcome2Token.balanceOf(account));
     }
