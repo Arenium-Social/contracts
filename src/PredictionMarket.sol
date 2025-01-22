@@ -24,6 +24,12 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     error PredictionMarket__AssertionActiveOrResolved();
     error PredictionMarket__NotAuthorized();
     error PredictionMarket__MarketNotResolved();
+    error PredictionMarket__EmptyFirstOutcome();
+    error PredictionMarket__EmptySecondOutcome();
+    error PredictionMarket__OutcomesAreTheSame();
+    error PredictionMarket__EmptyDescription();
+    error PredictionMarket__MarketAlreadyExists();
+    error PredictionMarket__InvalidAssertionOutcome();
 
     using SafeERC20 for IERC20;
     using PredictionMarketLib for PredictionMarketLib.Market;
@@ -83,9 +89,17 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint256 requiredBond, // Expected bond to assert market outcome (optimisticOraclev3 can require higher bond).
         uint24 poolFee // Uniswap pool fee
     ) external returns (bytes32 marketId) {
-        marketId = keccak256(abi.encode(block.number, description));
+        if (bytes(outcome1).length == 0) revert PredictionMarket__EmptyFirstOutcome();
+        if (bytes(outcome2).length == 0) revert PredictionMarket__EmptySecondOutcome();
+        if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
+            revert PredictionMarket__OutcomesAreTheSame();
+        }
+        if (bytes(description).length == 0) revert PredictionMarket__EmptyDescription();
 
-        PredictionMarketLib.validateMarketParameters(outcome1, outcome2, description, markets[marketId]);
+        marketId = keccak256(abi.encode(block.number, description));
+        if (markets[marketId].outcome1Token != ExpandedIERC20(address(0))) {
+            revert PredictionMarket__MarketAlreadyExists();
+        }
 
         // Create position tokens with this contract having minter and burner roles.
         ExpandedIERC20 outcome1Token = new ExpandedERC20(string(abi.encodePacked(outcome1, " Token")), "O1T", 18);
@@ -135,12 +149,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
             revert PredictionMarket__MarketDoesNotExist();
         }
         bytes32 assertedOutcomeId = keccak256(bytes(assertedOutcome));
-        require(
-            PredictionMarketLib.validateAssertedOutcome(
-                assertedOutcomeId, market.outcome1, market.outcome2, UNRESOLVABLE
-            ),
-            "Invalid assertion outcome"
-        );
+        if (!_isValidOutcome(assertedOutcomeId, market.outcome1, market.outcome2)) {
+            revert PredictionMarket__InvalidAssertionOutcome();
+        }
 
         market.assertedOutcomeId = assertedOutcomeId;
         uint256 minimumBond = optimisticOracle.getMinimumBond(address(currency)); // optimisticOraclev3 might require higher bond.
@@ -226,6 +237,15 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         currency.safeTransfer(msg.sender, payout);
 
         emit TokensSettled(marketId, msg.sender, payout, outcome1Balance, outcome2Balance);
+    }
+
+    function _isValidOutcome(bytes32 assertedOutcomeId, bytes memory outcome1, bytes memory outcome2)
+        private
+        pure
+        returns (bool)
+    {
+        return assertedOutcomeId == keccak256(outcome1) || assertedOutcomeId == keccak256(outcome2)
+            || assertedOutcomeId == keccak256(UNRESOLVABLE);
     }
 
     function _assertTruthWithDefaults(bytes memory claim, uint256 bond) internal returns (bytes32 assertionId) {

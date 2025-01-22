@@ -26,52 +26,6 @@ library PredictionMarketLib {
         bytes32 marketId;
     }
 
-    error PredictionMarketLib__EmptyFirstOutcome();
-    error PredictionMarketLib__EmptySecondOutcome();
-    error PredictionMarketLib__OutcomesAreTheSame();
-    error PredictionMarketLib__EmptyDescription();
-    error PredictionMarketLib__MarketAlreadyExists();
-    error PredictionMarketLib__InvalidAssertionOutcome();
-
-    function validateMarketParameters(
-        string memory outcome1,
-        string memory outcome2,
-        string memory description,
-        Market storage market
-    ) external view {
-        if (bytes(outcome1).length == 0) {
-            revert PredictionMarketLib__EmptyFirstOutcome();
-        }
-        if (bytes(outcome2).length == 0) {
-            revert PredictionMarketLib__EmptySecondOutcome();
-        }
-        bytes32 outcome1Hash = keccak256(bytes(outcome1));
-        bytes32 outcome2Hash = keccak256(bytes(outcome2));
-        if (outcome1Hash == outcome2Hash) {
-            revert PredictionMarketLib__OutcomesAreTheSame();
-        }
-        if (bytes(description).length == 0) {
-            revert PredictionMarketLib__EmptyDescription();
-        }
-        if (market.outcome1Token != ExpandedIERC20(address(0))) {
-            revert PredictionMarketLib__MarketAlreadyExists();
-        }
-    }
-
-    function validateAssertedOutcome(
-        bytes32 assertedOutcomeId,
-        bytes memory outcome1,
-        bytes memory outcome2,
-        bytes memory unresolvable
-    ) external pure returns (bool) {
-        bytes32 outcome1Hash = keccak256(outcome1);
-        bytes32 outcome2Hash = keccak256(outcome2);
-        bytes32 unresolvableHash = keccak256(unresolvable);
-
-        return assertedOutcomeId == outcome1Hash || assertedOutcomeId == outcome2Hash
-            || assertedOutcomeId == unresolvableHash;
-    }
-
     function calculatePayout(Market storage market, uint256 outcome1Balance, uint256 outcome2Balance)
         external
         view
