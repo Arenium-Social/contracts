@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.16;
 
 // import {PoolKey} from "@v4-core/src/types/PoolKey.sol";
 // import {CurrencyLibrary, Currency} from "@v4-core/src/types/Currency.sol";
