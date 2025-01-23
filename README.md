@@ -54,23 +54,13 @@ The repository is organized for clarity and modularity:
   - `AMM.sol`: Facilitates token swaps using a constant product pricing curve.
   - `FeeCollector.sol`: Aggregates and distributes fees from market actions.
   - **`lib/`**: Utility and mathematical libraries:
-    - `ClaimData.sol`
     - `FullMath.sol`
-    - `ISwapRouter.sol`
-    - `LiquidityAmounts.sol`
+   - `LiquidityAmounts.sol`
     - `PredictionMarketLib.sol`
     - `TickMath.sol`
-  - **`interfaces/`**: Interfaces for external protocol interactions:
-    - `IUniswapV3Factory.sol`
-    - `IUniswapV3PoolActions.sol`
 - **`test/`**: Unit tests to verify contract functionality and ensure security.
 - **`script/`**: Deployment and interaction scripts for the contracts.
 - **`docs/`**: Documentation and specifications for smart contracts.
-
-## Deployment Addresses
-
-- PredictionMarket: https://base-sepolia.blockscout.com/address/0x719Fb09B0335f892fbF916b57e634E58cefA7801
-- AMM: https://base-sepolia.blockscout.com/address/0xE382B600D1b68d645AF14414110eEf0CFEb49Ecc
 
 ## Getting Started
 
@@ -89,6 +79,8 @@ Join our Discord server to discuss ideas, share feedback, and get the latest upd
 
 - **Discord:** [Arenium Official Server](https://discord.gg/ThMkW8X89k)
 - **Website:** [Arenium Platform](https://www.arenium.social/)
+- **Twitter:** [@AreniumApp](https://x.com/AreniumApp)
+- **The Arena:** [@AreniumApp](https://starsarena.com/AreniumApp)
 
 ## License
 

@@ -19,7 +19,6 @@ import {UniswapV3AMMContract} from "./UniswapV3AMMContract.sol";
 import {PredictionMarketLib} from "./lib/PredictionMarketLib.sol";
 
 contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownable {
-    error PredictionMarket__UnsupportedCurrency();
     error PredictionMarket__MarketDoesNotExist();
     error PredictionMarket__AssertionActiveOrResolved();
     error PredictionMarket__NotAuthorized();
@@ -36,7 +35,6 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     FinderInterface public immutable finder; // UMA protocol Finder used to discover other protocol contracts.
     OptimisticOracleV3Interface public immutable optimisticOracle;
     UniswapV3AMMContract public immutable amm; // Uniswap V4 AMM contract used to manage trading of outcome tokens.
-    AddressWhitelist public immutable collateralWhitelist;
     IERC20 private immutable currency; // Currency used for all prediction markets.
     uint64 private constant ASSERTION_LIVENESS = 7200; // 2 hours.
     bytes32 private immutable defaultIdentifier; // Identifier used for all prediction markets.
@@ -70,10 +68,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     constructor(address _finder, address _currency, address _optimisticOracleV3, address _ammContract) {
         finder = FinderInterface(_finder);
-        collateralWhitelist = _getCollateralWhitelist();
-        if (!_getCollateralWhitelist().isOnWhitelist(_currency)) {
-            revert PredictionMarket__UnsupportedCurrency();
-        }
+        require(_getCollateralWhitelist().isOnWhitelist(_currency), "Unsupported currency");
         currency = IERC20(_currency);
         optimisticOracle = OptimisticOracleV3Interface(_optimisticOracleV3);
         defaultIdentifier = optimisticOracle.defaultIdentifier();

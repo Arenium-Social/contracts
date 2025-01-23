@@ -8,7 +8,7 @@ import {UniswapV3AMMContract} from "../../src/UniswapV3AMMContract.sol";
 
 contract AMMScript is Script {
     function run() external returns (PredictionMarket) {
-        HelperConfig helperConfig = new HelperConfig();
+        // HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory config;
 
         vm.startBroadcast();
