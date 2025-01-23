@@ -9,8 +9,8 @@ remappings = [
     "forge-std/=lib/forge-std/src/",
     "@openzeppelin/=lib/openzeppelin-contracts/",
     "@uma/core/contracts/=lib/protocol/packages/core/contracts/",
-    "@v3-core/contracts/=lib/v3-core/contracts/",
-    "@v3-periphery/contracts/=lib/v3-periphery/contracts/",
+    "@uniswap/v3-core/contracts/=lib/v3-core/contracts/",
+    "@uniswap/v3-periphery/contracts/=lib/v3-periphery/contracts/",
 ]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

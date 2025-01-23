@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.16;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ExpandedERC20, ExpandedIERC20} from "@uma/core/contracts/common/implementation/ExpandedERC20.sol";
@@ -9,7 +9,7 @@ import {
 } from "@uma/core/contracts/data-verification-mechanism/implementation/Constants.sol";
 import {AddressWhitelist} from "@uma/core/contracts/common/implementation/AddressWhitelist.sol";
 import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
-import {ClaimData} from "./lib/ClaimData.sol";
+import {ClaimData} from "@uma/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
 import {OptimisticOracleV3Interface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 import {OptimisticOracleV3CallbackRecipientInterface} from
@@ -24,6 +24,11 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     error PredictionMarket__AssertionActiveOrResolved();
     error PredictionMarket__NotAuthorized();
     error PredictionMarket__MarketNotResolved();
+    error PredictionMarket__EmptyOutcome();
+    error PredictionMarket__OutcomesAreTheSame();
+    error PredictionMarket__EmptyDescription();
+    error PredictionMarket__MarketAlreadyExists();
+    error PredictionMarket__InvalidAssertionOutcome();
 
     using SafeERC20 for IERC20;
     using PredictionMarketLib for PredictionMarketLib.Market;
@@ -65,6 +70,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     constructor(address _finder, address _currency, address _optimisticOracleV3, address _ammContract) {
         finder = FinderInterface(_finder);
+        collateralWhitelist = _getCollateralWhitelist();
         if (!_getCollateralWhitelist().isOnWhitelist(_currency)) {
             revert PredictionMarket__UnsupportedCurrency();
         }
@@ -82,9 +88,17 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint256 requiredBond, // Expected bond to assert market outcome (optimisticOraclev3 can require higher bond).
         uint24 poolFee // Uniswap pool fee
     ) external returns (bytes32 marketId) {
-        marketId = keccak256(abi.encode(block.number, description));
+        if (bytes(outcome1).length == 0) revert PredictionMarket__EmptyOutcome();
+        if (bytes(outcome2).length == 0) revert PredictionMarket__EmptyOutcome();
+        if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
+            revert PredictionMarket__OutcomesAreTheSame();
+        }
+        if (bytes(description).length == 0) revert PredictionMarket__EmptyDescription();
 
-        PredictionMarketLib.validateMarketParameters(outcome1, outcome2, description, markets[marketId]);
+        marketId = keccak256(abi.encode(block.number, description));
+        if (markets[marketId].outcome1Token != ExpandedIERC20(address(0))) {
+            revert PredictionMarket__MarketAlreadyExists();
+        }
 
         // Create position tokens with this contract having minter and burner roles.
         ExpandedIERC20 outcome1Token = new ExpandedERC20(string(abi.encodePacked(outcome1, " Token")), "O1T", 18);
@@ -134,12 +148,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
             revert PredictionMarket__MarketDoesNotExist();
         }
         bytes32 assertedOutcomeId = keccak256(bytes(assertedOutcome));
-        require(
-            PredictionMarketLib.validateAssertedOutcome(
-                assertedOutcomeId, market.outcome1, market.outcome2, UNRESOLVABLE
-            ),
-            "Invalid assertion outcome"
-        );
+        if (!_isValidOutcome(assertedOutcomeId, market.outcome1, market.outcome2)) {
+            revert PredictionMarket__InvalidAssertionOutcome();
+        }
 
         market.assertedOutcomeId = assertedOutcomeId;
         uint256 minimumBond = optimisticOracle.getMinimumBond(address(currency)); // optimisticOraclev3 might require higher bond.
@@ -227,6 +238,15 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         emit TokensSettled(marketId, msg.sender, payout, outcome1Balance, outcome2Balance);
     }
 
+    function _isValidOutcome(bytes32 assertedOutcomeId, bytes memory outcome1, bytes memory outcome2)
+        private
+        pure
+        returns (bool)
+    {
+        return assertedOutcomeId == keccak256(outcome1) || assertedOutcomeId == keccak256(outcome2)
+            || assertedOutcomeId == keccak256(UNRESOLVABLE);
+    }
+
     function _assertTruthWithDefaults(bytes memory claim, uint256 bond) internal returns (bytes32 assertionId) {
         assertionId = optimisticOracle.assertTruth(
             claim,
@@ -245,68 +265,30 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         return AddressWhitelist(finder.getImplementationAddress(OracleInterfaces.CollateralWhitelist));
     }
 
+    // Simplified market getter with reduced return values
     function getMarket(bytes32 marketId)
         external
         view
         returns (
             bool resolved,
-            bytes32 assertedOutcomeId,
             address outcome1Token,
             address outcome2Token,
-            uint256 reward,
-            uint256 requiredBond,
-            string memory outcome1,
-            string memory outcome2,
-            string memory description,
-            uint24 fee
+            bytes memory outcome1,
+            bytes memory outcome2
         )
     {
         PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
-
-        (address token1, address token2) = PredictionMarketLib.getMarketTokenAddresses(market);
-        (string memory out1, string memory out2) = PredictionMarketLib.getMarketOutcomes(market);
-        (bool res, bytes32 assertId) = PredictionMarketLib.getMarketStatus(market);
+        if (address(market.outcome1Token) == address(0)) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
 
         return (
-            res,
-            assertId,
-            token1,
-            token2,
-            market.reward,
-            market.requiredBond,
-            out1,
-            out2,
-            string(market.description),
-            market.fee
+            market.resolved,
+            address(market.outcome1Token),
+            address(market.outcome2Token),
+            market.outcome1,
+            market.outcome2
         );
-    }
-
-    function getMarketTokens(bytes32 marketId) external view returns (address outcome1Token, address outcome2Token) {
-        PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
-        return PredictionMarketLib.getMarketTokenAddresses(market);
-    }
-
-    function getMarketOutcomes(bytes32 marketId)
-        external
-        view
-        returns (string memory outcome1, string memory outcome2)
-    {
-        PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
-        return PredictionMarketLib.getMarketOutcomes(market);
-    }
-
-    function getMarketStatus(bytes32 marketId) external view returns (bool resolved, bytes32 assertedOutcomeId) {
-        PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
-        return PredictionMarketLib.getMarketStatus(market);
-    }
-
-    function getAssertedMarket(bytes32 assertionId) external view returns (address asserter, bytes32 marketId) {
-        PredictionMarketLib.AssertedMarket memory assertedMarket = assertedMarkets[assertionId];
-        return (assertedMarket.asserter, assertedMarket.marketId);
     }
 
     function getCurrency() external view returns (address) {
@@ -323,12 +305,5 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     function getUnresolvableOutcome() external pure returns (string memory) {
         return string(UNRESOLVABLE);
-    }
-
-    function getOutcomeTokenBalances(bytes32 marketId, address account) external view returns (uint256, uint256) {
-        PredictionMarketLib.Market storage market = markets[marketId];
-        require(address(market.outcome1Token) != address(0), "Market does not exist");
-
-        return (market.outcome1Token.balanceOf(account), market.outcome2Token.balanceOf(account));
     }
 }

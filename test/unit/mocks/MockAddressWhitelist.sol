@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.16;
 
 import "@uma/core/contracts/common/interfaces/AddressWhitelistInterface.sol";
 

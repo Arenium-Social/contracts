@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.16;
 
-import {IUniswapV3Factory} from "@v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IUniswapV3Pool} from "@v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import {IUniswapV3SwapCallback} from "@v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol";
+import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {IUniswapV3SwapCallback} from "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import "./lib/ISwapRouter.sol";
-import "./lib/LiquidityAmounts.sol";
-import "./lib/TickMath.sol";
+import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import {LiquidityAmounts} from "./lib/LiquidityAmounts.sol";
+import {TickMath} from "./lib/TickMath.sol";
 
 /**
  * @title UniswapV3AMMContract.
@@ -44,7 +44,7 @@ contract UniswapV3AMMContract is Ownable {
     event ProtocolFeeCollected(address recipient, uint256 amountA, uint256 amountB);
     event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
 
-    constructor(address _uniswapV3Factory, address _swapRouter) Ownable() {
+    constructor(address _uniswapV3Factory, address _swapRouter) {
         magicFactory = IUniswapV3Factory(_uniswapV3Factory);
         swapRouter = ISwapRouter(_swapRouter);
     }
