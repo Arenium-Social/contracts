@@ -62,11 +62,6 @@ The repository is organized for clarity and modularity:
 - **`script/`**: Deployment and interaction scripts for the contracts.
 - **`docs/`**: Documentation and specifications for smart contracts.
 
-## Deployment Addresses
-
-- PredictionMarket: https://base-sepolia.blockscout.com/address/0x719Fb09B0335f892fbF916b57e634E58cefA7801
-- AMM: https://base-sepolia.blockscout.com/address/0xE382B600D1b68d645AF14414110eEf0CFEb49Ecc
-
 ## Getting Started
 
 ### Contributing
