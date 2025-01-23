@@ -54,15 +54,10 @@ The repository is organized for clarity and modularity:
   - `AMM.sol`: Facilitates token swaps using a constant product pricing curve.
   - `FeeCollector.sol`: Aggregates and distributes fees from market actions.
   - **`lib/`**: Utility and mathematical libraries:
-    - `ClaimData.sol`
     - `FullMath.sol`
-    - `ISwapRouter.sol`
-    - `LiquidityAmounts.sol`
+   - `LiquidityAmounts.sol`
     - `PredictionMarketLib.sol`
     - `TickMath.sol`
-  - **`interfaces/`**: Interfaces for external protocol interactions:
-    - `IUniswapV3Factory.sol`
-    - `IUniswapV3PoolActions.sol`
 - **`test/`**: Unit tests to verify contract functionality and ensure security.
 - **`script/`**: Deployment and interaction scripts for the contracts.
 - **`docs/`**: Documentation and specifications for smart contracts.
