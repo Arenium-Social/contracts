@@ -70,17 +70,4 @@ library PredictionMarketLib {
         market.outcome2Token.burnFrom(sender, tokensToRedeem);
         currency.safeTransfer(sender, tokensToRedeem);
     }
-
-    // Helper functions for the main contract's getters
-    function getMarketTokenAddresses(Market storage market) external view returns (address, address) {
-        return (address(market.outcome1Token), address(market.outcome2Token));
-    }
-
-    function getMarketOutcomes(Market storage market) external view returns (string memory, string memory) {
-        return (string(market.outcome1), string(market.outcome2));
-    }
-
-    function getMarketStatus(Market storage market) external view returns (bool, bytes32) {
-        return (market.resolved, market.assertedOutcomeId);
-    }
 }

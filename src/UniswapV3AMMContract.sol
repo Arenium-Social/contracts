@@ -7,8 +7,8 @@ import {IUniswapV3SwapCallback} from "@uniswap/v3-core/contracts/interfaces/call
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "./lib/LiquidityAmounts.sol";
-import "./lib/TickMath.sol";
+import {LiquidityAmounts} from "./lib/LiquidityAmounts.sol";
+import {TickMath} from "./lib/TickMath.sol";
 
 /**
  * @title UniswapV3AMMContract.
