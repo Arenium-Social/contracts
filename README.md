@@ -79,6 +79,8 @@ Join our Discord server to discuss ideas, share feedback, and get the latest upd
 
 - **Discord:** [Arenium Official Server](https://discord.gg/ThMkW8X89k)
 - **Website:** [Arenium Platform](https://www.arenium.social/)
+- **Twitter:** [@AreniumApp](https://x.com/AreniumApp)
+- **The Arena:** [@AreniumApp](https://starsarena.com/AreniumApp)
 
 ## License
 
