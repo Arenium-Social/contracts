@@ -83,12 +83,18 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint256 requiredBond, // Expected bond to assert market outcome (optimisticOraclev3 can require higher bond).
         uint24 poolFee // Uniswap pool fee
     ) external returns (bytes32 marketId) {
-        if (bytes(outcome1).length == 0) revert PredictionMarket__EmptyOutcome();
-        if (bytes(outcome2).length == 0) revert PredictionMarket__EmptyOutcome();
+        if (bytes(outcome1).length == 0) {
+            revert PredictionMarket__EmptyOutcome();
+        }
+        if (bytes(outcome2).length == 0) {
+            revert PredictionMarket__EmptyOutcome();
+        }
         if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
             revert PredictionMarket__OutcomesAreTheSame();
         }
-        if (bytes(description).length == 0) revert PredictionMarket__EmptyDescription();
+        if (bytes(description).length == 0) {
+            revert PredictionMarket__EmptyDescription();
+        }
 
         marketId = keccak256(abi.encode(block.number, description));
         if (markets[marketId].outcome1Token != ExpandedIERC20(address(0))) {
@@ -99,9 +105,13 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         ExpandedIERC20 outcome1Token = new ExpandedERC20(string(abi.encodePacked(outcome1, " Token")), "O1T", 18);
         ExpandedIERC20 outcome2Token = new ExpandedERC20(string(abi.encodePacked(outcome2, " Token")), "O2T", 18);
         outcome1Token.addMinter(address(this));
+        outcome1Token.addMinter(address(amm));
         outcome2Token.addMinter(address(this));
+        outcome2Token.addMinter(address(amm));
         outcome1Token.addBurner(address(this));
+        outcome1Token.addBurner(address(amm));
         outcome2Token.addBurner(address(this));
+        outcome2Token.addBurner(address(amm));
 
         markets[marketId] = PredictionMarketLib.Market({
             resolved: false,
@@ -121,6 +131,12 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
         // Initialize Uniswap V3 pool
         amm.initializePool(address(outcome1Token), address(outcome2Token), poolFee, marketId);
+
+        outcome1Token.mint(address(this), 100);
+        outcome2Token.mint(address(this), 100);
+        outcome1Token.approve(address(amm), 100);
+        outcome2Token.approve(address(amm), 100);
+        amm.addLiquidity(marketId, 100, 100, -887272, 887272);
 
         emit MarketInitialized(
             marketId,
