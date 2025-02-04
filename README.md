@@ -102,31 +102,31 @@ The repository is organized for clarity and modularity:
     forge test
     ```
 
-### Contributing
+### Anvil
 
-We welcome contributions from the community! Please follow these steps:
+```shell
+$ anvil
+```
 
-1. Fork the repository.
-2. Create a new branch for your feature or fix.
-3. Commit your changes with clear and descriptive messages.
-4. Submit a pull request for review.
+### Deploy
 
-## Community
+```shell
+$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
 
-Join our vibrant community to discuss ideas, share feedback, and stay updated on the latest developments:
+### Cast
 
-- **Discord:** [Arenium Official Server](https://discord.gg/ThMkW8X89k)
-- **Website:** [Arenium Platform](https://www.arenium.social/)
-- **Twitter:** [@AreniumApp](https://x.com/AreniumApp)
-- **The Arena:** [@AreniumApp](https://starsarena.com/AreniumApp)
+```shell
+$ cast <subcommand>
+```
 
-## License
+### Help
 
-This repository is licensed under the MIT License. See the `LICENSE` file for more information.
-
-## Stay Ahead with Arenium
-
-From memecoin trends to global events, Arenium empowers you to predict and profit with confidence. Join us in shaping the future of decentralized prediction markets!
+```shell
+$ forge --help
+$ anvil --help
+$ cast --help
+```
 
 ### Why Choose Arenium?
 - Decentralized and Trustless: Built on blockchain technology, Arenium ensures transparency and fairness.
