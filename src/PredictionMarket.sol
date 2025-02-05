@@ -15,7 +15,7 @@ import {OptimisticOracleV3Interface} from
 import {OptimisticOracleV3CallbackRecipientInterface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {UniswapV3AMMContract} from "./UniswapV3AMMContract.sol";
+import {AMMContract} from "./AMMContract.sol";
 import {PredictionMarketLib} from "./lib/PredictionMarketLib.sol";
 
 /**
@@ -43,7 +43,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     // Immutable state variables
     FinderInterface public immutable finder; // UMA Finder contract to locate other UMA contracts.
     OptimisticOracleV3Interface public immutable optimisticOracle; // UMA Optimistic Oracle V3 for dispute resolution.
-    UniswapV3AMMContract public immutable amm; // Uniswap V3 AMM contract for liquidity provision.
+    AMMContract public immutable amm; // Uniswap V3 AMM contract for liquidity provision.
     IERC20 private immutable currency; // Currency token used for rewards and bonds.
     bytes32 private immutable defaultIdentifier; // Default identifier for UMA Optimistic Oracle assertions.
 
@@ -93,7 +93,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         currency = IERC20(_currency);
         optimisticOracle = OptimisticOracleV3Interface(_optimisticOracleV3);
         defaultIdentifier = optimisticOracle.defaultIdentifier();
-        amm = UniswapV3AMMContract(_ammContract);
+        amm = AMMContract(_ammContract);
     }
 
     /**

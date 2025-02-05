@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {PredictionMarket} from "../../src/PredictionMarket.sol";
-import {UniswapV3AMMContract} from "../../src/UniswapV3AMMContract.sol";
+import {AMMContract} from "../../src/AMMContract.sol";
 import {MockOptimisticOracleV3} from "./mocks/MockOptimisticOracleV3.sol";
 import {MockFinder} from "./mocks/MockFinder.sol";
 import {MockAddressWhitelist} from "./mocks/MockAddressWhitelist.sol";
@@ -14,7 +14,7 @@ contract PredictionMarketUnitTest is Test {
     using SafeERC20 for IERC20;
 
     PredictionMarket predictionMarket;
-    UniswapV3AMMContract amm;
+    AMMContract amm;
     MockOptimisticOracleV3 mockOracle;
     MockFinder mockFinder;
     MockAddressWhitelist mockWhitelist;

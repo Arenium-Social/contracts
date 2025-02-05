@@ -17,7 +17,7 @@ import {TickMath} from "./lib/TickMath.sol";
  * @notice This contract manages the trading of outcome tokens from a prediction market using Uniswap V3 liquidity pools.
  * @dev The creation of pools is automated when a new market is initialized in the prediction market.
  */
-contract UniswapV3AMMContract is Ownable {
+contract AMMContract is Ownable {
     // Immutable Uniswap V3 factory and swap router addresses
     IUniswapV3Factory public immutable magicFactory;
     ISwapRouter public immutable swapRouter;
