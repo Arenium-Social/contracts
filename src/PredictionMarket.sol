@@ -32,21 +32,27 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     using SafeERC20 for IERC20;
     using PredictionMarketLib for PredictionMarketLib.Market;
 
-    FinderInterface public immutable finder; // UMA protocol Finder used to discover other protocol contracts.
+    // Immutable state variables
+    FinderInterface public immutable finder;
     OptimisticOracleV3Interface public immutable optimisticOracle;
-    UniswapV3AMMContract public immutable amm; // Uniswap V4 AMM contract used to manage trading of outcome tokens.
-    IERC20 private immutable currency; // Currency used for all prediction markets.
-    uint64 private constant ASSERTION_LIVENESS = 7200; // 2 hours.
-    bytes32 private immutable defaultIdentifier; // Identifier used for all prediction markets.
-    bytes private constant UNRESOLVABLE = "Unresolvable"; // Name of the unresolvable outcome where payouts are split.
+    UniswapV3AMMContract public immutable amm;
+    IERC20 private immutable currency;
+    bytes32 private immutable defaultIdentifier;
 
+    // Constants
+    uint64 private constant ASSERTION_LIVENESS = 7200; // 2 hours
+    bytes private constant UNRESOLVABLE = "Unresolvable";
+    uint256 private constant MAX_FEE = 10000; // 100% in basis points
+
+    // Storage
     mapping(bytes32 => PredictionMarketLib.Market) private markets; // Maps marketId to Market struct.
     mapping(bytes32 => PredictionMarketLib.AssertedMarket) private assertedMarkets; // Maps assertionId to AssertedMarket.
 
+    // Events
     event MarketInitialized(
         bytes32 indexed marketId,
-        string indexed outcome1,
-        string indexed outcome2,
+        string outcome1,
+        string outcome2,
         string description,
         address outcome1Token,
         address outcome2Token,
@@ -54,14 +60,14 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint256 requiredBond,
         uint24 poolFee
     );
-    event MarketAsserted(bytes32 indexed marketId, string indexed assertedOutcome, bytes32 indexed assertionId);
+    event MarketAsserted(bytes32 indexed marketId, string assertedOutcome, bytes32 indexed assertionId);
     event MarketResolved(bytes32 indexed marketId);
-    event TokensCreated(bytes32 indexed marketId, address indexed account, uint256 indexed tokensCreated);
-    event TokensRedeemed(bytes32 indexed marketId, address indexed account, uint256 indexed tokensRedeemed);
+    event TokensCreated(bytes32 indexed marketId, address indexed account, uint256 tokensCreated);
+    event TokensRedeemed(bytes32 indexed marketId, address indexed account, uint256 tokensRedeemed);
     event TokensSettled(
         bytes32 indexed marketId,
         address indexed account,
-        uint256 indexed payout,
+        uint256 payout,
         uint256 outcome1Tokens,
         uint256 outcome2Tokens
     );
@@ -83,18 +89,12 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint256 requiredBond, // Expected bond to assert market outcome (optimisticOraclev3 can require higher bond).
         uint24 poolFee // Uniswap pool fee
     ) external returns (bytes32 marketId) {
-        if (bytes(outcome1).length == 0) {
-            revert PredictionMarket__EmptyOutcome();
-        }
-        if (bytes(outcome2).length == 0) {
-            revert PredictionMarket__EmptyOutcome();
-        }
+        if (bytes(outcome1).length == 0) revert PredictionMarket__EmptyOutcome();
+        if (bytes(outcome2).length == 0) revert PredictionMarket__EmptyOutcome();
         if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
             revert PredictionMarket__OutcomesAreTheSame();
         }
-        if (bytes(description).length == 0) {
-            revert PredictionMarket__EmptyDescription();
-        }
+        if (bytes(description).length == 0) revert PredictionMarket__EmptyDescription();
 
         marketId = keccak256(abi.encode(block.number, description));
         if (markets[marketId].outcome1Token != ExpandedIERC20(address(0))) {
@@ -105,13 +105,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         ExpandedIERC20 outcome1Token = new ExpandedERC20(string(abi.encodePacked(outcome1, " Token")), "O1T", 18);
         ExpandedIERC20 outcome2Token = new ExpandedERC20(string(abi.encodePacked(outcome2, " Token")), "O2T", 18);
         outcome1Token.addMinter(address(this));
-        outcome1Token.addMinter(address(amm));
         outcome2Token.addMinter(address(this));
-        outcome2Token.addMinter(address(amm));
         outcome1Token.addBurner(address(this));
-        outcome1Token.addBurner(address(amm));
         outcome2Token.addBurner(address(this));
-        outcome2Token.addBurner(address(amm));
 
         markets[marketId] = PredictionMarketLib.Market({
             resolved: false,
@@ -132,12 +128,6 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         // Initialize Uniswap V3 pool
         amm.initializePool(address(outcome1Token), address(outcome2Token), poolFee, marketId);
 
-        outcome1Token.mint(address(this), 100);
-        outcome2Token.mint(address(this), 100);
-        outcome1Token.approve(address(amm), 100);
-        outcome2Token.approve(address(amm), 100);
-        amm.addLiquidity(marketId, 100, 100, -887272, 887272);
-
         emit MarketInitialized(
             marketId,
             outcome1,
@@ -149,6 +139,47 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
             requiredBond,
             poolFee
         );
+    }
+
+    // Mints pair of tokens representing the value of outcome1 and outcome2, Trading of outcome tokens the caller must approve this contract to spend the currency tokens.
+    function createOutcomeTokensLiquidity(bytes32 marketId, uint256 tokensToCreate, int24 tickLower, int24 tickUpper)
+        external
+    {
+        PredictionMarketLib.Market storage market = markets[marketId];
+        if (market.outcome1Token == ExpandedIERC20(address(0))) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
+
+        // Create the outcome tokens as before
+        PredictionMarketLib.createOutcomeTokens(market, msg.sender, tokensToCreate, currency);
+
+        // Approve AMM contract to spend the outcome tokens
+        market.outcome1Token.approve(address(amm), tokensToCreate);
+        market.outcome2Token.approve(address(amm), tokensToCreate);
+
+        // Add liquidity to the Uniswap V3 pool
+        // We're using half of the created tokens for liquidity
+        uint256 liquidityAmount = tokensToCreate / 2;
+
+        amm.addLiquidity(
+            marketId,
+            liquidityAmount, // amount of outcome1 tokens
+            liquidityAmount, // amount of outcome2 tokens
+            tickLower,
+            tickUpper
+        );
+
+        emit TokensCreated(marketId, msg.sender, tokensToCreate);
+    }
+
+    // Burns equal amount of outcome1 and outcome2 tokens returning settlement currency tokens.
+    function redeemOutcomeTokens(bytes32 marketId, uint256 tokensToRedeem) external {
+        PredictionMarketLib.Market storage market = markets[marketId];
+        if (market.outcome1Token == ExpandedIERC20(address(0))) {
+            revert PredictionMarket__MarketDoesNotExist();
+        }
+        PredictionMarketLib.redeemOutcomeTokens(market, msg.sender, tokensToRedeem, currency);
+        emit TokensRedeemed(marketId, msg.sender, tokensToRedeem);
     }
 
     // Assert the market with any of 3 possible outcomes: names of outcome1, outcome2 or unresolvable.
@@ -203,28 +234,6 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     // Dispute callback does nothing.
     function assertionDisputedCallback(bytes32 assertionId) external {}
-
-    // Mints pair of tokens representing the value of outcome1 and outcome2. Trading of outcome tokens is outside of the
-    // scope of this contract. The caller must approve this contract to spend the currency tokens.
-    // TO-DO: We need Uniswap Trading Pairs!
-    function createOutcomeTokens(bytes32 marketId, uint256 tokensToCreate) external {
-        PredictionMarketLib.Market storage market = markets[marketId];
-        if (market.outcome1Token == ExpandedIERC20(address(0))) {
-            revert PredictionMarket__MarketDoesNotExist();
-        }
-        PredictionMarketLib.createOutcomeTokens(market, msg.sender, tokensToCreate, currency);
-        emit TokensCreated(marketId, msg.sender, tokensToCreate);
-    }
-
-    // Burns equal amount of outcome1 and outcome2 tokens returning settlement currency tokens.
-    function redeemOutcomeTokens(bytes32 marketId, uint256 tokensToRedeem) external {
-        PredictionMarketLib.Market storage market = markets[marketId];
-        if (market.outcome1Token == ExpandedIERC20(address(0))) {
-            revert PredictionMarket__MarketDoesNotExist();
-        }
-        PredictionMarketLib.redeemOutcomeTokens(market, msg.sender, tokensToRedeem, currency);
-        emit TokensRedeemed(marketId, msg.sender, tokensToRedeem);
-    }
 
     // If the market is resolved, then all of caller's outcome tokens are burned and currency payout is made depending
     // on the resolved market outcome and the amount of outcome tokens burned. If the market was resolved to the first

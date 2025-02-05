@@ -2,8 +2,8 @@
 pragma solidity 0.8.16;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {HelperConfig} from "./HelperConfig.s.sol";
-import {UniswapV3AMMContract} from "../src/UniswapV3AMMContract.sol";
+import {HelperConfig} from "../HelperConfig.s.sol";
+import {UniswapV3AMMContract} from "../../src/UniswapV3AMMContract.sol";
 
 contract DeployAMM is Script {
     function run() external {

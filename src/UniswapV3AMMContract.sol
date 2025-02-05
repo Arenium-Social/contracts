@@ -36,7 +36,6 @@ contract UniswapV3AMMContract is Ownable {
     mapping(address => mapping(address => address)) public directPools; // Direct pool mapping for advanced access.
 
     event PoolInitialized(bytes32 indexed marketId, address indexed pool, address tokenA, address tokenB, uint24 fee);
-
     event LiquidityAdded(bytes32 indexed marketId, uint256 indexed amount0, uint256 indexed amount1);
     event LiquidityRemoved(bytes32 indexed marketId, uint128 indexed liquidity);
     event TokensSwapped(

@@ -2,8 +2,8 @@
 pragma solidity 0.8.16;
 
 import {Script, console2} from "forge-std/Script.sol";
-import {PredictionMarket} from "../src/PredictionMarket.sol";
-import {HelperConfig} from "./HelperConfig.s.sol";
+import {PredictionMarket} from "../../src/PredictionMarket.sol";
+import {HelperConfig} from "../HelperConfig.s.sol";
 
 contract DeployPredictionMarket is Script {
     function run() external returns (PredictionMarket) {
