@@ -4,14 +4,14 @@ pragma solidity 0.8.16;
 import {Test, console2} from "forge-std/Test.sol";
 import {HelperConfig} from "../../../script/HelperConfig.s.sol";
 import {PredictionMarket} from "../../../src/PredictionMarket.sol";
-import {UniswapV3AMMContract} from "../../../src/UniswapV3AMMContract.sol";
+import {AMMContract} from "../../../src/AMMContract.sol";
 import {StdUtils} from "../../../lib/forge-std/src/StdUtils.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract FrontendActionsTest is Test {
     HelperConfig helpConfig = new HelperConfig();
     HelperConfig.NetworkConfig config;
-    UniswapV3AMMContract amm;
+    AMMContract amm;
     PredictionMarket market;
 
     address owner = address(1);
@@ -24,7 +24,7 @@ contract FrontendActionsTest is Test {
         baseSepoliaFork = vm.createSelectFork(BASE_SEPOLIA_RPC_URL);
         deal(config.currency, user, 500000000);
         vm.startPrank(owner);
-        amm = new UniswapV3AMMContract(config.uniswapV3Factory, config.uniswapV3SwapRouter);
+        amm = new AMMContract(config.uniswapV3Factory, config.uniswapV3SwapRouter);
         market = new PredictionMarket(config.finder, config.currency, config.optimisticOracleV3, address(amm));
         vm.stopPrank();
     }

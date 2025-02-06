@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {PredictionMarket} from "../../src/PredictionMarket.sol";
-import {UniswapV3AMMContract} from "../../src/UniswapV3AMMContract.sol";
+import {AMMContract} from "../../src/AMMContract.sol";
 import {HelperConfig} from "../HelperConfig.s.sol";
 
 contract DeployAll is Script {
@@ -14,7 +14,7 @@ contract DeployAll is Script {
         config = helpConfig.getBaseSepoliaConfig();
 
         vm.startBroadcast();
-        UniswapV3AMMContract amm = new UniswapV3AMMContract(config.uniswapV3Factory, config.uniswapV3SwapRouter);
+        AMMContract amm = new AMMContract(config.uniswapV3Factory, config.uniswapV3SwapRouter);
         PredictionMarket market =
             new PredictionMarket(config.finder, config.currency, config.optimisticOracleV3, address(amm));
         vm.stopBroadcast();
