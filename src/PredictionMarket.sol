@@ -16,7 +16,7 @@ import {OptimisticOracleV3CallbackRecipientInterface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {AMMContract} from "./AMMContract.sol";
-import {PredictionMarketLib} from "./lib/PredictionMarketLib.sol";
+import {PMLibrary} from "./lib/PMLibrary.sol";
 
 /**
  * @title PredictionMarket
@@ -26,6 +26,9 @@ import {PredictionMarketLib} from "./lib/PredictionMarketLib.sol";
  */
 contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownable {
     // Custom errors
+    error PredictionMarket__CallerNotWhitelisted();
+    error PredictionMarket__AddressAlreadyWhitelisted();
+    error PredictionMarket__AddressNotWhitelisted();
     error PredictionMarket__MarketDoesNotExist();
     error PredictionMarket__AssertionActiveOrResolved();
     error PredictionMarket__NotAuthorized();
@@ -38,7 +41,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     // Libraries
     using SafeERC20 for IERC20;
-    using PredictionMarketLib for PredictionMarketLib.Market;
+    using PMLibrary for PMLibrary.Market;
 
     // Immutable state variables
     FinderInterface public immutable finder; // UMA Finder contract to locate other UMA contracts.
@@ -53,10 +56,15 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     uint256 private constant MAX_FEE = 10000; // 100% in basis points.
 
     // Storage
-    mapping(bytes32 => PredictionMarketLib.Market) private markets; // Maps marketId to Market struct.
-    mapping(bytes32 => PredictionMarketLib.AssertedMarket) private assertedMarkets; // Maps assertionId to AssertedMarket.
+    mapping(bytes32 => PMLibrary.Market) private markets; // Maps marketId to Market struct.
+    mapping(bytes32 => PMLibrary.AssertedMarket) private assertedMarkets; // Maps assertionId to AssertedMarket.
+
+    // Whitelist state
+    mapping(address => bool) public whitelistedAddresses;
 
     // Events
+    event AddressWhitelisted(address indexed account);
+    event AddressRemovedFromWhitelist(address indexed account);
     event MarketInitialized(
         bytes32 indexed marketId,
         string outcome1,
@@ -97,8 +105,46 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
+     * @notice Modifier to restrict access to whitelisted addresses.
+     * @dev Reverts if the caller is not in the whitelist.
+     */
+    modifier onlyWhitelisted() {
+        if (!whitelistedAddresses[msg.sender]) {
+            revert PredictionMarket__CallerNotWhitelisted();
+        }
+        _;
+    }
+
+    /**
+     * @notice Adds an address to the whitelist, allowing it to create markets.
+     * @dev Only callable by the contract owner.
+     * @param account Address to add to the whitelist.
+     */
+    function addToWhitelist(address account) external onlyOwner {
+        if (whitelistedAddresses[account]) {
+            revert PredictionMarket__AddressAlreadyWhitelisted();
+        }
+        whitelistedAddresses[account] = true;
+        emit AddressWhitelisted(account);
+    }
+
+    /**
+     * @notice Removes an address from the whitelist, revoking its ability to create markets.
+     * @dev Only callable by the contract owner.
+     * @param account Address to remove from the whitelist.
+     */
+    function removeFromWhitelist(address account) external onlyOwner {
+        if (!whitelistedAddresses[account]) {
+            revert PredictionMarket__AddressNotWhitelisted();
+        }
+        whitelistedAddresses[account] = false;
+        emit AddressRemovedFromWhitelist(account);
+    }
+
+    /**
      * @notice Initializes a new prediction market.
      * @dev Creates outcome tokens and initializes a Uniswap V3 pool for the market.
+     *      Only callable by whitelisted addresses.
      * @param outcome1 Short name of the first outcome.
      * @param outcome2 Short name of the second outcome.
      * @param description Description of the market.
@@ -114,7 +160,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint256 reward,
         uint256 requiredBond,
         uint24 poolFee
-    ) external returns (bytes32 marketId) {
+    ) external onlyWhitelisted returns (bytes32 marketId) {
         if (bytes(outcome1).length == 0) revert PredictionMarket__EmptyOutcome();
         if (bytes(outcome2).length == 0) revert PredictionMarket__EmptyOutcome();
         if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
@@ -136,7 +182,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         outcome2Token.addBurner(address(this));
 
         // Store market data
-        markets[marketId] = PredictionMarketLib.Market({
+        markets[marketId] = PMLibrary.Market({
             resolved: false,
             assertedOutcomeId: bytes32(0),
             outcome1Token: outcome1Token,
@@ -181,13 +227,13 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     function createOutcomeTokensLiquidity(bytes32 marketId, uint256 tokensToCreate, int24 tickLower, int24 tickUpper)
         external
     {
-        PredictionMarketLib.Market storage market = markets[marketId];
+        PMLibrary.Market storage market = markets[marketId];
         if (market.outcome1Token == ExpandedIERC20(address(0))) {
             revert PredictionMarket__MarketDoesNotExist();
         }
 
         // Create outcome tokens
-        PredictionMarketLib.createOutcomeTokens(market, msg.sender, tokensToCreate, currency);
+        PMLibrary.createOutcomeTokens(market, msg.sender, tokensToCreate, currency);
 
         // Approve AMM contract to spend the outcome tokens
         market.outcome1Token.approve(address(amm), tokensToCreate);
@@ -206,11 +252,11 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      * @param tokensToRedeem Amount of tokens to redeem.
      */
     function redeemOutcomeTokens(bytes32 marketId, uint256 tokensToRedeem) external {
-        PredictionMarketLib.Market storage market = markets[marketId];
+        PMLibrary.Market storage market = markets[marketId];
         if (market.outcome1Token == ExpandedIERC20(address(0))) {
             revert PredictionMarket__MarketDoesNotExist();
         }
-        PredictionMarketLib.redeemOutcomeTokens(market, msg.sender, tokensToRedeem, currency);
+        PMLibrary.redeemOutcomeTokens(market, msg.sender, tokensToRedeem, currency);
         emit TokensRedeemed(marketId, msg.sender, tokensToRedeem);
     }
 
@@ -222,7 +268,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      * @return assertionId Unique identifier for the assertion.
      */
     function assertMarket(bytes32 marketId, string memory assertedOutcome) external returns (bytes32 assertionId) {
-        PredictionMarketLib.Market storage market = markets[marketId];
+        PMLibrary.Market storage market = markets[marketId];
         if (market.outcome1Token == ExpandedIERC20(address(0))) {
             revert PredictionMarket__MarketDoesNotExist();
         }
@@ -239,11 +285,11 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         currency.safeTransferFrom(msg.sender, address(this), bond);
         currency.forceApprove(address(optimisticOracle), bond);
 
-        bytes memory claim = PredictionMarketLib.composeClaim(assertedOutcome, market.description, block.timestamp);
+        bytes memory claim = PMLibrary.composeClaim(assertedOutcome, market.description, block.timestamp);
         assertionId = _assertTruthWithDefaults(claim, bond);
 
         // Store the asserter and marketId for the callback
-        assertedMarkets[assertionId] = PredictionMarketLib.AssertedMarket({asserter: msg.sender, marketId: marketId});
+        assertedMarkets[assertionId] = PMLibrary.AssertedMarket({asserter: msg.sender, marketId: marketId});
 
         emit MarketAsserted(marketId, assertedOutcome, assertionId);
     }
@@ -258,7 +304,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         if (msg.sender != address(optimisticOracle)) {
             revert PredictionMarket__NotAuthorized();
         }
-        PredictionMarketLib.Market storage market = markets[assertedMarkets[assertionId].marketId];
+        PMLibrary.Market storage market = markets[assertedMarkets[assertionId].marketId];
 
         if (assertedTruthfully) {
             market.resolved = true;
@@ -285,14 +331,14 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      * @return payout Amount of currency tokens received.
      */
     function settleOutcomeTokens(bytes32 marketId) external returns (uint256 payout) {
-        PredictionMarketLib.Market storage market = markets[marketId];
+        PMLibrary.Market storage market = markets[marketId];
         if (!market.resolved) {
             revert PredictionMarket__MarketNotResolved();
         }
         uint256 outcome1Balance = market.outcome1Token.balanceOf(msg.sender);
         uint256 outcome2Balance = market.outcome2Token.balanceOf(msg.sender);
 
-        payout = PredictionMarketLib.calculatePayout(market, outcome1Balance, outcome2Balance);
+        payout = PMLibrary.calculatePayout(market, outcome1Balance, outcome2Balance);
 
         market.outcome1Token.burnFrom(msg.sender, outcome1Balance);
         market.outcome2Token.burnFrom(msg.sender, outcome2Balance);
@@ -365,7 +411,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
             bytes memory outcome2
         )
     {
-        PredictionMarketLib.Market storage market = markets[marketId];
+        PMLibrary.Market storage market = markets[marketId];
         if (address(market.outcome1Token) == address(0)) {
             revert PredictionMarket__MarketDoesNotExist();
         }

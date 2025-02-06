@@ -6,12 +6,12 @@ import {ExpandedERC20, ExpandedIERC20} from "@uma/core/contracts/common/implemen
 import {ClaimData} from "@uma/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
 
 /**
- * @title PredictionMarketLib
+ * @title PMLibrary
  * @author Arenium Social
  * @notice A library containing core logic and data structures for prediction market operations.
  * @dev This library handles payout calculations, claim composition, and outcome token management.
  */
-library PredictionMarketLib {
+library PMLibrary {
     using SafeERC20 for IERC20; // Enable safe ERC20 operations
 
     /**

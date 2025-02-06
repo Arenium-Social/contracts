@@ -57,7 +57,7 @@ The repository is organized for clarity and modularity:
 
 - **`src/`**: Contains the core smart contracts:
   - `PredictionMarket.sol`: Manages market creation, token minting, and event resolution using UMA's Optimistic Oracle.
-  - `UniswapV3AMMContract.sol`: Facilitates token swaps using a constant product pricing curve.
+  - `AMMContract.sol`: Facilitates token swaps using a constant product pricing curve.
   - `FeeHandler.sol`: Aggregates and distributes fees from market actions.
   - **`lib/`**: Utility and mathematical libraries:
     - `FullMath.sol`
