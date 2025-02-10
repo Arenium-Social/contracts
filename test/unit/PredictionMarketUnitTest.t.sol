@@ -20,7 +20,8 @@ contract PredictionMarketUnitTest is Test {
     MockAddressWhitelist mockWhitelist;
     ExpandedERC20 mockCurrency;
 
-    bytes32 private constant DEFAULT_IDENTIFIER = keccak256("DEFAULT_IDENTIFIER");
+    bytes32 private constant DEFAULT_IDENTIFIER =
+        keccak256("DEFAULT_IDENTIFIER");
     uint256 private constant MINIMUM_BOND = 1 ether;
 
     function setUp() public {
@@ -30,17 +31,28 @@ contract PredictionMarketUnitTest is Test {
         mockCurrency.addMinter(address(this));
 
         // Deploy mocks.
-        mockOracle = new MockOptimisticOracleV3(DEFAULT_IDENTIFIER, IERC20(address(mockCurrency)), MINIMUM_BOND);
+        mockOracle = new MockOptimisticOracleV3(
+            DEFAULT_IDENTIFIER,
+            IERC20(address(mockCurrency)),
+            MINIMUM_BOND
+        );
         mockFinder = new MockFinder();
         mockWhitelist = new MockAddressWhitelist();
 
         // Set up mock interactions.
-        mockFinder.changeImplementationAddress(bytes32("CollateralWhitelist"), address(mockWhitelist));
+        mockFinder.changeImplementationAddress(
+            bytes32("CollateralWhitelist"),
+            address(mockWhitelist)
+        );
         mockWhitelist.addToWhitelist(address(mockCurrency));
 
         // Deploy PredictionMarket contract.
-        predictionMarket =
-            new PredictionMarket(address(mockFinder), address(mockCurrency), address(mockOracle), address(amm));
+        predictionMarket = new PredictionMarket(
+            address(mockFinder),
+            address(mockCurrency),
+            address(mockOracle),
+            address(amm)
+        );
 
         // Mint some mock currency for tests.
         mockCurrency.mint(address(this), 1_000_000 ether);
@@ -157,7 +169,10 @@ contract PredictionMarketUnitTest is Test {
     }
 
     function testGetUnresolvableOutcome() public view {
-        assertEq(string(predictionMarket.getUnresolvableOutcome()), "Unresolvable");
+        assertEq(
+            string(predictionMarket.getUnresolvableOutcome()),
+            "Unresolvable"
+        );
     }
 
     // function testGetMarketTokens() public {

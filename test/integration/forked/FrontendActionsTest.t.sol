@@ -24,8 +24,17 @@ contract FrontendActionsTest is Test {
         baseSepoliaFork = vm.createSelectFork(BASE_SEPOLIA_RPC_URL);
         deal(config.currency, user, 500000000);
         vm.startPrank(owner);
-        amm = new AMMContract(config.uniswapV3Factory, config.uniswapV3SwapRouter);
-        market = new PredictionMarket(config.finder, config.currency, config.optimisticOracleV3, address(amm));
+        amm = new AMMContract(
+            config.uniswapV3Factory,
+            config.uniswapV3SwapRouter,
+            config.uniswapNonFungiblePositionManager
+        );
+        market = new PredictionMarket(
+            config.finder,
+            config.currency,
+            config.optimisticOracleV3,
+            address(amm)
+        );
         vm.stopPrank();
     }
 

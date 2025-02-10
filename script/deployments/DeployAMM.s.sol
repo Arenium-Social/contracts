@@ -11,7 +11,10 @@ contract DeployAMM is Script {
         vm.startBroadcast();
         AMMContract amm = new AMMContract(
             helperConfig.getBaseSepoliaConfig().uniswapV3Factory,
-            helperConfig.getBaseSepoliaConfig().uniswapV3SwapRouter
+            helperConfig.getBaseSepoliaConfig().uniswapV3SwapRouter,
+            helperConfig
+                .getBaseSepoliaConfig()
+                .uniswapNonFungiblePositionManager
         );
         console2.log("AMMContract deployed to: ", address(amm));
         vm.stopBroadcast();
