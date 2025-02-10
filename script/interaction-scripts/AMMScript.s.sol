@@ -9,9 +9,7 @@ contract AMMScript is Script {
     function run() external {
         // HelperConfig helperConfig = new HelperConfig();
         vm.startBroadcast();
-        AMMContract amm = AMMContract(
-            0xE382B600D1b68d645AF14414110eEf0CFEb49Ecc
-        );
+        AMMContract amm = AMMContract(0xE382B600D1b68d645AF14414110eEf0CFEb49Ecc);
         address tokenA = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
         address tokenB = 0x808456652fdb597867f38412077A9182bf77359F;
         uint24 fee = 5000000;
