@@ -10,6 +10,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import {LiquidityAmounts} from "./lib/LiquidityAmounts.sol";
 import {TickMath} from "./lib/TickMath.sol";
+import {INonfungiblePositionManager} from "./interfaces/INonfungiblePositionManager.sol";
 
 /**
  * @title UniswapV3AMMContract
@@ -21,6 +22,7 @@ contract AMMContract is Ownable {
     // Immutable Uniswap V3 factory and swap router addresses
     IUniswapV3Factory public immutable magicFactory;
     ISwapRouter public immutable swapRouter;
+    INonfungiblePositionManager public immutable nonFungiblePositionManager;
 
     // Struct to store pool-related data
     struct PoolData {
@@ -41,23 +43,53 @@ contract AMMContract is Ownable {
     mapping(address => mapping(address => address)) public directPools; // Maps token pairs to pool addresses
 
     // Events
-    event PoolInitialized(bytes32 indexed marketId, address indexed pool, address tokenA, address tokenB, uint24 fee);
-    event LiquidityAdded(bytes32 indexed marketId, uint256 indexed amount0, uint256 indexed amount1);
+    event PoolInitialized(
+        bytes32 indexed marketId,
+        address indexed pool,
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    );
+    event LiquidityAdded(
+        bytes32 indexed marketId,
+        uint256 indexed amount0,
+        uint256 indexed amount1
+    );
     event LiquidityRemoved(bytes32 indexed marketId, uint128 indexed liquidity);
     event TokensSwapped(
-        bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
+        bytes32 indexed marketId,
+        address indexed tokenIn,
+        address indexed tokenOut,
+        uint256 amountIn,
+        uint256 amountOut
     );
-    event ProtocolFeeCollected(address recipient, uint256 amountA, uint256 amountB);
-    event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
+    event ProtocolFeeCollected(
+        address recipient,
+        uint256 amountA,
+        uint256 amountB
+    );
+    event FeeCollected(
+        address recipient,
+        bytes32 indexed marketId,
+        uint256 amountA,
+        uint256 amountB
+    );
 
     /**
      * @notice Constructor to initialize the contract with Uniswap V3 factory and swap router addresses.
      * @param _uniswapV3Factory Address of the Uniswap V3 factory.
      * @param _swapRouter Address of the Uniswap V3 swap router.
      */
-    constructor(address _uniswapV3Factory, address _swapRouter) {
+    constructor(
+        address _uniswapV3Factory,
+        address _swapRouter,
+        address _uniswapNonFungiblePositionManager
+    ) {
         magicFactory = IUniswapV3Factory(_uniswapV3Factory);
         swapRouter = ISwapRouter(_swapRouter);
+        nonFungiblePositionManager = INonfungiblePositionManager(
+            _uniswapNonFungiblePositionManager
+        );
     }
 
     /**
@@ -68,9 +100,17 @@ contract AMMContract is Ownable {
      * @param _fee Fee tier for the pool.
      * @param _marketId Unique identifier for the prediction market.
      */
-    function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId) external {
+    function initializePool(
+        address _tokenA,
+        address _tokenB,
+        uint24 _fee,
+        bytes32 _marketId
+    ) external {
         require(_tokenA != _tokenB, "Tokens Must Be Different");
-        require(marketPools[_marketId].pool == address(0), "Pool Already Exists");
+        require(
+            marketPools[_marketId].pool == address(0),
+            "Pool Already Exists"
+        );
 
         // Ensure token order for pool creation
         if (_tokenA > _tokenB) {
@@ -84,6 +124,7 @@ contract AMMContract is Ownable {
         // Initialize the pool with a price of 1 (equal weights for both tokens)
         IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
         uint160 sqrtPriceX96 = 79228162514264337593543950336; // sqrt(1) * 2^96
+        // uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(0);
         pool.initialize(sqrtPriceX96);
 
         // Update pool data in this contract
@@ -114,36 +155,74 @@ contract AMMContract is Ownable {
      * @param _tickLower Lower tick bound for the liquidity position.
      * @param _tickUpper Upper tick bound for the liquidity position.
      */
-    function addLiquidity(bytes32 _marketId, uint256 _amount0, uint256 _amount1, int24 _tickLower, int24 _tickUpper)
-        public
-    {
+    function addLiquidity(
+        bytes32 _marketId,
+        uint256 _amount0,
+        uint256 _amount1,
+        int24 _tickLower,
+        int24 _tickUpper
+    ) public {
         PoolData storage poolData = marketPools[_marketId];
         require(poolData.poolInitialized, "Pool not active");
 
         IUniswapV3Pool pool = IUniswapV3Pool(poolData.pool);
 
         // Transfer tokens from the sender to this contract
-        IERC20(poolData.tokenA).transferFrom(msg.sender, address(this), _amount0);
-        IERC20(poolData.tokenB).transferFrom(msg.sender, address(this), _amount1);
+        IERC20(poolData.tokenA).transferFrom(
+            msg.sender,
+            address(this),
+            _amount0
+        );
+        IERC20(poolData.tokenB).transferFrom(
+            msg.sender,
+            address(this),
+            _amount1
+        );
 
         // Approve the pool to spend tokens
         IERC20(poolData.tokenA).approve(address(pool), _amount0);
         IERC20(poolData.tokenB).approve(address(pool), _amount1);
 
         // Get the current sqrt price from the pool
-        (uint160 sqrtPriceX96,,,,,,) = pool.slot0();
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
 
         // Calculate the liquidity
-        uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
-            sqrtPriceX96,
-            TickMath.getSqrtRatioAtTick(_tickLower),
-            TickMath.getSqrtRatioAtTick(_tickUpper),
-            _amount0,
-            _amount1
-        );
+        // uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
+        //     sqrtPriceX96,
+        //     TickMath.getSqrtRatioAtTick(_tickLower),
+        //     TickMath.getSqrtRatioAtTick(_tickUpper),
+        //     _amount0,
+        //     _amount1
+        // );
+        INonfungiblePositionManager.MintParams
+            memory params = INonfungiblePositionManager.MintParams({
+                token0: poolData.tokenA,
+                token1: poolData.tokenB,
+                fee: poolData.fee,
+                tickLower: _tickLower,
+                tickUpper: _tickUpper,
+                amount0Desired: _amount0,
+                amount1Desired: _amount1,
+                amount0Min: _amount0,
+                amount1Min: _amount1,
+                recipient: msg.sender,
+                deadline: block.timestamp
+            });
 
         // Mint liquidity
-        pool.mint(msg.sender, _tickLower, _tickUpper, liquidity, abi.encode(msg.sender));
+        // pool.mint(
+        //     msg.sender,
+        //     _tickLower,
+        //     _tickUpper,
+        //     liquidity,
+        //     abi.encode(msg.sender)
+        // );
+        (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        ) = nonFungiblePositionManager.mint(params);
 
         emit LiquidityAdded(_marketId, _amount0, _amount1);
     }
@@ -156,7 +235,12 @@ contract AMMContract is Ownable {
      * @param _tickLower Lower tick bound for the liquidity position.
      * @param _tickUpper Upper tick bound for the liquidity position.
      */
-    function removeLiquidity(bytes32 _marketId, uint128 _liquidity, int24 _tickLower, int24 _tickUpper) external {
+    function removeLiquidity(
+        bytes32 _marketId,
+        uint128 _liquidity,
+        int24 _tickLower,
+        int24 _tickUpper
+    ) external {
         PoolData storage poolData = marketPools[_marketId];
         require(poolData.poolInitialized, "Pool not active");
 
@@ -164,7 +248,13 @@ contract AMMContract is Ownable {
 
         // Burn the liquidity and collect the tokens
         pool.burn(_tickLower, _tickUpper, _liquidity);
-        pool.collect(msg.sender, _tickLower, _tickUpper, type(uint128).max, type(uint128).max);
+        pool.collect(
+            msg.sender,
+            _tickLower,
+            _tickUpper,
+            type(uint128).max,
+            type(uint128).max
+        );
 
         emit LiquidityRemoved(_marketId, _liquidity);
     }
@@ -177,7 +267,12 @@ contract AMMContract is Ownable {
      * @param _amountOutMinimum Minimum amount of output tokens to receive.
      * @param _zeroForOne Direction of the swap (true for tokenA to tokenB, false for tokenB to tokenA).
      */
-    function swap(bytes32 _marketId, uint256 _amountIn, uint256 _amountOutMinimum, bool _zeroForOne) external {
+    function swap(
+        bytes32 _marketId,
+        uint256 _amountIn,
+        uint256 _amountOutMinimum,
+        bool _zeroForOne
+    ) external {
         PoolData storage poolData = marketPools[_marketId];
         require(poolData.poolInitialized, "Pool not active");
 
@@ -189,20 +284,27 @@ contract AMMContract is Ownable {
         IERC20(inputToken).approve(address(swapRouter), _amountIn);
 
         // Execute the swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
-            tokenIn: inputToken,
-            tokenOut: outputToken,
-            fee: poolData.fee,
-            recipient: msg.sender,
-            deadline: block.timestamp,
-            amountIn: _amountIn,
-            amountOutMinimum: _amountOutMinimum,
-            sqrtPriceLimitX96: 0
-        });
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: inputToken,
+                tokenOut: outputToken,
+                fee: poolData.fee,
+                recipient: msg.sender,
+                deadline: block.timestamp,
+                amountIn: _amountIn,
+                amountOutMinimum: _amountOutMinimum,
+                sqrtPriceLimitX96: 0
+            });
 
         swapRouter.exactInputSingle(params);
 
-        emit TokensSwapped(_marketId, inputToken, outputToken, _amountIn, _amountOutMinimum);
+        emit TokensSwapped(
+            _marketId,
+            inputToken,
+            outputToken,
+            _amountIn,
+            _amountOutMinimum
+        );
     }
 
     /**
@@ -225,8 +327,13 @@ contract AMMContract is Ownable {
         uint128 amount1Requested
     ) external returns (uint128 amount0, uint128 amount1) {
         PoolData memory poolData = marketPools[marketId];
-        (amount0, amount1) =
-            IUniswapV3Pool(poolData.pool).collect(recipient, tickLower, tickUpper, amount0Requested, amount1Requested);
+        (amount0, amount1) = IUniswapV3Pool(poolData.pool).collect(
+            recipient,
+            tickLower,
+            tickUpper,
+            amount0Requested,
+            amount1Requested
+        );
         emit FeeCollected(recipient, marketId, amount0, amount1);
     }
 
@@ -238,7 +345,12 @@ contract AMMContract is Ownable {
      * @param tokenA Amount of tokenA fees to collect.
      * @param tokenB Amount of tokenB fees to collect.
      */
-    function collectProtocolFee(address pool, address recipient, uint128 tokenA, uint128 tokenB) external onlyOwner {
+    function collectProtocolFee(
+        address pool,
+        address recipient,
+        uint128 tokenA,
+        uint128 tokenB
+    ) external onlyOwner {
         IUniswapV3Pool(pool).collectProtocol(recipient, tokenA, tokenB);
         emit ProtocolFeeCollected(pool, tokenA, tokenB);
     }
@@ -250,7 +362,11 @@ contract AMMContract is Ownable {
      * @param fee Fee tier for the pool.
      * @return pool Address of the pool.
      */
-    function getPoolUsingParams(address tokenA, address tokenB, uint24 fee) external view returns (address pool) {
+    function getPoolUsingParams(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) external view returns (address pool) {
         pool = magicFactory.getPool(tokenA, tokenB, fee);
         return pool;
     }
@@ -260,7 +376,9 @@ contract AMMContract is Ownable {
      * @param marketId Unique identifier for the prediction market.
      * @return pool PoolData struct containing pool information.
      */
-    function getPoolUsingMarketId(bytes32 marketId) external view returns (PoolData memory pool) {
+    function getPoolUsingMarketId(
+        bytes32 marketId
+    ) external view returns (PoolData memory pool) {
         pool = marketPools[marketId];
         return pool;
     }
@@ -270,7 +388,9 @@ contract AMMContract is Ownable {
      * @param poolAddress Address of the pool.
      * @return pool PoolData struct containing pool information.
      */
-    function getPoolUsingAddress(address poolAddress) external view returns (PoolData memory pool) {
+    function getPoolUsingAddress(
+        address poolAddress
+    ) external view returns (PoolData memory pool) {
         pool = addressToPool[poolAddress];
         return pool;
     }
