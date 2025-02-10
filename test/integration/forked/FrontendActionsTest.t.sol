@@ -25,16 +25,9 @@ contract FrontendActionsTest is Test {
         deal(config.currency, user, 500000000);
         vm.startPrank(owner);
         amm = new AMMContract(
-            config.uniswapV3Factory,
-            config.uniswapV3SwapRouter,
-            config.uniswapNonFungiblePositionManager
+            config.uniswapV3Factory, config.uniswapV3SwapRouter, config.uniswapNonFungiblePositionManager
         );
-        market = new PredictionMarket(
-            config.finder,
-            config.currency,
-            config.optimisticOracleV3,
-            address(amm)
-        );
+        market = new PredictionMarket(config.finder, config.currency, config.optimisticOracleV3, address(amm));
         vm.stopPrank();
     }
 

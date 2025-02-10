@@ -226,24 +226,31 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      */
     function createOutcomeTokensLiquidity(bytes32 marketId, uint256 tokensToCreate, int24 tickLower, int24 tickUpper)
         external
+        returns (uint256 tokenId)
     {
         PMLibrary.Market storage market = markets[marketId];
         if (market.outcome1Token == ExpandedIERC20(address(0))) {
             revert PredictionMarket__MarketDoesNotExist();
         }
 
-        // Create outcome tokens
+        // Create outcome tokens and mint them to the sender
         PMLibrary.createOutcomeTokens(market, msg.sender, tokensToCreate, currency);
 
-        // Approve AMM contract to spend the outcome tokens
-        market.outcome1Token.approve(address(amm), tokensToCreate);
-        market.outcome2Token.approve(address(amm), tokensToCreate);
-
-        // Add liquidity to the Uniswap V3 pool
+        // Transfer half of the tokens from the sender to this contract
         uint256 liquidityAmount = tokensToCreate / 2;
-        amm.addLiquidity(marketId, liquidityAmount, liquidityAmount, tickLower, tickUpper);
+        market.outcome1Token.transferFrom(msg.sender, address(this), liquidityAmount);
+        market.outcome2Token.transferFrom(msg.sender, address(this), liquidityAmount);
+
+        // Approve AMM contract to spend the outcome tokens
+        market.outcome1Token.approve(address(amm), liquidityAmount);
+        market.outcome2Token.approve(address(amm), liquidityAmount);
+
+        // Add liquidity to the Uniswap V3 pool and get the tokenId
+        (tokenId,,,) = amm.addLiquidity(marketId, liquidityAmount, liquidityAmount, tickLower, tickUpper);
 
         emit TokensCreated(marketId, msg.sender, tokensToCreate);
+
+        return tokenId;
     }
 
     /**

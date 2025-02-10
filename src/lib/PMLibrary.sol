@@ -103,7 +103,7 @@ library PMLibrary {
      * @notice Creates outcome tokens by depositing collateral
      * @dev Mints equal amounts of both outcome tokens:
      * 1. Transfers collateral from sender
-     * 2. Mints outcome1 and outcome2 tokens 1:1 with collateral
+     * 2. Mints outcome1 and outcome2 tokens 1:1 with collateral to the contract
      * @param market Market reference storage pointer
      * @param sender Token creator address
      * @param tokensToCreate Amount of each outcome token to mint
@@ -115,7 +115,7 @@ library PMLibrary {
         // Transfer collateral from creator
         currency.safeTransferFrom(sender, address(this), tokensToCreate);
 
-        // Mint equal amounts of both outcome tokens
+        // Mint equal amounts of both outcome tokens to the contract
         market.outcome1Token.mint(sender, tokensToCreate);
         market.outcome2Token.mint(sender, tokensToCreate);
     }
