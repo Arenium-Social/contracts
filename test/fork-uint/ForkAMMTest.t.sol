@@ -55,7 +55,8 @@ contract ForkAMMTest is Test {
         amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
         tokenA.approve(address(amm), 5 * 1e18);
         tokenB.approve(address(amm), 5 * 1e18);
-        amm.addLiquidity(marketId, 5 * 1e18, 5 * 1e18, -10000, 10000);
+        amm.addLiquidity(marketId, 5 * 1e18, 5 * 1e18, -120, 120);
+
         vm.stopPrank();
     }
 }

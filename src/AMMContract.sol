@@ -161,7 +161,15 @@ contract AMMContract is Ownable {
         uint256 _amount1,
         int24 _tickLower,
         int24 _tickUpper
-    ) public {
+    )
+        public
+        returns (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
         PoolData storage poolData = marketPools[_marketId];
         require(poolData.poolInitialized, "Pool not active");
 
@@ -180,20 +188,19 @@ contract AMMContract is Ownable {
         );
 
         // Approve the pool to spend tokens
-        IERC20(poolData.tokenA).approve(address(pool), _amount0);
-        IERC20(poolData.tokenB).approve(address(pool), _amount1);
+        IERC20(poolData.tokenA).approve(
+            address(nonFungiblePositionManager),
+            _amount0
+        );
+        IERC20(poolData.tokenB).approve(
+            address(nonFungiblePositionManager),
+            _amount1
+        );
 
         // Get the current sqrt price from the pool
         (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
 
         // Calculate the liquidity
-        // uint128 liquidity = LiquidityAmounts.getLiquidityForAmounts(
-        //     sqrtPriceX96,
-        //     TickMath.getSqrtRatioAtTick(_tickLower),
-        //     TickMath.getSqrtRatioAtTick(_tickUpper),
-        //     _amount0,
-        //     _amount1
-        // );
         INonfungiblePositionManager.MintParams
             memory params = INonfungiblePositionManager.MintParams({
                 token0: poolData.tokenA,
@@ -210,19 +217,8 @@ contract AMMContract is Ownable {
             });
 
         // Mint liquidity
-        // pool.mint(
-        //     msg.sender,
-        //     _tickLower,
-        //     _tickUpper,
-        //     liquidity,
-        //     abi.encode(msg.sender)
-        // );
-        (
-            uint256 tokenId,
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        ) = nonFungiblePositionManager.mint(params);
+        (tokenId, liquidity, amount0, amount1) = nonFungiblePositionManager
+            .mint(params);
 
         emit LiquidityAdded(_marketId, _amount0, _amount1);
     }
