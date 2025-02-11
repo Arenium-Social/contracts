@@ -54,8 +54,57 @@ contract ForkAMMTest is Test {
         amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
         tokenA.approve(address(amm), 5 * 1e18);
         tokenB.approve(address(amm), 5 * 1e18);
-        amm.addLiquidity(marketId, 5 * 1e18, 5 * 1e18, -120, 120);
+        (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        ) = amm.addLiquidity(marketId, 5 * 1e18, 5 * 1e18, -120, 120);
+        assertEq(amount0, 5 * 1e18);
+        assertEq(amount1, 5 * 1e18);
+        assertGt(liquidity, 0);
+        (
+            address operator,
+            ,
+            ,
+            ,
+            uint128 liquidityInPool,
+            ,
+            ,
+            ,
+            ,
+            uint256 amount0InPool,
+            uint256 amount1InPool
+        ) = amm.getUserPositionInPool(address(owner));
+        assertGt(liquidityInPool, 0);
+        assertGt(amount0InPool + amount1InPool, 0);
+        vm.stopPrank();
+    }
 
+    function test_removeLiquidity() public {
+        bytes32 marketId = keccak256("TestMarket");
+        vm.startPrank(owner);
+        amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
+        tokenA.approve(address(amm), 5 * 1e18);
+        tokenB.approve(address(amm), 5 * 1e18);
+        (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        ) = amm.addLiquidity(marketId, 5 * 1e18, 5 * 1e18, -120, 120);
+        (
+            address wtf,
+            uint256 amount0Decreased,
+            uint256 amount1Decreased,
+            uint256 amount0Collected,
+            uint256 amount1Collected
+        ) = amm.removeLiquidity(marketId, tokenId, 10000, 0, 0);
+        assertEq(wtf, address(owner));
+        // assertGt(amount0Decreased, 0);
+        // assertGt(amount1Decreased, 0);
+        // assertGt(amount0Collected, 0);
+        // assertGt(amount1Collected, 0);
         vm.stopPrank();
     }
 }
