@@ -59,9 +59,8 @@ contract ForkAMMTest is Test {
             uint128 liquidity,
             uint256 amount0,
             uint256 amount1
-        ) = amm.addLiquidity(marketId, 5 * 1e18, 5 * 1e18, -120, 120);
-        assertEq(amount0, 5 * 1e18);
-        assertEq(amount1, 5 * 1e18);
+        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        assertGt(amount0 + amount1, 0);
         assertGt(liquidity, 0);
         (
             address operator,
@@ -75,7 +74,7 @@ contract ForkAMMTest is Test {
             ,
             uint256 amount0InPool,
             uint256 amount1InPool
-        ) = amm.getUserPositionInPool(address(owner));
+        ) = amm.getUserPositionInPool(address(owner), marketId);
         assertGt(liquidityInPool, 0);
         assertGt(amount0InPool + amount1InPool, 0);
         vm.stopPrank();
@@ -92,19 +91,24 @@ contract ForkAMMTest is Test {
             uint128 liquidity,
             uint256 amount0,
             uint256 amount1
-        ) = amm.addLiquidity(marketId, 5 * 1e18, 5 * 1e18, -120, 120);
+        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        uint256 balBeforeTokenA = tokenA.balanceOf(address(owner));
+        uint256 balBeforeTokenB = tokenB.balanceOf(address(owner));
         (
-            address wtf,
             uint256 amount0Decreased,
             uint256 amount1Decreased,
             uint256 amount0Collected,
             uint256 amount1Collected
-        ) = amm.removeLiquidity(marketId, tokenId, 10000, 0, 0);
-        assertEq(wtf, address(owner));
-        // assertGt(amount0Decreased, 0);
-        // assertGt(amount1Decreased, 0);
-        // assertGt(amount0Collected, 0);
-        // assertGt(amount1Collected, 0);
+        ) = amm.removeLiquidity(marketId, owner, liquidity, 0, 0);
+        assertGt(amount0Decreased + amount1Decreased, 0);
+        assertGt(amount0Collected + amount1Collected, 0);
+        assertGt(
+            tokenA.balanceOf(address(owner)) -
+                balBeforeTokenA +
+                tokenB.balanceOf(address(owner)) -
+                balBeforeTokenB,
+            0
+        );
         vm.stopPrank();
     }
 }

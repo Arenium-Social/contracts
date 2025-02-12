@@ -14,18 +14,20 @@ import {TickMath} from "./lib/TickMath.sol";
 import {INonfungiblePositionManager} from "./interfaces/INonfungiblePositionManager.sol";
 
 /**
- * @title UniswapV3AMMContract
+ * @title AMMContract
  * @author Arenium Social
  * @notice This contract manages the trading of outcome tokens from a prediction market using Uniswap V3 liquidity pools.
+ * @notice This contract also handles user's position in pools(i.e. tickets), the owner of position NFT is this contract
+ * to manage liquidity position for the user, such as add and remove liquidity.
  * @dev The creation of pools is automated when a new market is initialized in the prediction market.
  */
 contract AMMContract is Ownable {
-    // Immutable Uniswap V3 factory and swap router addresses
+    /// @notice Immutable Uniswap V3 factory and swap router addresses
     IUniswapV3Factory public immutable magicFactory;
     ISwapRouter public immutable swapRouter;
     INonfungiblePositionManager public immutable nonFungiblePositionManager;
 
-    // Struct to store pool-related data
+    /// @notice Struct to store pool-related data
     struct PoolData {
         bytes32 marketId; // Unique identifier for the prediction market
         address pool; // Address of the Uniswap V3 pool
@@ -35,16 +37,17 @@ contract AMMContract is Ownable {
         bool poolInitialized; // Flag to check if the pool is initialized
     }
 
-    // Array to store all pools
+    /// @notice Array to store all pools
     PoolData[] public pools;
 
-    // Mappings to store pool data for quick access
-    mapping(bytes32 => PoolData) public marketPools; // Maps marketId to PoolData
-    mapping(address => PoolData) public addressToPool; // Maps pool address to PoolData
-    mapping(address => mapping(address => address)) public directPools; // Maps token pairs to pool addresses
-    mapping(address => uint256) public userPositionIds; // Maps user address to their position token id
+    mapping(bytes32 => PoolData) public marketIdToPool; /// @dev Maps marketId to PoolData
+    mapping(address => PoolData) public poolAddressToPool; /// @dev Maps pool address to PoolData
+    mapping(address => mapping(address => address))
+        public tokenPairToPoolAddress; /// @dev Maps token pairs to pool addresses
+    mapping(address => mapping(bytes32 => uint256))
+        public userAddressToMarketIdToPositionId; /// @dev Maps user address to their position token id in the respective market
 
-    // Events
+    event PoolCreated(address indexed pool);
     event PoolInitialized(
         bytes32 indexed marketId,
         address indexed pool,
@@ -52,12 +55,29 @@ contract AMMContract is Ownable {
         address tokenB,
         uint24 fee
     );
+
+    event NewPositionMinted(
+        address indexed user,
+        bytes32 indexed marketId,
+        uint256 amount0,
+        uint256 amount1
+    );
     event LiquidityAdded(
         bytes32 indexed marketId,
         uint256 indexed amount0,
         uint256 indexed amount1
     );
-    event LiquidityRemoved(bytes32 indexed marketId, uint128 indexed liquidity);
+    event LiquidityRemoved(
+        address user,
+        uint128 liquidity,
+        uint256 amount0Decreased,
+        uint256 amount1Decreased
+    );
+    event TokensCollected(
+        address user,
+        uint256 amount0Collected,
+        uint256 amount1Collected
+    );
     event TokensSwapped(
         bytes32 indexed marketId,
         address indexed tokenIn,
@@ -77,26 +97,20 @@ contract AMMContract is Ownable {
         uint256 amountB
     );
 
-    /**
-     * @notice Constructor to initialize the contract with Uniswap V3 factory and swap router addresses.
-     * @param _uniswapV3Factory Address of the Uniswap V3 factory.
-     * @param _swapRouter Address of the Uniswap V3 swap router.
-     */
     constructor(
         address _uniswapV3Factory,
-        address _swapRouter,
+        address _uniswapSwapRouter,
         address _uniswapNonFungiblePositionManager
     ) {
         magicFactory = IUniswapV3Factory(_uniswapV3Factory);
-        swapRouter = ISwapRouter(_swapRouter);
+        swapRouter = ISwapRouter(_uniswapSwapRouter);
         nonFungiblePositionManager = INonfungiblePositionManager(
             _uniswapNonFungiblePositionManager
         );
     }
 
     /**
-     * @notice Initializes a new Uniswap V3 pool for a given market.
-     * @dev The pool is created with a price of 1 (equal weights for both tokens).
+     * @notice Abstract function to create, initialize and update pool data in this contract.
      * @param _tokenA Address of the first token.
      * @param _tokenB Address of the second token.
      * @param _fee Fee tier for the pool.
@@ -107,58 +121,39 @@ contract AMMContract is Ownable {
         address _tokenB,
         uint24 _fee,
         bytes32 _marketId
-    ) external {
-        require(_tokenA != _tokenB, "Tokens Must Be Different");
-        require(
-            marketPools[_marketId].pool == address(0),
-            "Pool Already Exists"
+    ) external returns (address poolAddress) {
+        /// @dev Create the pool
+        poolAddress = _createPool(_marketId, _tokenA, _tokenB, _fee);
+
+        /// @dev Initialize pool and update pool data in this contract
+        _initializePoolAndUpdateContract(
+            PoolData({
+                marketId: _marketId,
+                pool: poolAddress,
+                tokenA: _tokenA,
+                tokenB: _tokenB,
+                fee: _fee,
+                poolInitialized: false
+            })
         );
-
-        // Ensure token order for pool creation
-        if (_tokenA > _tokenB) {
-            (_tokenA, _tokenB) = (_tokenB, _tokenA);
-        }
-
-        // Create the pool
-        address poolAddress = magicFactory.createPool(_tokenA, _tokenB, _fee);
-        require(poolAddress != address(0), "Pool Creation Failed");
-
-        // Initialize the pool with a price of 1 (equal weights for both tokens)
-        IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
-        uint160 sqrtPriceX96 = 79228162514264337593543950336; // sqrt(1) * 2^96
-        // uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(0);
-        pool.initialize(sqrtPriceX96);
-
-        // Update pool data in this contract
-        PoolData memory poolData = PoolData({
-            marketId: _marketId,
-            pool: poolAddress,
-            tokenA: _tokenA,
-            tokenB: _tokenB,
-            fee: _fee,
-            poolInitialized: true
-        });
-
-        marketPools[_marketId] = poolData;
-        addressToPool[poolAddress] = poolData;
-        directPools[_tokenA][_tokenB] = poolAddress;
-        directPools[_tokenB][_tokenA] = poolAddress;
-        pools.push(poolData); // Add to pools array
-
-        emit PoolInitialized(_marketId, poolAddress, _tokenA, _tokenB, _fee);
     }
 
     /**
-     * @notice Adds liquidity to a specified pool.
-     * @dev The liquidity is added within the specified tick range.
+     * @notice Abstract function to add liquidity to a pool.
      * @param _marketId Unique identifier for the prediction market.
+     * @param _user Address of the user.
      * @param _amount0 Amount of tokenA to add.
      * @param _amount1 Amount of tokenB to add.
      * @param _tickLower Lower tick bound for the liquidity position.
      * @param _tickUpper Upper tick bound for the liquidity position.
+     * @return tokenId The token ID of the position.
+     * @return liquidity The liquidity of the position.
+     * @return amount0 The amount of tokenA in the position.
+     * @return amount1 The amount of tokenB in the position.
      */
     function addLiquidity(
         bytes32 _marketId,
+        address _user,
         uint256 _amount0,
         uint256 _amount1,
         int24 _tickLower,
@@ -172,12 +167,10 @@ contract AMMContract is Ownable {
             uint256 amount1
         )
     {
-        PoolData storage poolData = marketPools[_marketId];
+        PoolData storage poolData = marketIdToPool[_marketId];
         require(poolData.poolInitialized, "Pool not active");
 
-        IUniswapV3Pool pool = IUniswapV3Pool(poolData.pool);
-
-        // Transfer tokens from the sender to this contract
+        /// @dev Transfer tokens from the sender to this contract
         IERC20(poolData.tokenA).transferFrom(
             msg.sender,
             address(this),
@@ -189,106 +182,88 @@ contract AMMContract is Ownable {
             _amount1
         );
 
-        // Approve the pool to spend tokens
-        IERC20(poolData.tokenA).approve(
-            address(nonFungiblePositionManager),
-            _amount0
-        );
-        IERC20(poolData.tokenB).approve(
-            address(nonFungiblePositionManager),
+        /// @dev Mint a new position if the user doesn't have a position.
+        if (userAddressToMarketIdToPositionId[_user][_marketId] == 0) {
+            (tokenId, , , ) = _mintNewPosition(
+                marketIdToPool[_marketId],
+                _user,
+                _amount0,
+                _amount1,
+                _tickLower,
+                _tickUpper
+            );
+        }
+        /// @dev Else add liquidity to the existing position.
+        else if (userAddressToMarketIdToPositionId[_user][_marketId] != 0) {
+            _addLiquidityToExistingPosition(
+                marketIdToPool[_marketId],
+                _user,
+                _amount0,
+                _amount1
+            );
+            tokenId = userAddressToMarketIdToPositionId[_user][_marketId];
+        }
+
+        /// @dev Refund the user if there is a difference between liquidity added actually and liquidity added in the params.
+        _refundExtraLiquidityWhileMinting(
+            marketIdToPool[_marketId],
+            amount0,
+            amount1,
+            _amount0,
             _amount1
         );
 
-        // Get the current sqrt price from the pool
-        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+        /// @dev Call getter and return current user holdings.
+        (, , , , liquidity, , , , , amount0, amount1) = getUserPositionInPool(
+            _user,
+            _marketId
+        );
 
-        // Calculate the liquidity
-        INonfungiblePositionManager.MintParams
-            memory params = INonfungiblePositionManager.MintParams({
-                token0: poolData.tokenA,
-                token1: poolData.tokenB,
-                fee: poolData.fee,
-                tickLower: _tickLower,
-                tickUpper: _tickUpper,
-                amount0Desired: _amount0,
-                amount1Desired: _amount1,
-                amount0Min: _amount0,
-                amount1Min: _amount1,
-                recipient: msg.sender,
-                deadline: block.timestamp
-            });
-
-        // Mint liquidity
-        (tokenId, liquidity, amount0, amount1) = nonFungiblePositionManager
-            .mint(params);
-        userPositionIds[msg.sender] = tokenId;
-
-        emit LiquidityAdded(_marketId, _amount0, _amount1);
+        emit LiquidityAdded(_marketId, amount0, amount1);
     }
 
     /**
-     * @notice Removes liquidity from a specified pool.
-     * @dev The liquidity is removed from the specified position, and the tokens are collected and sent to the caller.
+     * @notice Abstract Function to remove liquidity and collect tokens from an existing position.
      * @param _marketId Unique identifier for the prediction market.
-     * @param _tokenId The NFT token ID representing the liquidity position.
-     * @param _liquidity Amount of liquidity to remove.
-     * @param _amount0Min Minimum amount of token0 to receive.
-     * @param _amount1Min Minimum amount of token1 to receive.
+     * @param _user Address of the user.
+     * @param _liquidity Liquidity to decrease.
+     * @param _amount0Min Minimum amount of tokenA to receive.
+     * @param _amount1Min Minimum amount of tokenB to receive.
+     * @return amount0Decreased Amount of tokenA decreased.
+     * @return amount1Decreased Amount of tokenB decreased.
+     * @return amount0Collected Amount of tokenA collected.
+     * @return amount1Collected Amount of tokenB collected.
      */
     function removeLiquidity(
         bytes32 _marketId,
-        uint256 _tokenId,
+        address _user,
         uint128 _liquidity,
         uint256 _amount0Min,
         uint256 _amount1Min
     )
         external
         returns (
-            address wtf,
             uint256 amount0Decreased,
             uint256 amount1Decreased,
             uint256 amount0Collected,
             uint256 amount1Collected
         )
     {
-        // Ensure the caller owns the NFT position
-        require(
-            IERC721(address(nonFungiblePositionManager)).ownerOf(_tokenId) ==
-                msg.sender,
-            "Not the owner of the position"
+        (amount0Decreased, amount1Decreased) = _decreaseLiquidity(
+            marketIdToPool[_marketId],
+            _user,
+            _liquidity,
+            _amount0Min,
+            _amount1Min
         );
-
-        // Decrease liquidity
-        INonfungiblePositionManager.DecreaseLiquidityParams
-            memory decreaseParams = INonfungiblePositionManager
-                .DecreaseLiquidityParams({
-                    tokenId: _tokenId,
-                    liquidity: _liquidity,
-                    amount0Min: _amount0Min,
-                    amount1Min: _amount1Min,
-                    deadline: block.timestamp
-                });
-
-        (amount0Decreased, amount1Decreased) = nonFungiblePositionManager
-            .decreaseLiquidity(decreaseParams);
-
-        // Collect tokens (including fees)
-        INonfungiblePositionManager.CollectParams
-            memory collectParams = INonfungiblePositionManager.CollectParams({
-                tokenId: _tokenId,
-                recipient: msg.sender,
-                amount0Max: type(uint128).max,
-                amount1Max: type(uint128).max
-            });
-
-        (amount0Collected, amount1Collected) = nonFungiblePositionManager
-            .collect(collectParams);
-        wtf = msg.sender;
-        emit LiquidityRemoved(_marketId, _liquidity);
+        (amount0Collected, amount1Collected) = _collectTokensFromPosition(
+            marketIdToPool[_marketId],
+            _user
+        );
     }
 
     /**
-     * @notice Swaps tokens in a specified pool.
+     * @notice Abstract Function to swap tokens in a specified pool.
      * @dev The swap is executed using the Uniswap V3 swap router.
      * @param _marketId Unique identifier for the prediction market.
      * @param _amountIn Amount of input tokens to swap.
@@ -301,22 +276,360 @@ contract AMMContract is Ownable {
         uint256 _amountOutMinimum,
         bool _zeroForOne
     ) external {
-        PoolData storage poolData = marketPools[_marketId];
+        PoolData storage poolData = marketIdToPool[_marketId];
         require(poolData.poolInitialized, "Pool not active");
 
         address inputToken = _zeroForOne ? poolData.tokenA : poolData.tokenB;
         address outputToken = _zeroForOne ? poolData.tokenB : poolData.tokenA;
 
-        // Transfer input tokens to the contract and approve the swap router
+        /// @dev Transfer input tokens to the contract and approve the swap router
         IERC20(inputToken).transferFrom(msg.sender, address(this), _amountIn);
-        IERC20(inputToken).approve(address(swapRouter), _amountIn);
 
-        // Execute the swap
+        /// @dev Execute the swap
+        _executeSwap(
+            inputToken,
+            outputToken,
+            _amountIn,
+            _amountOutMinimum,
+            _marketId
+        );
+    }
+
+    /**
+     * @notice Internal Function to create a new Uniswap V3 pool for a given market.
+     * @param _marketId Unique identifier for the prediction market.
+     * @param _tokenA Address of the first token.
+     * @param _tokenB Address of the second token.
+     * @param _fee Fee tier for the pool.
+     */
+    function _createPool(
+        bytes32 _marketId,
+        address _tokenA,
+        address _tokenB,
+        uint24 _fee
+    ) internal returns (address poolAddress) {
+        require(_tokenA != _tokenB, "Tokens Must Be Different");
+        require(
+            marketIdToPool[_marketId].pool == address(0),
+            "Pool Already Exists"
+        );
+
+        /// @dev Ensure token order for pool creation.
+        if (_tokenA > _tokenB) {
+            (_tokenA, _tokenB) = (_tokenB, _tokenA);
+        }
+
+        /// @dev Create the pool
+        poolAddress = magicFactory.createPool(_tokenA, _tokenB, _fee);
+        require(poolAddress != address(0), "Pool Creation Failed");
+        emit PoolCreated(poolAddress);
+    }
+
+    /**
+     * @notice Internal Function to initialize the pool and update pool data in this contract.
+     * @dev The pool is created with a price of 1 (equal weights for both tokens).
+     * @param poolData PoolData struct containing pool information.
+     */
+    function _initializePoolAndUpdateContract(
+        PoolData memory poolData
+    ) internal {
+        require(
+            marketIdToPool[poolData.marketId].pool == address(0),
+            "Pool already initialised"
+        );
+        /// @dev Initialize the pool with a price of 1 (equal weights for both tokens).
+        IUniswapV3Pool pool = IUniswapV3Pool(poolData.pool);
+        uint160 sqrtPriceX96 = 79228162514264337593543950336; /// @param sqrtPriceX96 sqrt(1) * 2^96
+        pool.initialize(sqrtPriceX96);
+
+        /// @dev Update pool data in this contract
+        poolData.poolInitialized = true;
+        marketIdToPool[poolData.marketId] = poolData;
+        poolAddressToPool[poolData.pool] = poolData;
+        tokenPairToPoolAddress[poolData.tokenA][poolData.tokenB] = poolData
+            .pool;
+        tokenPairToPoolAddress[poolData.tokenB][poolData.tokenA] = poolData
+            .pool;
+        pools.push(poolData);
+
+        emit PoolInitialized(
+            poolData.marketId,
+            poolData.pool,
+            poolData.tokenA,
+            poolData.tokenB,
+            poolData.fee
+        );
+    }
+
+    /**
+     * @notice Internal Function to mint a new position for a user.
+     * @notice User must not have a position in the pool to mint a new position.
+     * @dev Position is minted to this contract, but in the contract data user's position is stored.
+     * @param poolData PoolData struct containing pool information.
+     * @param _user Address of the user.
+     * @param _amount0 Amount of tokenA to add.
+     * @param _amount1 Amount of tokenB to add.
+     * @param _tickLower Lower tick bound for the liquidity position.
+     * @param _tickUpper Upper tick bound for the liquidity position.
+     */
+    function _mintNewPosition(
+        PoolData memory poolData,
+        address _user,
+        uint256 _amount0,
+        uint256 _amount1,
+        int24 _tickLower,
+        int24 _tickUpper
+    )
+        internal
+        returns (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
+        require(
+            userAddressToMarketIdToPositionId[_user][poolData.marketId] == 0,
+            "User already has a position"
+        );
+        /// @dev Approve the pool to spend tokens
+        IERC20(poolData.tokenA).approve(
+            address(nonFungiblePositionManager),
+            _amount0
+        );
+        IERC20(poolData.tokenB).approve(
+            address(nonFungiblePositionManager),
+            _amount1
+        );
+
+        /// @dev Calculate the liquidity
+        INonfungiblePositionManager.MintParams
+            memory params = INonfungiblePositionManager.MintParams({
+                token0: poolData.tokenA,
+                token1: poolData.tokenB,
+                fee: poolData.fee,
+                tickLower: _tickLower,
+                tickUpper: _tickUpper,
+                amount0Desired: _amount0,
+                amount1Desired: _amount1,
+                amount0Min: _amount0,
+                amount1Min: _amount1,
+                recipient: address(this),
+                deadline: block.timestamp
+            });
+
+        /// @dev Mint a new liquidity position and update user's position id
+        (tokenId, liquidity, amount0, amount1) = nonFungiblePositionManager
+            .mint(params);
+        userAddressToMarketIdToPositionId[_user][poolData.marketId] = tokenId;
+
+        emit NewPositionMinted(_user, poolData.marketId, _amount0, _amount1);
+    }
+
+    /**
+     * @notice Internal Function to add liquidity to an existing position.
+     * @param poolData PoolData struct containing pool information.
+     * @param _amount0 Amount of tokenA to add.
+     * @param _amount1 Amount of tokenB to add.
+     */
+    function _addLiquidityToExistingPosition(
+        PoolData memory poolData,
+        address _user,
+        uint256 _amount0,
+        uint256 _amount1
+    ) internal returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
+        /// @dev Approve the pool to spend tokens.
+        IERC20(poolData.tokenA).approve(
+            address(nonFungiblePositionManager),
+            _amount0
+        );
+        IERC20(poolData.tokenB).approve(
+            address(nonFungiblePositionManager),
+            _amount1
+        );
+
+        /// @dev Prepare increaseLiquidity params.
+        INonfungiblePositionManager.IncreaseLiquidityParams
+            memory increaseLiquidityParams = INonfungiblePositionManager
+                .IncreaseLiquidityParams({
+                    tokenId: userAddressToMarketIdToPositionId[_user][
+                        poolData.marketId
+                    ],
+                    amount0Desired: _amount0,
+                    amount1Desired: _amount1,
+                    amount0Min: _amount0,
+                    amount1Min: _amount1,
+                    deadline: block.timestamp
+                });
+
+        /// @dev Increase liquidity to the existing position.
+        (liquidity, amount0, amount1) = nonFungiblePositionManager
+            .increaseLiquidity(increaseLiquidityParams);
+    }
+
+    /**
+     * @notice Internal Function to refund the user if there is a difference between liquidity added actually and liquidity added in the params.
+     * @param poolData PoolData struct containing pool information.
+     * @param amount0 Amount of tokenA in the position.
+     * @param amount1 Amount of tokenB in the position.
+     * @param _amount0 Amount of tokenA to add.
+     * @param _amount1 Amount of tokenB to add.
+     */
+    function _refundExtraLiquidityWhileMinting(
+        PoolData memory poolData,
+        uint256 amount0,
+        uint256 amount1,
+        uint256 _amount0,
+        uint256 _amount1
+    ) internal returns (uint256 amount0Refunded, uint256 amount1Refunded) {
+        if (amount0 > _amount0) {
+            IERC20(poolData.tokenA).approve(
+                address(nonFungiblePositionManager),
+                amount0 - _amount0
+            );
+            bool success = IERC20(poolData.tokenA).transferFrom(
+                address(this),
+                msg.sender,
+                amount0 - _amount0
+            );
+            require(success, "Transfer failed");
+            amount0Refunded = amount0 - _amount0;
+        }
+        if (amount1 > _amount1) {
+            IERC20(poolData.tokenB).approve(
+                address(nonFungiblePositionManager),
+                amount1 - _amount1
+            );
+            bool success = IERC20(poolData.tokenB).transferFrom(
+                address(this),
+                msg.sender,
+                amount1 - _amount1
+            );
+            require(success, "Transfer failed");
+            amount1Refunded = amount1 - _amount1;
+        }
+    }
+
+    /**
+     * @notice Internal Function to decrease liquidity from an existing position.
+     * @param _user Address of the user.
+     * @param _liquidity Liquidity to decrease.
+     * @param _amount0Min Minimum amount of tokenA to receive.
+     * @param _amount1Min Minimum amount of tokenB to receive.
+     * @return amount0Decreased Amount of tokenA decreased.
+     * @return amount1Decreased Amount of tokenB decreased.
+     */
+    function _decreaseLiquidity(
+        PoolData memory poolData,
+        address _user,
+        uint128 _liquidity,
+        uint256 _amount0Min,
+        uint256 _amount1Min
+    ) internal returns (uint256 amount0Decreased, uint256 amount1Decreased) {
+        require(
+            userAddressToMarketIdToPositionId[_user][poolData.marketId] != 0,
+            "No positions to decrease liquidity, try adding liquidity first"
+        );
+        /// @dev Call getter and return current user holdings.
+        (
+            ,
+            ,
+            ,
+            ,
+            uint128 liquidity,
+            ,
+            ,
+            ,
+            ,
+            uint256 amount0,
+            uint256 amount1
+        ) = getUserPositionInPool(_user, poolData.marketId);
+        require(
+            liquidity >= _liquidity,
+            "Not enough liquidity to decrease, try adding liquidity first"
+        );
+        require(
+            amount0 >= _amount0Min,
+            "Not enough tokenA to decrease, try adding more tokenA"
+        );
+        require(
+            amount1 >= _amount1Min,
+            "Not enough tokenB to decrease, try adding more tokenB"
+        );
+        /// @dev Prepare decreaseLiquidity params.
+        INonfungiblePositionManager.DecreaseLiquidityParams
+            memory decreaseParams = INonfungiblePositionManager
+                .DecreaseLiquidityParams({
+                    tokenId: userAddressToMarketIdToPositionId[_user][
+                        poolData.marketId
+                    ],
+                    liquidity: _liquidity,
+                    amount0Min: _amount0Min,
+                    amount1Min: _amount1Min,
+                    deadline: block.timestamp
+                });
+
+        /// @dev Decrease liquidity from the existing position.
+        (amount0Decreased, amount1Decreased) = nonFungiblePositionManager
+            .decreaseLiquidity(decreaseParams);
+
+        emit LiquidityRemoved(
+            _user,
+            _liquidity,
+            amount0Decreased,
+            amount1Decreased
+        );
+    }
+
+    /**
+     * @notice Internal Function to collect tokens from an existing position.
+     * @param _user Address of the user.
+     * @return amount0Collected Amount of tokenA collected.
+     * @return amount1Collected Amount of tokenB collected.
+     */
+    function _collectTokensFromPosition(
+        PoolData memory poolData,
+        address _user
+    ) internal returns (uint256 amount0Collected, uint256 amount1Collected) {
+        /// @dev Prepare collect params.
+        INonfungiblePositionManager.CollectParams
+            memory collectParams = INonfungiblePositionManager.CollectParams({
+                tokenId: userAddressToMarketIdToPositionId[_user][
+                    poolData.marketId
+                ],
+                recipient: _user,
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            });
+
+        /// @dev Collect tokens (including fees) from the position and transfer to user.
+        (amount0Collected, amount1Collected) = nonFungiblePositionManager
+            .collect(collectParams);
+
+        emit TokensCollected(_user, amount0Collected, amount1Collected);
+    }
+
+    /**
+     * @notice Internal Function to execute a swap.
+     * @param _inputToken Address of the input token.
+     * @param _outputToken Address of the output token.
+     * @param _amountIn Amount of input tokens to swap.
+     * @param _amountOutMinimum Minimum amount of output tokens to receive.
+     * @param _marketId Unique identifier for the prediction market.
+     */
+    function _executeSwap(
+        address _inputToken,
+        address _outputToken,
+        uint256 _amountIn,
+        uint256 _amountOutMinimum,
+        bytes32 _marketId
+    ) internal {
+        IERC20(_inputToken).approve(address(swapRouter), _amountIn);
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
             .ExactInputSingleParams({
-                tokenIn: inputToken,
-                tokenOut: outputToken,
-                fee: poolData.fee,
+                tokenIn: _inputToken,
+                tokenOut: _outputToken,
+                fee: marketIdToPool[_marketId].fee,
                 recipient: msg.sender,
                 deadline: block.timestamp,
                 amountIn: _amountIn,
@@ -328,59 +641,11 @@ contract AMMContract is Ownable {
 
         emit TokensSwapped(
             _marketId,
-            inputToken,
-            outputToken,
+            _inputToken,
+            _outputToken,
             _amountIn,
             _amountOutMinimum
         );
-    }
-
-    /**
-     * @notice Collects fees from a specified liquidity position.
-     * @param marketId Unique identifier for the prediction market.
-     * @param recipient Address to receive the collected fees.
-     * @param tickLower Lower tick bound for the liquidity position.
-     * @param tickUpper Upper tick bound for the liquidity position.
-     * @param amount0Requested Amount of tokenA fees to collect.
-     * @param amount1Requested Amount of tokenB fees to collect.
-     * @return amount0 Amount of tokenA fees collected.
-     * @return amount1 Amount of tokenB fees collected.
-     */
-    function collectFee(
-        bytes32 marketId,
-        address recipient,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 amount0Requested,
-        uint128 amount1Requested
-    ) external returns (uint128 amount0, uint128 amount1) {
-        PoolData memory poolData = marketPools[marketId];
-        (amount0, amount1) = IUniswapV3Pool(poolData.pool).collect(
-            recipient,
-            tickLower,
-            tickUpper,
-            amount0Requested,
-            amount1Requested
-        );
-        emit FeeCollected(recipient, marketId, amount0, amount1);
-    }
-
-    /**
-     * @notice Collects protocol fees from a specified pool.
-     * @dev Only callable by the contract owner.
-     * @param pool Address of the pool.
-     * @param recipient Address to receive the collected fees.
-     * @param tokenA Amount of tokenA fees to collect.
-     * @param tokenB Amount of tokenB fees to collect.
-     */
-    function collectProtocolFee(
-        address pool,
-        address recipient,
-        uint128 tokenA,
-        uint128 tokenB
-    ) external onlyOwner {
-        IUniswapV3Pool(pool).collectProtocol(recipient, tokenA, tokenB);
-        emit ProtocolFeeCollected(pool, tokenA, tokenB);
     }
 
     /**
@@ -407,7 +672,7 @@ contract AMMContract is Ownable {
     function getPoolUsingMarketId(
         bytes32 marketId
     ) external view returns (PoolData memory pool) {
-        pool = marketPools[marketId];
+        pool = marketIdToPool[marketId];
         return pool;
     }
 
@@ -419,7 +684,7 @@ contract AMMContract is Ownable {
     function getPoolUsingAddress(
         address poolAddress
     ) external view returns (PoolData memory pool) {
-        pool = addressToPool[poolAddress];
+        pool = poolAddressToPool[poolAddress];
         return pool;
     }
 
@@ -439,9 +704,10 @@ contract AMMContract is Ownable {
      * @return amount1 The amount of token1 in the position.
      */
     function getUserPositionInPool(
-        address _user
+        address _user,
+        bytes32 _marketId
     )
-        external
+        public
         view
         returns (
             address operator,
@@ -470,7 +736,9 @@ contract AMMContract is Ownable {
             ,
             tokensOwed0,
             tokensOwed1
-        ) = nonFungiblePositionManager.positions(userPositionIds[_user]);
+        ) = nonFungiblePositionManager.positions(
+            userAddressToMarketIdToPositionId[_user][_marketId]
+        );
         (amount0, amount1) = getAmountsForLiquidityHelper(
             fee,
             tickLower,
@@ -496,7 +764,7 @@ contract AMMContract is Ownable {
     function getPoolReserves(
         bytes32 marketId
     ) external view returns (uint256 reserve0, uint256 reserve1) {
-        PoolData memory poolData = marketPools[marketId];
+        PoolData memory poolData = marketIdToPool[marketId];
         require(poolData.poolInitialized, "Pool not active");
 
         IUniswapV3Pool pool = IUniswapV3Pool(poolData.pool);
@@ -514,6 +782,15 @@ contract AMMContract is Ownable {
         );
     }
 
+    /**
+     * @notice Internal Function to get the amount of tokenA and tokenB in a user's position.
+     * @param fee Fee tier for the pool.
+     * @param tickLower Lower tick bound for the liquidity position.
+     * @param tickUpper Upper tick bound for the liquidity position.
+     * @param liquidity Liquidity in the position.
+     * @return amount0 Amount of tokenA in the position.
+     * @return amount1 Amount of tokenB in the position.
+     */
     function getAmountsForLiquidityHelper(
         uint24 fee,
         int24 tickLower,
