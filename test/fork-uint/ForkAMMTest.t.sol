@@ -12,7 +12,7 @@ contract ForkAMMTest is Test {
     HelperConfig helperConfig;
     HelperConfig.NetworkConfig activeConfig;
     address owner = makeAddr("OWNER");
-    string BASE_SEPOLIA_RPC_URL = vm.envString("BASE_SEPOLIA_RPC_URL_2");
+    string BASE_SEPOLIA_RPC_URL = vm.envString("BASE_SEPOLIA_RPC_URL");
     uint256 fork;
     ERC20 tokenA;
     ERC20 tokenB;
@@ -48,7 +48,7 @@ contract ForkAMMTest is Test {
         assertNotEq(pool.pool, address(0));
     }
 
-    function test_addLiquidity() public {
+    function test_mintNewPosition() public {
         bytes32 marketId = keccak256("TestMarket");
         vm.startPrank(owner);
         amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
@@ -77,6 +77,32 @@ contract ForkAMMTest is Test {
         ) = amm.getUserPositionInPool(address(owner), marketId);
         assertGt(liquidityInPool, 0);
         assertGt(amount0InPool + amount1InPool, 0);
+        vm.stopPrank();
+    }
+
+    function test_increaseLiquidity() public {
+        bytes32 marketId = keccak256("TestMarket");
+        vm.startPrank(owner);
+        amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
+        tokenA.approve(address(amm), 5 * 1e18);
+        tokenB.approve(address(amm), 5 * 1e18);
+        (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        tokenA.approve(address(amm), 5 * 1e18);
+        tokenB.approve(address(amm), 5 * 1e18);
+        (
+            uint256 tokenId2,
+            uint256 liquidity2,
+            uint256 amount02,
+            uint256 amount12
+        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        assertEq(tokenId, tokenId2);
+        assertGt(liquidity2, liquidity);
+        assertGt(amount02 + amount12, amount0 + amount1);
         vm.stopPrank();
     }
 

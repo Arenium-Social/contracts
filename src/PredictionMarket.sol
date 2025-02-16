@@ -269,7 +269,7 @@ contract PredictionMarket is
             revert PredictionMarket__MarketDoesNotExist();
         }
 
-        // Create outcome tokens and mint them to the sender
+        // Create outcome tokens and mint them to this contract so that we can add liquidity to the Uniswap V3 pool.
         PMLibrary.createOutcomeTokens(
             market,
             msg.sender,
@@ -277,18 +277,7 @@ contract PredictionMarket is
             currency
         );
 
-        // Transfer half of the tokens from the sender to this contract
         uint256 liquidityAmount = tokensToCreate / 2;
-        market.outcome1Token.transferFrom(
-            msg.sender,
-            address(this),
-            liquidityAmount
-        );
-        market.outcome2Token.transferFrom(
-            msg.sender,
-            address(this),
-            liquidityAmount
-        );
 
         // Approve AMM contract to spend the outcome tokens
         market.outcome1Token.approve(address(amm), liquidityAmount);
@@ -550,6 +539,39 @@ contract PredictionMarket is
             market.outcome1,
             market.outcome2
         );
+    }
+
+    function getUserLiquidityInMarket(
+        address user,
+        bytes32 marketId
+    )
+        external
+        view
+        returns (
+            address operator,
+            address token0,
+            address token1,
+            uint24 fee,
+            uint128 liquidity,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1,
+            uint256 amount0,
+            uint256 amount1
+        )
+    {
+        (
+            operator,
+            token0,
+            token1,
+            fee,
+            liquidity,
+            ,
+            ,
+            tokensOwed0,
+            tokensOwed1,
+            amount0,
+            amount1
+        ) = amm.getUserPositionInPool(user, marketId);
     }
 
     /**

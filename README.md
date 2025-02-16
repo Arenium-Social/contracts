@@ -2,6 +2,11 @@
 
 Welcome to Arenium, the cutting-edge prediction market platform built on the Avalanche network. This repository houses the core smart contracts that power Arenium, enabling a decentralized, secure, and gamified prediction market experience. Leveraging UMA’s Optimistic Oracle V3 for trustless event resolution and integrating Automated Market Maker (AMM) functionality, Arenium is designed to empower users to predict, trade, and earn rewards seamlessly. Tailored for The Arena community, Arenium combines advanced blockchain technology with a user-friendly interface to redefine prediction markets.
 
+## Deployments
+
+- [PredictionMarket](https://basescan.org/address/0x0000000000000000000000000000000000000000)
+- [AMMContract](https://base-sepolia.blockscout.com/address/0xD12355D121eDee77DbC4D1Abdf01A965409170e4)
+
 ## Overview
 
 ### What is Arenium?
@@ -17,31 +22,36 @@ Arenium is a blockchain-based prediction market platform where users can create,
 ### Key Features
 
 1. **Event Resolution via UMA Optimistic Oracle V3:**
-    - Ensures secure and trustless settlement of event outcomes.
-    - Supports off-chain data resolution for a wide range of markets.
-    - Minimizes reliance on centralized oracles, enhancing decentralization.
+
+   - Ensures secure and trustless settlement of event outcomes.
+   - Supports off-chain data resolution for a wide range of markets.
+   - Minimizes reliance on centralized oracles, enhancing decentralization.
 
 2. **Automated Market Maker (AMM):**
+
    - Facilitates seamless trading of outcome tokens using a liquidity pool and pricing curve.
    - Implements dynamic token pricing based on supply and demand.
    - Ensures liquidity for all markets, enabling efficient trading.
 
 3. **Fee Collection and Distribution:**
-    - Transparent and configurable fee structure for market creation, trading, and settlement.
-    - Supports treasury or community-driven fee allocation.
-    - Fees are distributed fairly to incentivize participation and growth.
+
+   - Transparent and configurable fee structure for market creation, trading, and settlement.
+   - Supports treasury or community-driven fee allocation.
+   - Fees are distributed fairly to incentivize participation and growth.
 
 4. **Supported Tokens:**
-    - Uses USDT, USDC, BTC, and WETH as primary tokens for placing bets, providing liquidity, and earning rewards.
-    - Ensures compatibility with widely-used assets for ease of use.
+
+   - Uses USDT, USDC, BTC, and WETH as primary tokens for placing bets, providing liquidity, and earning rewards.
+   - Ensures compatibility with widely-used assets for ease of use.
 
 5. **Community-Centric Design:**
-    - Features gamified elements like leaderboards, exclusive challenges, and rewards for The Arena users.
-    - Encourages community participation through decentralized governance and feedback mechanisms.
+
+   - Features gamified elements like leaderboards, exclusive challenges, and rewards for The Arena users.
+   - Encourages community participation through decentralized governance and feedback mechanisms.
 
 6. **Built on the Avalanche Network:**
-    - Leverages low transaction costs, high scalability, and robust smart contract infrastructure.
-    Ensures fast and efficient market operations for a seamless user experience.
+   - Leverages low transaction costs, high scalability, and robust smart contract infrastructure.
+     Ensures fast and efficient market operations for a seamless user experience.
 
 ## How It Works
 
@@ -71,36 +81,42 @@ The repository is organized for clarity and modularity:
 ## Getting Started
 
 ### Prerequisites
+
 - Familiarity with Solidity and smart contract development.
 - Basic understanding of Avalanche, Uniswap V3 and UMA’s Optimistic Oracle.
 - Tools like Foundry or Hardhat for local development and testing.
-    
+
 ### Installation
+
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/AreniumApp/Arenium.git
-    cd Arenium
-    ```
+
+   ```bash
+   git clone https://github.com/AreniumApp/Arenium.git
+   cd Arenium
+   ```
 
 2. Install Foundry:
-    ```bash
-    curl -L https://foundry.paradigm.xyz | bash
-    ```
+
+   ```bash
+   curl -L https://foundry.paradigm.xyz | bash
+   ```
 
 3. Install Dependencies:
-    ```bash
-    forge install
-    ```
+
+   ```bash
+   forge install
+   ```
 
 4. Compile the contracts:
-    ```bash
-    forge build
-    ```
+
+   ```bash
+   forge build
+   ```
 
 5. Run Tests:
-    ```bash
-    forge test
-    ```
+   ```bash
+   forge test
+   ```
 
 ### Contributing
 
@@ -129,6 +145,7 @@ This repository is licensed under the MIT License. See the `LICENSE` file for mo
 From memecoin trends to global events, Arenium empowers you to predict and profit with confidence. Join us in shaping the future of decentralized prediction markets!
 
 ### Why Choose Arenium?
+
 - Decentralized and Trustless: Built on blockchain technology, Arenium ensures transparency and fairness.
 - Gamified Experience: Engage in challenges, climb leaderboards, and earn rewards.
 - Scalable and Efficient: Powered by Avalanche, Arenium delivers fast and cost-effective transactions.

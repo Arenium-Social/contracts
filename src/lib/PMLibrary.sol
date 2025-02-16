@@ -61,11 +61,11 @@ library PMLibrary {
      * @param outcome2Balance User's balance of outcome2 tokens
      * @return payout Calculated currency payout amount
      */
-    function calculatePayout(Market storage market, uint256 outcome1Balance, uint256 outcome2Balance)
-        external
-        view
-        returns (uint256)
-    {
+    function calculatePayout(
+        Market storage market,
+        uint256 outcome1Balance,
+        uint256 outcome2Balance
+    ) external view returns (uint256) {
         if (market.assertedOutcomeId == keccak256(market.outcome1)) {
             return outcome1Balance;
         } else if (market.assertedOutcomeId == keccak256(market.outcome2)) {
@@ -84,19 +84,20 @@ library PMLibrary {
      * @param timestamp Block timestamp of assertion
      * @return claimBytes Properly formatted claim bytes for Optimistic Oracle
      */
-    function composeClaim(string memory outcome, bytes memory description, uint256 timestamp)
-        external
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodePacked(
-            "As of assertion timestamp ",
-            ClaimData.toUtf8BytesUint(timestamp), // Convert timestamp to UTF-8 bytes
-            ", the described prediction market outcome is: ",
-            outcome,
-            ". The market description is: ",
-            description
-        );
+    function composeClaim(
+        string memory outcome,
+        bytes memory description,
+        uint256 timestamp
+    ) external pure returns (bytes memory) {
+        return
+            abi.encodePacked(
+                "As of assertion timestamp ",
+                ClaimData.toUtf8BytesUint(timestamp), // Convert timestamp to UTF-8 bytes
+                ", the described prediction market outcome is: ",
+                outcome,
+                ". The market description is: ",
+                description
+            );
     }
 
     /**
@@ -109,15 +110,18 @@ library PMLibrary {
      * @param tokensToCreate Amount of each outcome token to mint
      * @param currency Collateral token contract
      */
-    function createOutcomeTokens(Market storage market, address sender, uint256 tokensToCreate, IERC20 currency)
-        external
-    {
+    function createOutcomeTokens(
+        Market storage market,
+        address sender,
+        uint256 tokensToCreate,
+        IERC20 currency
+    ) external {
         // Transfer collateral from creator
         currency.safeTransferFrom(sender, address(this), tokensToCreate);
 
         // Mint equal amounts of both outcome tokens to the contract
-        market.outcome1Token.mint(sender, tokensToCreate);
-        market.outcome2Token.mint(sender, tokensToCreate);
+        market.outcome1Token.mint(address(this), tokensToCreate);
+        market.outcome2Token.mint(address(this), tokensToCreate);
     }
 
     /**
@@ -130,9 +134,12 @@ library PMLibrary {
      * @param tokensToRedeem Amount of each outcome token to burn
      * @param currency Collateral token contract
      */
-    function redeemOutcomeTokens(Market storage market, address sender, uint256 tokensToRedeem, IERC20 currency)
-        external
-    {
+    function redeemOutcomeTokens(
+        Market storage market,
+        address sender,
+        uint256 tokensToRedeem,
+        IERC20 currency
+    ) external {
         // Burn both outcome tokens equally
         market.outcome1Token.burnFrom(sender, tokensToRedeem);
         market.outcome2Token.burnFrom(sender, tokensToRedeem);
