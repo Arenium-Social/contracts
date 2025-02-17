@@ -159,7 +159,7 @@ contract AMMContract is Ownable {
         int24 _tickLower,
         int24 _tickUpper
     )
-        public
+        external
         returns (
             uint256 tokenId,
             uint128 liquidity,
