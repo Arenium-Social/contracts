@@ -10,7 +10,7 @@ import {ClaimData} from "@uma/core/contracts/optimistic-oracle-v3/implementation
 import {OptimisticOracleV3Interface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
 import {OptimisticOracleV3CallbackRecipientInterface} from "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3CallbackRecipientInterface.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {AMMContract} from "./AMMContract.sol";
+import {IAMMContract} from "./interfaces/IAMMContract.sol";
 import {PMLibrary} from "./lib/PMLibrary.sol";
 
 /**
@@ -31,9 +31,7 @@ contract PredictionMarket is
     error PredictionMarket__AssertionActiveOrResolved();
     error PredictionMarket__NotAuthorized();
     error PredictionMarket__MarketNotResolved();
-    error PredictionMarket__EmptyOutcome();
     error PredictionMarket__OutcomesAreTheSame();
-    error PredictionMarket__EmptyDescription();
     error PredictionMarket__MarketAlreadyExists();
     error PredictionMarket__InvalidAssertionOutcome();
 
@@ -44,7 +42,7 @@ contract PredictionMarket is
     // Immutable state variables
     FinderInterface public immutable finder; // UMA Finder contract to locate other UMA contracts.
     OptimisticOracleV3Interface public immutable optimisticOracle; // UMA Optimistic Oracle V3 for dispute resolution.
-    AMMContract public immutable amm; // Uniswap V3 AMM contract for liquidity provision.
+    IAMMContract public immutable amm; // Uniswap V3 AMM contract for liquidity provision.
     IERC20 private immutable currency; // Currency token used for rewards and bonds.
     bytes32 private immutable defaultIdentifier; // Default identifier for UMA Optimistic Oracle assertions.
 
@@ -61,8 +59,6 @@ contract PredictionMarket is
     mapping(address => bool) public whitelistedAddresses;
 
     // Events
-    event AddressWhitelisted(address indexed account);
-    event AddressRemovedFromWhitelist(address indexed account);
     event MarketInitialized(
         bytes32 indexed marketId,
         string outcome1,
@@ -119,7 +115,7 @@ contract PredictionMarket is
         currency = IERC20(_currency);
         optimisticOracle = OptimisticOracleV3Interface(_optimisticOracleV3);
         defaultIdentifier = optimisticOracle.defaultIdentifier();
-        amm = AMMContract(_ammContract);
+        amm = IAMMContract(_ammContract);
     }
 
     /**
@@ -143,7 +139,6 @@ contract PredictionMarket is
             revert PredictionMarket__AddressAlreadyWhitelisted();
         }
         whitelistedAddresses[account] = true;
-        emit AddressWhitelisted(account);
     }
 
     /**
@@ -156,7 +151,6 @@ contract PredictionMarket is
             revert PredictionMarket__AddressNotWhitelisted();
         }
         whitelistedAddresses[account] = false;
-        emit AddressRemovedFromWhitelist(account);
     }
 
     /**
@@ -179,15 +173,9 @@ contract PredictionMarket is
         uint256 requiredBond,
         uint24 poolFee
     ) external onlyWhitelisted returns (bytes32 marketId) {
-        if (bytes(outcome1).length == 0)
-            revert PredictionMarket__EmptyOutcome();
-        if (bytes(outcome2).length == 0)
-            revert PredictionMarket__EmptyOutcome();
         if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
             revert PredictionMarket__OutcomesAreTheSame();
         }
-        if (bytes(description).length == 0)
-            revert PredictionMarket__EmptyDescription();
 
         marketId = keccak256(abi.encode(block.number, description));
         if (markets[marketId].outcome1Token != ExpandedIERC20(address(0))) {
