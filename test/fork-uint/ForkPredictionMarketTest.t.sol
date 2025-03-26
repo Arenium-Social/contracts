@@ -55,6 +55,7 @@ contract ForkPredictionMarketTest is Test {
         uint256 reward = 1e18; // 1 token as reward
         uint256 requiredBond = 0.5e18; // 0.5 tokens as bond
         uint24 poolFee = 3000; // 0.3% pool fee
+        string memory imageURL = "";
 
         // Initialize the market
         vm.prank(owner);
@@ -68,7 +69,8 @@ contract ForkPredictionMarketTest is Test {
             description,
             reward,
             requiredBond,
-            poolFee
+            poolFee,
+            imageURL
         );
 
         // Verify the market was initialized correctly
@@ -112,6 +114,7 @@ contract ForkPredictionMarketTest is Test {
         uint256 reward = 1e18; // 1 token as reward
         uint256 requiredBond = 0.5e18; // 0.5 tokens as bond
         uint24 poolFee = 3000; // 0.3% pool fee
+        string memory imageURL = "";
 
         // Approve the PredictionMarket contract to spend the reward amount
         currency.approve(address(predictionMarket), reward);
@@ -123,7 +126,8 @@ contract ForkPredictionMarketTest is Test {
             description,
             reward,
             requiredBond,
-            poolFee
+            poolFee,
+            imageURL
         );
 
         // Get outcome token addresses
