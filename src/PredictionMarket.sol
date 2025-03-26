@@ -68,7 +68,8 @@ contract PredictionMarket is
         address outcome2Token,
         uint256 reward,
         uint256 requiredBond,
-        uint24 poolFee
+        uint24 poolFee,
+        string imageURL
     );
     event MarketAsserted(
         bytes32 indexed marketId,
@@ -171,7 +172,8 @@ contract PredictionMarket is
         string memory description,
         uint256 reward,
         uint256 requiredBond,
-        uint24 poolFee
+        uint24 poolFee,
+        string memory imageURL
     ) external onlyWhitelisted returns (bytes32 marketId) {
         if (keccak256(bytes(outcome1)) == keccak256(bytes(outcome2))) {
             revert PredictionMarket__OutcomesAreTheSame();
@@ -209,7 +211,8 @@ contract PredictionMarket is
             outcome1: bytes(outcome1),
             outcome2: bytes(outcome2),
             description: bytes(description),
-            fee: poolFee
+            fee: poolFee,
+            imageURL: bytes(imageURL)
         });
 
         // Transfer reward if provided
@@ -234,7 +237,8 @@ contract PredictionMarket is
             address(outcome2Token),
             reward,
             requiredBond,
-            poolFee
+            poolFee,
+            imageURL
         );
     }
 
@@ -527,6 +531,12 @@ contract PredictionMarket is
             market.outcome1,
             market.outcome2
         );
+    }
+
+    function getMarketStruct(
+        bytes32 marketId
+    ) external view returns (PMLibrary.Market memory) {
+        return markets[marketId];
     }
 
     function getUserLiquidityInMarket(

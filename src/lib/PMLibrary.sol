@@ -38,6 +38,7 @@ library PMLibrary {
         bytes outcome2;
         bytes description;
         uint24 fee;
+        bytes imageURL;
     }
 
     /**

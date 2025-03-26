@@ -54,6 +54,20 @@ contract HelperConfig is Script {
         return BaseSepoliaConfig;
     }
 
+    function getAvaxFujiConfig() public pure returns (NetworkConfig memory) {
+        NetworkConfig memory AvaxFujiConfig = NetworkConfig({
+            usdc: 0x5425890298aed601595a70AB815c96711a31Bc65,
+            weth: 0x93567d6B6553bDe2b652FB7F197a229b93813D3f,
+            finder: address(0),
+            currency: address(0),
+            optimisticOracleV3: address(0),
+            uniswapV3Factory: address(0),
+            uniswapV3SwapRouter: address(0),
+            uniswapNonFungiblePositionManager: address(0)
+        });
+        return AvaxFujiConfig;
+    }
+
     // AVAX C-MAINNET LAUNCH
     function getAvaxCChainConfig() public pure returns (NetworkConfig memory) {
         NetworkConfig memory AvaxCChainConfig = NetworkConfig({
