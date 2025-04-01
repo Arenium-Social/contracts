@@ -14,10 +14,7 @@ contract DeployPredictionMarket is Script {
 
         vm.startBroadcast();
         PredictionMarket market = new PredictionMarket(
-            config.finder,
-            config.currency,
-            config.optimisticOracleV3,
-            0xD12355D121eDee77DbC4D1Abdf01A965409170e4
+            config.finder, config.currency, config.optimisticOracleV3, 0xD12355D121eDee77DbC4D1Abdf01A965409170e4
         );
         console2.log("PredictionMarket deployed to: ", address(market));
         vm.stopBroadcast();

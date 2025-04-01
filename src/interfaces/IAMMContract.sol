@@ -8,12 +8,9 @@ interface IAMMContract {
      * @param _fee Fee tier for the pool.
      * @param _marketId Unique identifier for the prediction market.
      */
-    function initializePool(
-        address _tokenA,
-        address _tokenB,
-        uint24 _fee,
-        bytes32 _marketId
-    ) external returns (address poolAddress);
+    function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
+        external
+        returns (address poolAddress);
 
     /**
      * @notice Abstract function to add liquidity to a pool.
@@ -35,14 +32,7 @@ interface IAMMContract {
         uint256 _amount1,
         int24 _tickLower,
         int24 _tickUpper
-    )
-        external
-        returns (
-            uint256 tokenId,
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        );
+    ) external returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1);
 
     /**
      * @notice Retrieves the position details for a given token ID.
@@ -59,10 +49,7 @@ interface IAMMContract {
      * @return amount0 The amount of token0 in the position.
      * @return amount1 The amount of token1 in the position.
      */
-    function getUserPositionInPool(
-        address _user,
-        bytes32 _marketId
-    )
+    function getUserPositionInPool(address _user, bytes32 _marketId)
         external
         view
         returns (

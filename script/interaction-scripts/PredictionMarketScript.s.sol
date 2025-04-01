@@ -14,12 +14,8 @@ contract PredictionMarketInitializeScript is Script {
         config = helperConfig.getBaseSepoliaConfig();
 
         vm.startBroadcast();
-        AMMContract amm = AMMContract(
-            0xD12355D121eDee77DbC4D1Abdf01A965409170e4
-        );
-        PredictionMarket predictionMarket = PredictionMarket(
-            0x82622311068D890a5224B6370ca8012f02913911
-        );
+        AMMContract amm = AMMContract(0xD12355D121eDee77DbC4D1Abdf01A965409170e4);
+        PredictionMarket predictionMarket = PredictionMarket(0x82622311068D890a5224B6370ca8012f02913911);
         string memory tokenA = "outcome1";
         string memory tokenB = "outcome2";
         string memory description = "Test Market";
@@ -29,22 +25,10 @@ contract PredictionMarketInitializeScript is Script {
 
         IERC20(config.currency).approve(address(predictionMarket), reward);
         string memory imageURL = "";
-        bytes32 marketId = predictionMarket.initializeMarket(
-            tokenA,
-            tokenB,
-            description,
-            reward,
-            requiredBond,
-            poolFee,
-            imageURL
-        );
-        (
-            bool resolved,
-            address outcome1Token,
-            address outcome2Token,
-            bytes memory outcome1,
-            bytes memory outcome2
-        ) = predictionMarket.getMarket(marketId);
+        bytes32 marketId =
+            predictionMarket.initializeMarket(tokenA, tokenB, description, reward, requiredBond, poolFee, imageURL);
+        (bool resolved, address outcome1Token, address outcome2Token, bytes memory outcome1, bytes memory outcome2) =
+            predictionMarket.getMarket(marketId);
         console2.log("resolved", resolved);
         console2.log("marketId", string(abi.encode(marketId)));
         console2.log("outcome1Token", outcome1Token);
