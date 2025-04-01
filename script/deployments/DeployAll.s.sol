@@ -19,8 +19,6 @@ contract DeployAll is Script {
         );
         PredictionMarket market =
             new PredictionMarket(config.finder, config.currency, config.optimisticOracleV3, address(amm));
-        market.addToWhitelist(msg.sender);
-        market.addToWhitelist(0x002eB38237334f94dDaD1f87Af636A58AB21B20c);
         vm.stopBroadcast();
         console2.log("PredictionMarket deployed to: ", address(market));
         console2.log("AMM deployed to: ", address(amm));
