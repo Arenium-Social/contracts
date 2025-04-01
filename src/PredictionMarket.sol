@@ -17,7 +17,7 @@ import {OptimisticOracleV3CallbackRecipientInterface} from
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IAMMContract} from "./interfaces/IAMMContract.sol";
 import {PMLibrary} from "./lib/PMLibrary.sol";
-import {PredictionMarketFactory} from "./PredictionMarketFactory.sol";
+import {PredictionMarketManager} from "./PredictionMarketManager.sol";
 
 /**
  * @title PredictionMarket
@@ -25,7 +25,7 @@ import {PredictionMarketFactory} from "./PredictionMarketFactory.sol";
  * @notice This contract allows users to create and participate in prediction markets using outcome tokens.
  * @dev The contract integrates with Uniswap V3 for liquidity provision and UMA's Optimistic Oracle V3 for dispute resolution.
  */
-contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownable, PredictionMarketFactory {
+contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownable, PredictionMarketManager {
     // Custom errors
     error PredictionMarket__MarketDoesNotExist();
     error PredictionMarket__AssertionActiveOrResolved();
@@ -43,12 +43,11 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     FinderInterface public immutable finder; // UMA Finder contract to locate other UMA contracts.
     OptimisticOracleV3Interface public immutable optimisticOracle; // UMA Optimistic Oracle V3 for dispute resolution.
     IAMMContract public immutable amm; // Uniswap V3 AMM contract for liquidity provision.
-    IERC20 private immutable currency; // Currency token used for rewards and bonds.
-    bytes32 private immutable defaultIdentifier; // Default identifier for UMA Optimistic Oracle assertions.
+    IERC20 public immutable currency; // Currency token used for rewards and bonds.
+    bytes32 public immutable defaultIdentifier; // Default identifier for UMA Optimistic Oracle assertions.
 
     // Constants
-    uint64 private constant ASSERTION_LIVENESS = 7200; // 2 hours in seconds.
-    uint256 private constant MAX_FEE = 10000; // 100% in basis points.
+    uint256 public constant MAX_FEE = 10000; // 100% in basis points.
 
     // Storage
     mapping(bytes32 => PMLibrary.Market) private markets; // Maps marketId to Market struct.
@@ -84,7 +83,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      */
     constructor(address _finder, address _currency, address _optimisticOracleV3, address _ammContract) {
         finder = FinderInterface(_finder);
-        require(_getCollateralWhitelist().isOnWhitelist(_currency), "Unsupported currency");
+        require(PMLibrary.getCollateralWhitelist(finder).isOnWhitelist(_currency), "Unsupported currency");
         currency = IERC20(_currency);
         optimisticOracle = OptimisticOracleV3Interface(_optimisticOracleV3);
         defaultIdentifier = optimisticOracle.defaultIdentifier();
@@ -122,12 +121,8 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         }
 
         // Create outcome tokens with this contract having minter and burner roles.
-        ExpandedIERC20 outcome1Token = new ExpandedERC20(string(abi.encodePacked(outcome1, " Token")), "O1T", 18);
-        ExpandedIERC20 outcome2Token = new ExpandedERC20(string(abi.encodePacked(outcome2, " Token")), "O2T", 18);
-        outcome1Token.addMinter(address(this));
-        outcome2Token.addMinter(address(this));
-        outcome1Token.addBurner(address(this));
-        outcome2Token.addBurner(address(this));
+        (ExpandedIERC20 outcome1Token, ExpandedIERC20 outcome2Token) =
+            PMLibrary.createTokensInsideInitializeMarketFunc(outcome1, outcome2);
 
         // Store market data
         markets[marketId] = PMLibrary.Market({
@@ -184,7 +179,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         }
 
         // Create outcome tokens and mint them to this contract so that we can add liquidity to the Uniswap V3 pool.
-        PMLibrary.createOutcomeTokens(market, msg.sender, tokensToCreate, currency);
+        PMLibrary.createOutcomeTokensInsideCreateOutcomeTokensLiquidityFunc(
+            market, msg.sender, tokensToCreate, currency
+        );
 
         uint256 liquidityAmount = tokensToCreate / 2;
 
@@ -226,7 +223,11 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         currency.forceApprove(address(optimisticOracle), bond);
 
         bytes memory claim = PMLibrary.composeClaim(assertedOutcome, market.description, block.timestamp);
-        assertionId = _assertTruthWithDefaults(claim, bond);
+
+        // Use the library function to assert truth
+        assertionId = PMLibrary.assertTruthWithDefaults(
+            optimisticOracle, claim, msg.sender, address(this), currency, bond, defaultIdentifier
+        );
 
         // Store the asserter and marketId for the callback
         assertedMarkets[assertionId] = PMLibrary.AssertedMarket({asserter: msg.sender, marketId: marketId});
@@ -288,34 +289,6 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
-     * @notice Asserts a claim with default parameters using UMA's Optimistic Oracle V3.
-     * @param claim The claim to assert.
-     * @param bond The bond amount for the assertion.
-     * @return assertionId Unique identifier for the assertion.
-     */
-    function _assertTruthWithDefaults(bytes memory claim, uint256 bond) internal returns (bytes32 assertionId) {
-        assertionId = optimisticOracle.assertTruth(
-            claim,
-            msg.sender, // Asserter
-            address(this), // Callback recipient
-            address(0), // No sovereign security
-            ASSERTION_LIVENESS,
-            currency,
-            bond,
-            defaultIdentifier,
-            bytes32(0) // No domain
-        );
-    }
-
-    /**
-     * @notice Retrieves the collateral whitelist from the UMA Finder.
-     * @return AddressWhitelist The collateral whitelist contract.
-     */
-    function _getCollateralWhitelist() internal view returns (AddressWhitelist) {
-        return AddressWhitelist(finder.getImplementationAddress(OracleInterfaces.CollateralWhitelist));
-    }
-
-    /**
      * @notice Retrieves simplified market data.
      * @param marketId Unique identifier for the market.
      * @return resolved Whether the market is resolved.
@@ -368,31 +341,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
             uint256 amount1
         )
     {
-        (operator, token0, token1, fee, liquidity,,, tokensOwed0, tokensOwed1, amount0, amount1) =
+        (operator, token0, token1, fee, liquidity, tokensOwed0, tokensOwed1, amount0, amount1) =
             amm.getUserPositionInPool(user, marketId);
-    }
-
-    /**
-     * @notice Retrieves the address of the currency token.
-     * @return address Address of the currency token.
-     */
-    function getCurrency() external view returns (address) {
-        return address(currency);
-    }
-
-    /**
-     * @notice Retrieves the assertion liveness period.
-     * @return uint64 Assertion liveness period in seconds.
-     */
-    function getAssertionLiveness() external pure returns (uint64) {
-        return ASSERTION_LIVENESS;
-    }
-
-    /**
-     * @notice Retrieves the default identifier for UMA Optimistic Oracle assertions.
-     * @return bytes32 Default identifier.
-     */
-    function getDefaultIdentifier() external view returns (bytes32) {
-        return defaultIdentifier;
     }
 }

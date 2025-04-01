@@ -6,6 +6,9 @@ import {ExpandedERC20, ExpandedIERC20} from "@uma/core/contracts/common/implemen
 import {ClaimData} from "@uma/core/contracts/optimistic-oracle-v3/implementation/ClaimData.sol";
 import {OptimisticOracleV3Interface} from
     "@uma/core/contracts/optimistic-oracle-v3/interfaces/OptimisticOracleV3Interface.sol";
+import {AddressWhitelist} from "@uma/core/contracts/common/implementation/AddressWhitelist.sol";
+import {OracleInterfaces} from "@uma/core/contracts/data-verification-mechanism/implementation/Constants.sol";
+import {FinderInterface} from "@uma/core/contracts/data-verification-mechanism/interfaces/FinderInterface.sol";
 
 /**
  * @title PMLibrary
@@ -18,6 +21,7 @@ library PMLibrary {
 
     // Constants
     bytes private constant UNRESOLVABLE = "Unresolvable"; // Outcome for unresolvable markets.
+    uint64 public constant ASSERTION_LIVENESS = 7200; // 2 hours in seconds.
 
     /**
      * @dev Market structure storing all relevant market data
@@ -116,15 +120,42 @@ library PMLibrary {
      * @param tokensToCreate Amount of each outcome token to mint
      * @param currency Collateral token contract
      */
-    function createOutcomeTokens(Market storage market, address sender, uint256 tokensToCreate, IERC20 currency)
-        external
-    {
+    function createOutcomeTokensInsideCreateOutcomeTokensLiquidityFunc(
+        Market storage market,
+        address sender,
+        uint256 tokensToCreate,
+        IERC20 currency
+    ) external {
         // Transfer collateral from creator
         currency.safeTransferFrom(sender, address(this), tokensToCreate);
 
         // Mint equal amounts of both outcome tokens to the contract
         market.outcome1Token.mint(address(this), tokensToCreate);
         market.outcome2Token.mint(address(this), tokensToCreate);
+    }
+
+    /**
+     * @notice Creates a new market with two outcome tokens.
+     * @dev This function handles the token creation and configuration.
+     * @param outcome1 Short name of the first outcome.
+     * @param outcome2 Short name of the second outcome.
+     * @return outcome1Token The first outcome token.
+     * @return outcome2Token The second outcome token.
+     */
+    function createTokensInsideInitializeMarketFunc(string memory outcome1, string memory outcome2)
+        external
+        returns (ExpandedIERC20 outcome1Token, ExpandedIERC20 outcome2Token)
+    {
+        // Create outcome tokens with caller having minter and burner roles
+        outcome1Token = new ExpandedERC20(string(abi.encodePacked(outcome1, " Token")), "O1T", 18);
+        outcome2Token = new ExpandedERC20(string(abi.encodePacked(outcome2, " Token")), "O2T", 18);
+
+        outcome1Token.addMinter(address(this));
+        outcome2Token.addMinter(address(this));
+        outcome1Token.addBurner(address(this));
+        outcome2Token.addBurner(address(this));
+
+        return (outcome1Token, outcome2Token);
     }
 
     /**
@@ -170,5 +201,49 @@ library PMLibrary {
      */
     function getUnresolvableOutcome() external pure returns (string memory) {
         return string(UNRESOLVABLE);
+    }
+
+    /**
+     * @notice Asserts a claim with default parameters using UMA's Optimistic Oracle V3.
+     * @param optimisticOracle The Optimistic Oracle V3 interface.
+     * @param claim The claim to assert.
+     * @param asserter The address asserting the claim.
+     * @param callbackRecipient The address to receive callbacks.
+     * @param currency The currency token for bond.
+     * @param bond The bond amount for the assertion.
+     * @param defaultIdentifier The default identifier for assertions.
+     * @return assertionId Unique identifier for the assertion.
+     */
+    function assertTruthWithDefaults(
+        OptimisticOracleV3Interface optimisticOracle,
+        bytes memory claim,
+        address asserter,
+        address callbackRecipient,
+        IERC20 currency,
+        uint256 bond,
+        bytes32 defaultIdentifier
+    ) external returns (bytes32 assertionId) {
+        assertionId = optimisticOracle.assertTruth(
+            claim,
+            asserter, // Asserter
+            callbackRecipient, // Callback recipient
+            address(0), // No sovereign security
+            ASSERTION_LIVENESS,
+            currency,
+            bond,
+            defaultIdentifier,
+            bytes32(0) // No domain
+        );
+
+        return assertionId;
+    }
+
+    /**
+     * @notice Retrieves the collateral whitelist from the UMA Finder.
+     * @param finder The UMA Finder interface.
+     * @return AddressWhitelist The collateral whitelist contract.
+     */
+    function getCollateralWhitelist(FinderInterface finder) external view returns (AddressWhitelist) {
+        return AddressWhitelist(finder.getImplementationAddress(OracleInterfaces.CollateralWhitelist));
     }
 }

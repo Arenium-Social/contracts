@@ -145,18 +145,6 @@ contract PredictionMarketUnitTest is Test {
     //     assertEq(mockCurrency.balanceOf(address(this)), initialBalance - reward - (tokensToRedeem * 2) + tokensToRedeem);
     // }
 
-    function testGetCurrency() public view {
-        assertEq(predictionMarket.getCurrency(), address(mockCurrency));
-    }
-
-    function testGetAssertionLiveness() public view {
-        assertEq(predictionMarket.getAssertionLiveness(), 7200); // 2 hours
-    }
-
-    function testGetDefaultIdentifier() public view {
-        assertEq(predictionMarket.getDefaultIdentifier(), DEFAULT_IDENTIFIER);
-    }
-
     function testGetUnresolvableOutcome() public pure {
         assertEq(string(PMLibrary.getUnresolvableOutcome()), "Unresolvable");
     }

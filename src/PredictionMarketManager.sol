@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import {ExpandedERC20, ExpandedIERC20} from "@uma/core/contracts/common/implementation/ExpandedERC20.sol";
-import {AddressWhitelist} from "@uma/core/contracts/common/implementation/AddressWhitelist.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {PMLibrary} from "./lib/PMLibrary.sol";
 
 /**
- * @title PredictionMarketFactory
+ * @title PredictionMarketManager
  * @author Arenium Social
- * @notice Factory contract for creating prediction markets and outcome tokens
- * @dev Handles market initialization and token creation logic
+ * @notice This contract is responsible for managing prediction markets.
+ * @dev The contract allows whitelisted addresses to create prediction markets.
  */
-contract PredictionMarketFactory is Ownable {
+contract PredictionMarketManager is Ownable {
     // Custom errors
     error MarketFactory__CallerNotWhitelisted();
     error MarketFactory__AddressAlreadyWhitelisted();
