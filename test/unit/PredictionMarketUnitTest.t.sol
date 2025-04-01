@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {PredictionMarket} from "../../src/PredictionMarket.sol";
+import {PMLibrary} from "../../src/lib/PMLibrary.sol";
 import {AMMContract} from "../../src/AMMContract.sol";
 import {MockOptimisticOracleV3} from "./mocks/MockOptimisticOracleV3.sol";
 import {MockFinder} from "./mocks/MockFinder.sol";
@@ -144,20 +145,8 @@ contract PredictionMarketUnitTest is Test {
     //     assertEq(mockCurrency.balanceOf(address(this)), initialBalance - reward - (tokensToRedeem * 2) + tokensToRedeem);
     // }
 
-    function testGetCurrency() public view {
-        assertEq(predictionMarket.getCurrency(), address(mockCurrency));
-    }
-
-    function testGetAssertionLiveness() public view {
-        assertEq(predictionMarket.getAssertionLiveness(), 7200); // 2 hours
-    }
-
-    function testGetDefaultIdentifier() public view {
-        assertEq(predictionMarket.getDefaultIdentifier(), DEFAULT_IDENTIFIER);
-    }
-
-    function testGetUnresolvableOutcome() public view {
-        assertEq(string(predictionMarket.getUnresolvableOutcome()), "Unresolvable");
+    function testGetUnresolvableOutcome() public pure {
+        assertEq(string(PMLibrary.getUnresolvableOutcome()), "Unresolvable");
     }
 
     // function testGetMarketTokens() public {

@@ -15,18 +15,10 @@ contract DeployAll is Script {
 
         vm.startBroadcast();
         AMMContract amm = new AMMContract(
-            config.uniswapV3Factory,
-            config.uniswapV3SwapRouter,
-            config.uniswapNonFungiblePositionManager
+            config.uniswapV3Factory, config.uniswapV3SwapRouter, config.uniswapNonFungiblePositionManager
         );
-        PredictionMarket market = new PredictionMarket(
-            config.finder,
-            config.currency,
-            config.optimisticOracleV3,
-            address(amm)
-        );
-        market.addToWhitelist(msg.sender);
-        market.addToWhitelist(0x002eB38237334f94dDaD1f87Af636A58AB21B20c);
+        PredictionMarket market =
+            new PredictionMarket(config.finder, config.currency, config.optimisticOracleV3, address(amm));
         vm.stopBroadcast();
         console2.log("PredictionMarket deployed to: ", address(market));
         console2.log("AMM deployed to: ", address(amm));

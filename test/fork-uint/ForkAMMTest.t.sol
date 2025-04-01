@@ -54,27 +54,12 @@ contract ForkAMMTest is Test {
         amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
         tokenA.approve(address(amm), 5 * 1e18);
         tokenB.approve(address(amm), 5 * 1e18);
-        (
-            uint256 tokenId,
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) =
+            amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
         assertGt(amount0 + amount1, 0);
         assertGt(liquidity, 0);
-        (
-            address operator,
-            ,
-            ,
-            ,
-            uint128 liquidityInPool,
-            ,
-            ,
-            ,
-            ,
-            uint256 amount0InPool,
-            uint256 amount1InPool
-        ) = amm.getUserPositionInPool(address(owner), marketId);
+        (address operator,,,, uint128 liquidityInPool,,,,, uint256 amount0InPool, uint256 amount1InPool) =
+            amm.getUserPositionInPool(address(owner), marketId);
         assertGt(liquidityInPool, 0);
         assertGt(amount0InPool + amount1InPool, 0);
         vm.stopPrank();
@@ -86,20 +71,12 @@ contract ForkAMMTest is Test {
         amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
         tokenA.approve(address(amm), 5 * 1e18);
         tokenB.approve(address(amm), 5 * 1e18);
-        (
-            uint256 tokenId,
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) =
+            amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
         tokenA.approve(address(amm), 5 * 1e18);
         tokenB.approve(address(amm), 5 * 1e18);
-        (
-            uint256 tokenId2,
-            uint256 liquidity2,
-            uint256 amount02,
-            uint256 amount12
-        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        (uint256 tokenId2, uint256 liquidity2, uint256 amount02, uint256 amount12) =
+            amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
         assertEq(tokenId, tokenId2);
         assertGt(liquidity2, liquidity);
         assertGt(amount02 + amount12, amount0 + amount1);
@@ -112,28 +89,16 @@ contract ForkAMMTest is Test {
         amm.initializePool(address(tokenA), address(tokenB), 3000, marketId);
         tokenA.approve(address(amm), 5 * 1e18);
         tokenB.approve(address(amm), 5 * 1e18);
-        (
-            uint256 tokenId,
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) =
+            amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
         uint256 balBeforeTokenA = tokenA.balanceOf(address(owner));
         uint256 balBeforeTokenB = tokenB.balanceOf(address(owner));
-        (
-            uint256 amount0Decreased,
-            uint256 amount1Decreased,
-            uint256 amount0Collected,
-            uint256 amount1Collected
-        ) = amm.removeLiquidity(marketId, owner, liquidity, 0, 0);
+        (uint256 amount0Decreased, uint256 amount1Decreased, uint256 amount0Collected, uint256 amount1Collected) =
+            amm.removeLiquidity(marketId, owner, liquidity, 0, 0);
         assertGt(amount0Decreased + amount1Decreased, 0);
         assertGt(amount0Collected + amount1Collected, 0);
         assertGt(
-            tokenA.balanceOf(address(owner)) -
-                balBeforeTokenA +
-                tokenB.balanceOf(address(owner)) -
-                balBeforeTokenB,
-            0
+            tokenA.balanceOf(address(owner)) - balBeforeTokenA + tokenB.balanceOf(address(owner)) - balBeforeTokenB, 0
         );
         vm.stopPrank();
     }
