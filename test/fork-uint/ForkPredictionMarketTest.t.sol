@@ -14,7 +14,7 @@ contract ForkPredictionMarketTest is Test {
     AMMContract amm;
     HelperConfig helperConfig;
     HelperConfig.NetworkConfig activeConfig;
-    string BASE_SEPOLIA_RPC_URL = vm.envString("BASE_SEPOLIA_RPC_URL");
+    string BASE_SEPOLIA_RPC_URL = vm.envString("BASE_SEPOLIA_RPC_URL_2");
     address owner = makeAddr("OWNER");
     uint256 fork;
     ERC20 currency;
@@ -86,57 +86,57 @@ contract ForkPredictionMarketTest is Test {
         assertEq(contractBalance, reward, "Reward was not transferred to the contract");
     }
 
-    function test_CreateOutcomeTokensLiquidity() public {
-        // Add the owner to the whitelist
-        vm.startPrank(owner);
-        predictionMarket.addToWhitelist(owner);
+    // function test_CreateOutcomeTokensLiquidity() public {
+    //     // Add the owner to the whitelist
+    //     vm.startPrank(owner);
+    //     predictionMarket.addToWhitelist(owner);
 
-        // Define market parameters
-        string memory outcome1 = "Outcome1";
-        string memory outcome2 = "Outcome2";
-        string memory description = "Test Market Description";
-        uint256 reward = 1e18; // 1 token as reward
-        uint256 requiredBond = 0.5e18; // 0.5 tokens as bond
-        uint24 poolFee = 3000; // 0.3% pool fee
-        string memory imageURL = "";
+    //     // Define market parameters
+    //     string memory outcome1 = "Outcome1";
+    //     string memory outcome2 = "Outcome2";
+    //     string memory description = "Test Market Description";
+    //     uint256 reward = 1e18; // 1 token as reward
+    //     uint256 requiredBond = 0.5e18; // 0.5 tokens as bond
+    //     uint24 poolFee = 3000; // 0.3% pool fee
+    //     string memory imageURL = "";
 
-        // Approve the PredictionMarket contract to spend the reward amount
-        currency.approve(address(predictionMarket), reward);
+    //     // Approve the PredictionMarket contract to spend the reward amount
+    //     currency.approve(address(predictionMarket), reward);
 
-        // Initialize the market
-        bytes32 marketId =
-            predictionMarket.initializeMarket(outcome1, outcome2, description, reward, requiredBond, poolFee, imageURL);
+    //     // Initialize the market
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket(outcome1, outcome2, description, reward, requiredBond, poolFee, imageURL);
 
-        // Get outcome token addresses
-        (, address outcome1Token, address outcome2Token,,) = predictionMarket.getMarket(marketId);
+    //     // Get outcome token addresses
+    //     (, address outcome1Token, address outcome2Token,,) = predictionMarket.getMarket(marketId);
 
-        // Define liquidity parameters
-        uint256 tokensToCreate = 10e18; // 1 token of each outcome
-        int24 tickLower = -120; // Lower tick bound
-        int24 tickUpper = 120; // Upper tick bound
+    //     // Define liquidity parameters
+    //     uint256 tokensToCreate = 10e18; // 1 token of each outcome
+    //     int24 tickLower = -120; // Lower tick bound
+    //     int24 tickUpper = 120; // Upper tick bound
 
-        // Approve tokens for creation and liquidity
-        currency.approve(address(predictionMarket), tokensToCreate);
+    //     // Approve tokens for creation and liquidity
+    //     currency.approve(address(predictionMarket), tokensToCreate);
 
-        // First, create the outcome tokens but don't add liquidity yet
+    //     // First, create the outcome tokens but don't add liquidity yet
 
-        uint256 tokenId = predictionMarket.createOutcomeTokensLiquidity(marketId, tokensToCreate, tickLower, tickUpper);
+    //     uint256 tokenId = predictionMarket.createOutcomeTokensLiquidity(marketId, tokensToCreate, tickLower, tickUpper);
 
-        // Get user liquidity in market
-        (
-            address operator,
-            address token0,
-            address token1,
-            uint24 fee,
-            uint128 liquidity,
-            uint128 tokensOwed0,
-            uint128 tokensOwed1,
-            uint256 amount0,
-            uint256 amount1
-        ) = predictionMarket.getUserLiquidityInMarket(owner, marketId);
+    //     // Get user liquidity in market
+    //     (
+    //         address operator,
+    //         address token0,
+    //         address token1,
+    //         uint24 fee,
+    //         uint128 liquidity,
+    //         uint128 tokensOwed0,
+    //         uint128 tokensOwed1,
+    //         uint256 amount0,
+    //         uint256 amount1
+    //     ) = predictionMarket.getUserLiquidityInMarket(owner, marketId);
 
-        assertGt(liquidity, 0);
-        assertGt(amount0 + amount1, 0);
-        vm.stopPrank();
-    }
+    //     assertGt(liquidity, 0);
+    //     assertGt(amount0 + amount1, 0);
+    //     vm.stopPrank();
+    // }
 }

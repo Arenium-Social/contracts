@@ -12,7 +12,7 @@ contract ForkAMMTest is Test {
     HelperConfig helperConfig;
     HelperConfig.NetworkConfig activeConfig;
     address owner = makeAddr("OWNER");
-    string BASE_SEPOLIA_RPC_URL = vm.envString("BASE_SEPOLIA_RPC_URL");
+    string BASE_SEPOLIA_RPC_URL = vm.envString("BASE_SEPOLIA_RPC_URL_2");
     uint256 fork;
     ERC20 tokenA;
     ERC20 tokenB;
