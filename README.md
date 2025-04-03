@@ -4,8 +4,9 @@ Welcome to Arenium, the cutting-edge prediction market platform built on the Ava
 
 ## Deployments
 
-- [PredictionMarket](https://base-sepolia.blockscout.com/address/0x82622311068D890a5224B6370ca8012f02913911)
-- [AMMContract](https://base-sepolia.blockscout.com/address/0xD12355D121eDee77DbC4D1Abdf01A965409170e4)
+- [PredictionMarketManager](https://base-sepolia.blockscout.com/address/0xC6263D97D592bE12aB35B34B75aB21333A5f604d)
+- [PredictionMarket](https://base-sepolia.blockscout.com/address/0x0C10445275AcBC8B8ED3DCdaeEAeE0dCa8180F61)
+- [AMMContract](https://base-sepolia.blockscout.com/address/0xE3e2f88e77abB2812722E5D271de308a81C4186a)
 
 ## Overview
 
