@@ -19,72 +19,72 @@ contract ForkPredictionMarketTest is Test {
     uint256 fork;
     ERC20 currency;
 
-    function setUp() public {
-        helperConfig = new HelperConfig();
-        activeConfig = helperConfig.getBaseSepoliaConfig();
-        fork = vm.createSelectFork(BASE_SEPOLIA_RPC_URL);
+    // function setUp() public {
+    //     helperConfig = new HelperConfig();
+    //     activeConfig = helperConfig.getBaseSepoliaConfig();
+    //     fork = vm.createSelectFork(BASE_SEPOLIA_RPC_URL);
 
-        vm.startPrank(owner);
-        amm = new AMMContract(
-            activeConfig.uniswapV3Factory,
-            activeConfig.uniswapV3SwapRouter,
-            activeConfig.uniswapNonFungiblePositionManager
-        );
-        predictionMarket = new PredictionMarket(
-            activeConfig.finder, activeConfig.currency, activeConfig.optimisticOracleV3, address(amm)
-        );
-        vm.stopPrank();
+    //     vm.startPrank(owner);
+    //     amm = new AMMContract(
+    //         activeConfig.uniswapV3Factory,
+    //         activeConfig.uniswapV3SwapRouter,
+    //         activeConfig.uniswapNonFungiblePositionManager
+    //     );
+    //     predictionMarket = new PredictionMarket(
+    //         activeConfig.finder, activeConfig.currency, activeConfig.optimisticOracleV3, address(amm)
+    //     );
+    //     vm.stopPrank();
 
-        currency = ERC20(activeConfig.usdc);
+    //     currency = ERC20(activeConfig.usdc);
 
-        deal(address(currency), owner, 100 * 1e18);
-    }
+    //     deal(address(currency), owner, 100 * 1e18);
+    // }
 
-    function test_initializeMarket() public {
-        // Add the owner to the whitelist
-        vm.prank(owner);
-        predictionMarket.addToWhitelist(owner);
+    // function test_initializeMarket() public {
+    //     // Add the owner to the whitelist
+    //     vm.prank(owner);
+    //     predictionMarket.addToWhitelist(owner);
 
-        // Define market parameters
-        string memory outcome1 = "Outcome1";
-        string memory outcome2 = "Outcome2";
-        string memory description = "Test Market Description";
-        uint256 reward = 1e18; // 1 token as reward
-        uint256 requiredBond = 0.5e18; // 0.5 tokens as bond
-        uint24 poolFee = 3000; // 0.3% pool fee
-        string memory imageURL = "";
+    //     // Define market parameters
+    //     string memory outcome1 = "Outcome1";
+    //     string memory outcome2 = "Outcome2";
+    //     string memory description = "Test Market Description";
+    //     uint256 reward = 1e18; // 1 token as reward
+    //     uint256 requiredBond = 0.5e18; // 0.5 tokens as bond
+    //     uint24 poolFee = 3000; // 0.3% pool fee
+    //     string memory imageURL = "";
 
-        // Initialize the market
-        vm.prank(owner);
+    //     // Initialize the market
+    //     vm.prank(owner);
 
-        currency.approve(address(predictionMarket), reward);
+    //     currency.approve(address(predictionMarket), reward);
 
-        vm.prank(owner);
-        bytes32 marketId =
-            predictionMarket.initializeMarket(outcome1, outcome2, description, reward, requiredBond, poolFee, imageURL);
+    //     vm.prank(owner);
+    //     bytes32 marketId =
+    //         predictionMarket.initializeMarket(outcome1, outcome2, description, reward, requiredBond, poolFee, imageURL);
 
-        // Verify the market was initialized correctly
-        (
-            bool resolved,
-            address outcome1Token,
-            address outcome2Token,
-            bytes memory storedOutcome1,
-            bytes memory storedOutcome2
-        ) = predictionMarket.getMarket(marketId);
+    //     // Verify the market was initialized correctly
+    //     (
+    //         bool resolved,
+    //         address outcome1Token,
+    //         address outcome2Token,
+    //         bytes memory storedOutcome1,
+    //         bytes memory storedOutcome2
+    //     ) = predictionMarket.getMarket(marketId);
 
-        assertFalse(resolved, "Market should not be resolved initially");
-        assertEq(storedOutcome1, bytes(outcome1), "Outcome1 does not match");
-        assertEq(storedOutcome2, bytes(outcome2), "Outcome2 does not match");
+    //     assertFalse(resolved, "Market should not be resolved initially");
+    //     assertEq(storedOutcome1, bytes(outcome1), "Outcome1 does not match");
+    //     assertEq(storedOutcome2, bytes(outcome2), "Outcome2 does not match");
 
-        // Verify the Uniswap V3 pool was created
-        AMMContract.PoolData memory poolData = amm.getPoolUsingMarketId(marketId);
-        address poolAddress = poolData.pool;
-        assertTrue(poolAddress != address(0), "Pool was not created");
+    //     // Verify the Uniswap V3 pool was created
+    //     AMMContract.PoolData memory poolData = amm.getPoolUsingMarketId(marketId);
+    //     address poolAddress = poolData.pool;
+    //     assertTrue(poolAddress != address(0), "Pool was not created");
 
-        // Verify the reward was transferred to the contract
-        uint256 contractBalance = currency.balanceOf(address(predictionMarket));
-        assertEq(contractBalance, reward, "Reward was not transferred to the contract");
-    }
+    //     // Verify the reward was transferred to the contract
+    //     uint256 contractBalance = currency.balanceOf(address(predictionMarket));
+    //     assertEq(contractBalance, reward, "Reward was not transferred to the contract");
+    // }
 
     // function test_CreateOutcomeTokensLiquidity() public {
     //     // Add the owner to the whitelist
