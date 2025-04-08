@@ -1,6 +1,7 @@
 # Arenium
 
-Welcome to Arenium, the cutting-edge prediction market platform built on the Avalanche network. This repository houses the core smart contracts that power Arenium, enabling a decentralized, secure, and gamified prediction market experience. Leveraging UMA’s Optimistic Oracle V3 for trustless event resolution and integrating Automated Market Maker (AMM) functionality, Arenium is designed to empower users to predict, trade, and earn rewards seamlessly. Tailored for The Arena community, Arenium combines advanced blockchain technology with a user-friendly interface to redefine prediction markets.
+Welcome to **Arenium**, a modular and community-powered **decentralized prediction market protocol** built on the **Base** network. Arenium lets users create, participate in, and trade on high-stakes markets across crypto trends, sports, politics, and more — with built-in **liquidity**, **trustless resolution**, and **reward mechanisms**.
+
 
 ## Deployments
 
