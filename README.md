@@ -1,24 +1,40 @@
 # Arenium
 
-Welcome to Arenium, the cutting-edge prediction market platform built on the Avalanche network. This repository houses the core smart contracts that power Arenium, enabling a decentralized, secure, and gamified prediction market experience. Leveraging UMA’s Optimistic Oracle V3 for trustless event resolution and integrating Automated Market Maker (AMM) functionality, Arenium is designed to empower users to predict, trade, and earn rewards seamlessly. Tailored for The Arena community, Arenium combines advanced blockchain technology with a user-friendly interface to redefine prediction markets.
+Welcome to **Arenium**, a modular and community-powered **decentralized prediction market protocol** built on the **Base** network. Arenium lets users create, participate in, and trade on high-stakes markets across crypto trends, sports, politics, and more — with built-in **liquidity**, **trustless resolution**, and **reward mechanisms**.
 
-## Deployments
+Arenium leverages:
+- **UMA’s Optimistic Oracle V3** for trustless event resolution,
+- **Uniswap V3 liquidity pools** for outcome token trading,
+- A custom-built **AMM management contract**, and
+- An upcoming **FeeHandler contract** to distribute market fees efficiently.
+
+---
+
+## 🔗 Deployed Contracts (Base Sepolia)
 
 - [PredictionMarketManager](https://base-sepolia.blockscout.com/address/0xC6263D97D592bE12aB35B34B75aB21333A5f604d)
 - [PredictionMarket](https://base-sepolia.blockscout.com/address/0x0C10445275AcBC8B8ED3DCdaeEAeE0dCa8180F61)
 - [AMMContract](https://base-sepolia.blockscout.com/address/0xE3e2f88e77abB2812722E5D271de308a81C4186a)
+- FeeHandler (coming soon...)
+
+---
 
 ## Overview
 
-### What is Arenium?
+### 🧠 What Is Arenium?
 
-Arenium is a blockchain-based prediction market platform where users can create, participate in, and trade on the outcomes of various events. By utilizing supported tokens like USDT, USDC, BTC, and WETH, users can place bets, provide liquidity, and earn rewards. Arenium is designed to cater to The Arena community, offering a gamified and transparent platform for prediction markets. Key event categories include:
+Arenium is a Web3-native platform where anyone can:
 
-- **Memecoin Performance:** Predict the success of Arena-launched memecoins.
-- **Ticket Value Markets:** Bet on key performance indicators in The Arena ecosystem.
-- **Sports and E-sports:** Forecast the outcomes of matches and tournaments.
-- **Politics and Global Trends:** Engage in markets covering geopolitical and societal events.
-- **Community Events:** Join markets based on trending cultural or local happenings.
+1. **Create new prediction markets**
+2. **Mint outcome tokens**
+3. **Provide liquidity to Uniswap V3 pools**
+4. **Trade and speculate on outcomes**
+5. **Assert event outcomes through UMA**
+6. **Claim rewards after market resolution**
+
+All without relying on centralized oracles, custodians, or intermediaries.
+
+---
 
 ### Key Features
 
