@@ -17,17 +17,24 @@ Arenium leverages:
 - [AMMContract](https://base-sepolia.blockscout.com/address/0xE3e2f88e77abB2812722E5D271de308a81C4186a)
 - FeeHandler (coming soon...)
 
+---
+
 ## Overview
 
-### What is Arenium?
+### 🧠 What Is Arenium?
 
-Arenium is a blockchain-based prediction market platform where users can create, participate in, and trade on the outcomes of various events. By utilizing supported tokens like USDT, USDC, BTC, and WETH, users can place bets, provide liquidity, and earn rewards. Arenium is designed to cater to The Arena community, offering a gamified and transparent platform for prediction markets. Key event categories include:
+Arenium is a Web3-native platform where anyone can:
 
-- **Memecoin Performance:** Predict the success of Arena-launched memecoins.
-- **Ticket Value Markets:** Bet on key performance indicators in The Arena ecosystem.
-- **Sports and E-sports:** Forecast the outcomes of matches and tournaments.
-- **Politics and Global Trends:** Engage in markets covering geopolitical and societal events.
-- **Community Events:** Join markets based on trending cultural or local happenings.
+1. **Create new prediction markets**
+2. **Mint outcome tokens**
+3. **Provide liquidity to Uniswap V3 pools**
+4. **Trade and speculate on outcomes**
+5. **Assert event outcomes through UMA**
+6. **Claim rewards after market resolution**
+
+All without relying on centralized oracles, custodians, or intermediaries.
+
+---
 
 ### Key Features
 
