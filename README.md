@@ -2,12 +2,20 @@
 
 Welcome to **Arenium**, a modular and community-powered **decentralized prediction market protocol** built on the **Base** network. Arenium lets users create, participate in, and trade on high-stakes markets across crypto trends, sports, politics, and more — with built-in **liquidity**, **trustless resolution**, and **reward mechanisms**.
 
+Arenium leverages:
+- **UMA’s Optimistic Oracle V3** for trustless event resolution,
+- **Uniswap V3 liquidity pools** for outcome token trading,
+- A custom-built **AMM management contract**, and
+- An upcoming **FeeHandler contract** to distribute market fees efficiently.
 
-## Deployments
+---
+
+## 🔗 Deployed Contracts (Base Sepolia)
 
 - [PredictionMarketManager](https://base-sepolia.blockscout.com/address/0xC6263D97D592bE12aB35B34B75aB21333A5f604d)
 - [PredictionMarket](https://base-sepolia.blockscout.com/address/0x0C10445275AcBC8B8ED3DCdaeEAeE0dCa8180F61)
 - [AMMContract](https://base-sepolia.blockscout.com/address/0xE3e2f88e77abB2812722E5D271de308a81C4186a)
+- FeeHandler (coming soon...)
 
 ## Overview
 
