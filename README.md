@@ -50,23 +50,28 @@ All without relying on centralized oracles, custodians, or intermediaries.
    - Implements dynamic token pricing based on supply and demand.
    - Ensures liquidity for all markets, enabling efficient trading.
 
-3. **Fee Collection and Distribution:**
+3. **PredictionMarketManager Contract:**
+
+   - Manages the lifecycle of prediction markets.
+   - Facilitates market creation, event resolution w/ UMA Optimalistic Oracle V3.
+
+4. **Fee Collection and Distribution:**
 
    - Transparent and configurable fee structure for market creation, trading, and settlement.
    - Supports treasury or community-driven fee allocation.
    - Fees are distributed fairly to incentivize participation and growth.
 
-4. **Supported Tokens:**
+5. **Supported Tokens:**
 
-   - Uses USDT, USDC, BTC, and WETH as primary tokens for placing bets, providing liquidity, and earning rewards.
+   - Uses USDT, USDC, BTC, AVAX, and WETH as primary tokens for placing bets, providing liquidity, and earning rewards.
    - Ensures compatibility with widely-used assets for ease of use.
 
-5. **Community-Centric Design:**
+6. **Community-Centric Design:**
 
    - Features gamified elements like leaderboards, exclusive challenges, and rewards for The Arena users.
    - Encourages community participation through decentralized governance and feedback mechanisms.
 
-6. **Built on the Avalanche Network:**
+7. **Built on the Avalanche Network:**
    - Leverages low transaction costs, high scalability, and robust smart contract infrastructure.
      Ensures fast and efficient market operations for a seamless user experience.
 
@@ -83,13 +88,18 @@ All without relying on centralized oracles, custodians, or intermediaries.
 The repository is organized for clarity and modularity:
 
 - **`src/`**: Contains the core smart contracts:
+-  - `PredictionMarketManager.sol`: Manages market creation and event resolution.
   - `PredictionMarket.sol`: Manages market creation, token minting, and event resolution using UMA's Optimistic Oracle.
   - `AMMContract.sol`: Facilitates token swaps using a constant product pricing curve.
   - `FeeHandler.sol`: Aggregates and distributes fees from market actions.
+  - **`interfaces/`**: Interfaces for contracts to interact with each other:
+    - `IAMMContract.sol`
+    - `INonfungiblePositionManager.sol`
   - **`lib/`**: Utility and mathematical libraries:
+    - `AMMStorage.sol`
     - `FullMath.sol`
     - `LiquidityAmounts.sol`
-    - `PredictionMarketLib.sol`
+    - `PMLibrary.sol`
     - `TickMath.sol`
 - **`test/`**: Unit tests to verify contract functionality and ensure security.
 - **`script/`**: Deployment and interaction scripts for the contracts.
