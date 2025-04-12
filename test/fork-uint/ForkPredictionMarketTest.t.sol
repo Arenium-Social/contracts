@@ -158,14 +158,52 @@ contract ForkPredictionMarketTest is Test {
             address token1,
             uint24 fee,
             uint128 liquidity,
+            ,
+            ,
             uint128 tokensOwed0,
             uint128 tokensOwed1,
             uint256 amount0,
             uint256 amount1
-        ) = predictionMarket.getUserLiquidityInMarket(owner, marketId);
+        ) = amm.getUserPositionInPool(owner, marketId);
+
+        console2.log("liquidity: %s", liquidity);
 
         assertGt(liquidity, 0);
         assertGt(amount0 + amount1, 0);
+
+        currency.approve(address(predictionMarket), 5e18); // Approve 5 tokens for liquidity addition
+
+        uint256 tokenId2 = predictionMarket.createOutcomeTokensLiquidity(
+            marketId,
+            5e18,
+            tickLower,
+            tickUpper
+        );
+
+        (
+            address operator2,
+            address token02,
+            address token12,
+            uint24 fee2,
+            uint128 liquidity2,
+            ,
+            ,
+            uint128 tokensOwed02,
+            uint128 tokensOwed12,
+            uint256 amount02,
+            uint256 amount12
+        ) = amm.getUserPositionInPool(owner, marketId);
+
+        console2.log("operator2: %s", operator2);
+        console2.log("token02: %s", token02);
+        console2.log("token12: %s", token12);
+        console2.log("fee2: %s", fee2);
+        console2.log("liquidity2: %s", liquidity2);
+        console2.log("tokensOwed02: %s", tokensOwed02);
+        console2.log("tokensOwed12: %s", tokensOwed12);
+        console2.log("amount02: %s", amount02);
+        console2.log("amount12: %s", amount12);
+
         vm.stopPrank();
     }
 }
