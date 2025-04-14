@@ -12,7 +12,7 @@ Arenium leverages:
 
 ## 🔗 Deployed Contracts (Base Sepolia)
 
-- [PredictionMarketManager](https://base-sepolia.blockscout.com/address/0xC6263D97D592bE12aB35B34B75aB21333A5f604d)
+- [PredictionMarketManager](https://base-sepolia.blockscout.com/address/0x70d5629255f6ce3cA72d8204416c9cC7e8d9BC77)
 - [PredictionMarket](https://base-sepolia.blockscout.com/address/0xd248f825bda64f45c88741D90b8493F93EF18FFF)
 - [AMMContract](https://base-sepolia.blockscout.com/address/0xE3e2f88e77abB2812722E5D271de308a81C4186a)
 - FeeHandler (coming soon...)
