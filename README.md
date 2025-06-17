@@ -90,7 +90,6 @@ The repository is organized for clarity and modularity:
   - `PredictionMarketManager.sol`: Manages market creation and event resolution.
   - `PredictionMarket.sol`: Manages market creation, token minting, and event resolution using UMA's Optimistic Oracle.
   - `AMMContract.sol`: Facilitates token swaps using a constant product pricing curve.
-  - `FeeHandler.sol`: Aggregates and distributes fees from market actions.
   - **`interfaces/`**: Interfaces for contracts to interact with each other:
     - `IAMMContract.sol`
     - `INonfungiblePositionManager.sol`
