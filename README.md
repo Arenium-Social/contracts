@@ -101,6 +101,10 @@ The repository is organized for clarity and modularity:
     - `TickMath.sol`
 - **`test/`**: Unit tests to verify contract functionality and ensure security.
 - **`script/`**: Deployment and interaction scripts for the contracts.
+  - `HelperConfig.s.sol`: Configuration for testnet and mainnet deployments.
+  - **`deployments/`**: Live deployments for testnet and mainnet.
+  - **`interaction-scripts/`**: Scripts for interacting with the contracts.
+  - **`mocks/`**: Mock contracts for testing and simulation.
 - **`docs/`**: Documentation and specifications for smart contracts.
 
 ## Getting Started
