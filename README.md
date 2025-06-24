@@ -100,6 +100,9 @@ The repository is organized for clarity and modularity:
     - `PMLibrary.sol`
     - `TickMath.sol`
 - **`test/`**: Unit tests to verify contract functionality and ensure security.
+  - **`fork-uint/`**: Forked tests for uint256 data types.
+  - **`integration/`**: Integration tests for end-to-end scenarios.
+  - **`unit/`**: Unit tests for individual smart contracts.
 - **`script/`**: Deployment and interaction scripts for the contracts.
   - `HelperConfig.s.sol`: Configuration for testnet and mainnet deployments.
   - **`deployments/`**: Live deployments for testnet and mainnet.
