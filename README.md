@@ -10,6 +10,9 @@ Arenium leverages:
 
 ---
 
+## Deployed Contracts (Mainnet Deployment)
+- [TBA]
+
 ## 🔗 Deployed Contracts (Testnet Deployment)
 
 - [PredictionMarketManager](https://base-sepolia.blockscout.com/address/0x70d5629255f6ce3cA72d8204416c9cC7e8d9BC77)
