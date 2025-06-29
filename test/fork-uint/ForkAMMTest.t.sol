@@ -77,6 +77,9 @@ contract ForkAMMTest is Test {
         ) = amm.getUserPositionInPool(address(owner), marketId);
         assertGt(liquidityInPool, 0);
         assertGt(amount0InPool + amount1InPool, 0);
+        console2.log("liquidityInPool", liquidityInPool);
+        console2.log("amount0InPool", amount0InPool);
+        console2.log("amount1InPool", amount1InPool);
         vm.stopPrank();
     }
 
@@ -174,4 +177,6 @@ contract ForkAMMTest is Test {
         );
         vm.stopPrank();
     }
+
+    function test_swap() public {}
 }
