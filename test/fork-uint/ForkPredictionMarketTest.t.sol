@@ -31,10 +31,7 @@ contract ForkPredictionMarketTest is Test {
             activeConfig.uniswapNonFungiblePositionManager
         );
         predictionMarket = new PredictionMarket(
-            activeConfig.finder,
-            activeConfig.currency,
-            activeConfig.optimisticOracleV3,
-            address(amm)
+            activeConfig.finder, activeConfig.currency, activeConfig.optimisticOracleV3, address(amm)
         );
         vm.stopPrank();
 
@@ -63,15 +60,8 @@ contract ForkPredictionMarketTest is Test {
         currency.approve(address(predictionMarket), reward);
 
         vm.prank(owner);
-        bytes32 marketId = predictionMarket.initializeMarket(
-            outcome1,
-            outcome2,
-            description,
-            reward,
-            requiredBond,
-            poolFee,
-            imageURL
-        );
+        bytes32 marketId =
+            predictionMarket.initializeMarket(outcome1, outcome2, description, reward, requiredBond, poolFee, imageURL);
 
         // Verify the market was initialized correctly
         (
@@ -87,19 +77,13 @@ contract ForkPredictionMarketTest is Test {
         assertEq(storedOutcome2, bytes(outcome2), "Outcome2 does not match");
 
         // Verify the Uniswap V3 pool was created
-        AMMContract.PoolData memory poolData = amm.getPoolUsingMarketId(
-            marketId
-        );
+        AMMContract.PoolData memory poolData = amm.getPoolUsingMarketId(marketId);
         address poolAddress = poolData.pool;
         assertTrue(poolAddress != address(0), "Pool was not created");
 
         // Verify the reward was transferred to the contract
         uint256 contractBalance = currency.balanceOf(address(predictionMarket));
-        assertEq(
-            contractBalance,
-            reward,
-            "Reward was not transferred to the contract"
-        );
+        assertEq(contractBalance, reward, "Reward was not transferred to the contract");
     }
 
     function test_CreateOutcomeTokensLiquidity() public {
@@ -120,19 +104,11 @@ contract ForkPredictionMarketTest is Test {
         currency.approve(address(predictionMarket), reward);
 
         // Initialize the market
-        bytes32 marketId = predictionMarket.initializeMarket(
-            outcome1,
-            outcome2,
-            description,
-            reward,
-            requiredBond,
-            poolFee,
-            imageURL
-        );
+        bytes32 marketId =
+            predictionMarket.initializeMarket(outcome1, outcome2, description, reward, requiredBond, poolFee, imageURL);
 
         // Get outcome token addresses
-        (, address outcome1Token, address outcome2Token, , ) = predictionMarket
-            .getMarket(marketId);
+        (, address outcome1Token, address outcome2Token,,) = predictionMarket.getMarket(marketId);
 
         // Define liquidity parameters
         uint256 tokensToCreate = 10e18; // 1 token of each outcome
@@ -144,12 +120,7 @@ contract ForkPredictionMarketTest is Test {
 
         // First, create the outcome tokens but don't add liquidity yet
 
-        uint256 tokenId = predictionMarket.createOutcomeTokensLiquidity(
-            marketId,
-            tokensToCreate,
-            tickLower,
-            tickUpper
-        );
+        uint256 tokenId = predictionMarket.createOutcomeTokensLiquidity(marketId, tokensToCreate, tickLower, tickUpper);
 
         // Get user liquidity in market
         (
@@ -173,12 +144,7 @@ contract ForkPredictionMarketTest is Test {
 
         currency.approve(address(predictionMarket), 5e18); // Approve 5 tokens for liquidity addition
 
-        uint256 tokenId2 = predictionMarket.createOutcomeTokensLiquidity(
-            marketId,
-            5e18,
-            tickLower,
-            tickUpper
-        );
+        uint256 tokenId2 = predictionMarket.createOutcomeTokensLiquidity(marketId, 5e18, tickLower, tickUpper);
 
         (
             address operator2,

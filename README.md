@@ -11,7 +11,10 @@ Arenium leverages:
 
 ---
 
-## 🔗 Deployed Contracts (Base Sepolia)
+## Deployed Contracts (Mainnet Deployment)
+- [TBA]
+
+## 🔗 Deployed Contracts (Testnet Deployment)
 
 - [PredictionMarketManager](https://base-sepolia.blockscout.com/address/0xC98735ecff2BB042632456d3a3c7251AA385bF83)
 - [PredictionMarket](https://base-sepolia.blockscout.com/address/0x50baa7483bbEE0dD6859d8b150563e87A15DdCBA)
@@ -92,7 +95,6 @@ The repository is organized for clarity and modularity:
   - `PredictionMarketManager.sol`: Manages market creation and event resolution.
   - `PredictionMarket.sol`: Manages market creation, token minting, and event resolution using UMA's Optimistic Oracle.
   - `AMMContract.sol`: Facilitates token swaps using a constant product pricing curve.
-  - `FeeHandler.sol`: Aggregates and distributes fees from market actions.
   - **`interfaces/`**: Interfaces for contracts to interact with each other:
     - `IAMMContract.sol`
     - `INonfungiblePositionManager.sol`
@@ -103,7 +105,14 @@ The repository is organized for clarity and modularity:
     - `PMLibrary.sol`
     - `TickMath.sol`
 - **`test/`**: Unit tests to verify contract functionality and ensure security.
+  - **`fork-uint/`**: Forked tests for uint256 data types.
+  - **`integration/`**: Integration tests for end-to-end scenarios.
+  - **`unit/`**: Unit tests for individual smart contracts.
 - **`script/`**: Deployment and interaction scripts for the contracts.
+  - `HelperConfig.s.sol`: Configuration for testnet and mainnet deployments.
+  - **`deployments/`**: Live deployments for testnet and mainnet.
+  - **`interaction-scripts/`**: Scripts for interacting with the contracts.
+  - **`mocks/`**: Mock contracts for testing and simulation.
 - **`docs/`**: Documentation and specifications for smart contracts.
 
 ## Getting Started
@@ -161,8 +170,8 @@ Join our vibrant community to discuss ideas, share feedback, and stay updated on
 
 - **Discord:** [Arenium Official Server](https://discord.gg/ThMkW8X89k)
 - **Website:** [Arenium Platform](https://www.arenium.social/)
-- **Twitter:** [@AreniumApp](https://x.com/AreniumApp)
-- **The Arena:** [@AreniumApp](https://starsarena.com/AreniumApp)
+- **Twitter:** [@AreniumApp](https://x.com/TheArenium)
+- **The Arena:** [@AreniumApp](https://starsarena.com/TheArenium)
 
 ## License
 
