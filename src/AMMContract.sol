@@ -21,7 +21,7 @@ import {INonfungiblePositionManager} from "./interfaces/INonfungiblePositionMana
  * to manage liquidity position for the user, such as add and remove liquidity.
  * @dev The creation of pools is automated when a new market is initialized in the prediction market.
  */
-contract AMMContract is Ownable {
+contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @notice Immutable Uniswap V3 factory and swap router addresses
     IUniswapV3Factory public immutable magicFactory;
     ISwapRouter public immutable swapRouter;
@@ -631,6 +631,14 @@ contract AMMContract is Ownable {
         bytes32 _marketId
     ) internal {
         IERC20(_inputToken).approve(address(swapRouter), _amountIn);
+
+        bool zeroForOne = _inputToken < _outputToken;
+
+        // Set the appropriate price limit
+        uint160 sqrtPriceLimitX96 = zeroForOne
+            ? TickMath.MIN_SQRT_RATIO + 1
+            : TickMath.MAX_SQRT_RATIO - 1;
+
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
             .ExactInputSingleParams({
                 tokenIn: _inputToken,
@@ -640,7 +648,7 @@ contract AMMContract is Ownable {
                 deadline: block.timestamp,
                 amountIn: _amountIn,
                 amountOutMinimum: _amountOutMinimum,
-                sqrtPriceLimitX96: 0
+                sqrtPriceLimitX96: sqrtPriceLimitX96
             });
 
         swapRouter.exactInputSingle(params);
@@ -652,6 +660,100 @@ contract AMMContract is Ownable {
             _amountIn,
             _amountOutMinimum
         );
+    }
+
+    /**
+     * @notice Callback function called by Uniswap V3 pools during swaps
+     * @dev Only callable by pools we've registered in our mappings
+     * @param amount0Delta Amount of token0 owed to the pool (positive) or to receive (negative)
+     * @param amount1Delta Amount of token1 owed to the pool (positive) or to receive (negative)
+     * @param data Encoded data containing the original swap initiator
+     */
+    function uniswapV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes calldata data
+    ) external override {
+        // Verify the callback is from a known pool
+        PoolData memory poolData = poolAddressToPool[msg.sender];
+        require(poolData.pool != address(0), "Callback from unknown pool");
+
+        // Decode the original sender and this contract address
+        (address sender, address thisContract) = abi.decode(
+            data,
+            (address, address)
+        );
+
+        // Determine which token needs to be paid
+        if (amount0Delta > 0) {
+            // Pool needs token0 - transfer from the stored tokens in this contract
+            IERC20(poolData.tokenA).transfer(msg.sender, uint256(amount0Delta));
+        } else if (amount1Delta > 0) {
+            // Pool needs token1 - transfer from the stored tokens in this contract
+            IERC20(poolData.tokenB).transfer(msg.sender, uint256(amount1Delta));
+        }
+    }
+
+    /**
+     * @notice Execute a swap directly through the pool, bypassing the router
+     * @dev This function is useful for testing or when the router doesn't recognize locally created pools
+     * @param _marketId Unique identifier for the prediction market
+     * @param _amountIn Amount of input tokens to swap
+     * @param _amountOutMinimum Minimum amount of output tokens to receive
+     * @param _zeroForOne Direction of the swap (true for tokenA to tokenB, false for tokenB to tokenA)
+     * @return amountOut The actual amount of output tokens received
+     */
+    function directPoolSwap(
+        bytes32 _marketId,
+        uint256 _amountIn,
+        uint256 _amountOutMinimum,
+        bool _zeroForOne
+    ) external returns (uint256 amountOut) {
+        PoolData storage poolData = marketIdToPool[_marketId];
+        require(poolData.poolInitialized, "Pool not active");
+
+        IUniswapV3Pool pool = IUniswapV3Pool(poolData.pool);
+
+        // Determine input and output tokens
+        address inputToken = _zeroForOne ? poolData.tokenA : poolData.tokenB;
+        address outputToken = _zeroForOne ? poolData.tokenB : poolData.tokenA;
+
+        // Transfer input tokens from user to this contract
+        IERC20(inputToken).transferFrom(msg.sender, address(this), _amountIn);
+
+        // Set appropriate price limit based on swap direction
+        uint160 sqrtPriceLimitX96 = _zeroForOne
+            ? TickMath.MIN_SQRT_RATIO + 1
+            : TickMath.MAX_SQRT_RATIO - 1;
+
+        // Execute the swap
+        // The pool will callback to uniswapV3SwapCallback for payment
+        (int256 amount0, int256 amount1) = pool.swap(
+            msg.sender, // recipient of the output tokens
+            _zeroForOne, // direction of the swap
+            int256(_amountIn), // exact input amount (positive for exact input)
+            sqrtPriceLimitX96, // price limit
+            abi.encode(msg.sender, address(this)) // callback data
+        );
+
+        // Calculate the actual output amount
+        // For exact input swaps: if zeroForOne, amount1 is negative (output)
+        // if !zeroForOne, amount0 is negative (output)
+        amountOut = uint256(-(_zeroForOne ? amount1 : amount0));
+
+        // Verify slippage protection
+        require(amountOut >= _amountOutMinimum, "Insufficient output amount");
+
+        // Emit swap event
+        emit TokensSwapped(
+            _marketId,
+            inputToken,
+            outputToken,
+            _amountIn,
+            amountOut
+        );
+
+        return amountOut;
     }
 
     /**
@@ -748,7 +850,6 @@ contract AMMContract is Ownable {
         IUniswapV3Pool pool = IUniswapV3Pool(marketIdToPool[_marketId].pool);
         (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
         (amount0, amount1) = getAmountsForLiquidityHelper(
-            fee,
             sqrtPriceX96,
             tickLower,
             tickUpper,
@@ -793,7 +894,6 @@ contract AMMContract is Ownable {
 
     /**
      * @notice Internal Function to get the amount of tokenA and tokenB in a user's position.
-     * @param fee Fee tier for the pool.
      * @param tickLower Lower tick bound for the liquidity position.
      * @param tickUpper Upper tick bound for the liquidity position.
      * @param liquidity Liquidity in the position.
@@ -801,7 +901,6 @@ contract AMMContract is Ownable {
      * @return amount1 Amount of tokenB in the position.
      */
     function getAmountsForLiquidityHelper(
-        uint24 fee,
         uint160 sqrtPriceX96,
         int24 tickLower,
         int24 tickUpper,

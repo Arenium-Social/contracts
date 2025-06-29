@@ -7,6 +7,14 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
+contract MockERC20 is ERC20 {
+    constructor(string memory name, string memory symbol) ERC20(name, symbol) {}
+
+    function mint(address account, uint256 amount) external {
+        _mint(account, amount);
+    }
+}
+
 contract ForkAMMTest is Test {
     AMMContract amm;
     HelperConfig helperConfig;
@@ -178,5 +186,76 @@ contract ForkAMMTest is Test {
         vm.stopPrank();
     }
 
-    function test_swap() public {}
+    function test_swap() public {
+        MockERC20 token0 = new MockERC20("Token 0", "T0");
+        MockERC20 token1 = new MockERC20("Token 1", "T1");
+
+        bytes32 marketId = keccak256("TestMarket");
+        vm.startPrank(owner);
+        amm.initializePool(address(token0), address(token1), 3000, marketId);
+        token0.mint(owner, 5 * 1e18);
+        token1.mint(owner, 5 * 1e18);
+        token0.approve(address(amm), 5 * 1e18);
+        token1.approve(address(amm), 5 * 1e18);
+        (
+            uint256 tokenId,
+            uint128 liquidity,
+            uint256 amount0,
+            uint256 amount1
+        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        token0.mint(owner, 1 * 1e17);
+        token0.approve(address(amm), 1 * 1e17);
+
+        amm.swap(marketId, 1 * 1e17, 1 * 1e16, true);
+        vm.stopPrank();
+    }
+
+    function test_directPoolSwap() public {
+        MockERC20 token0 = new MockERC20("Token 0", "T0");
+        MockERC20 token1 = new MockERC20("Token 1", "T1");
+
+        bytes32 marketId = keccak256("TestMarket");
+        vm.startPrank(owner);
+
+        // Initialize pool
+        amm.initializePool(address(token0), address(token1), 3000, marketId);
+
+        // Mint and add liquidity
+        token0.mint(owner, 5 * 1e18);
+        token1.mint(owner, 5 * 1e18);
+        token0.approve(address(amm), 5 * 1e18);
+        token1.approve(address(amm), 5 * 1e18);
+        amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+
+        // Prepare for swap
+        token0.mint(owner, 1 * 1e17);
+        token0.approve(address(amm), 1 * 1e17);
+
+        // Record balances before swap
+        uint256 token0BalanceBefore = token0.balanceOf(owner);
+        uint256 token1BalanceBefore = token1.balanceOf(owner);
+
+        // Execute direct pool swap
+        uint256 amountOut = amm.directPoolSwap(
+            marketId,
+            1 * 1e17,
+            1 * 1e16,
+            true
+        );
+
+        // Verify swap happened
+        assertGt(amountOut, 1 * 1e16, "Output amount too low");
+        assertEq(
+            token0.balanceOf(owner),
+            token0BalanceBefore - 1 * 1e17,
+            "Token0 not deducted"
+        );
+        assertEq(
+            token1.balanceOf(owner),
+            token1BalanceBefore + amountOut,
+            "Token1 not received"
+        );
+
+        vm.stopPrank();
+    }
 }
