@@ -1,6 +1,6 @@
 # Arenium
 
-Welcome to **Arenium**, a modular and community-powered **decentralized prediction market protocol** built on the **Base** network. Arenium lets users create, participate in, and trade on high-stakes markets across crypto trends, sports, politics, and more — with built-in **liquidity**, **trustless resolution**, and **reward mechanisms**.
+Welcome to **Arenium**, a modular and community-powered **decentralized prediction market protocol** built on the multiple networks. Arenium lets users create, participate in, and trade on high-stakes markets across crypto trends, sports, politics, and more — with built-in **liquidity**, **trustless resolution**, and **reward mechanisms**.
 
 Arenium leverages:
 
@@ -29,24 +29,24 @@ Arenium leverages:
 
 Arenium is a Web3-native platform where anyone can:
 
-1. **Create new prediction markets**
-2. **Mint outcome tokens**
-3. **Provide liquidity to Uniswap V3 pools**
-4. **Trade and speculate on outcomes**
-5. **Assert event outcomes through UMA**
-6. **Claim rewards after market resolution**
+1. **Create new prediction markets** with custom outcomes and parameters
+2. **Mint outcome tokens** representing different market outcomes
+3. **Provide liquidity** to Uniswap V3 pools for seamless trading
+4. **Trade and speculate** on outcomes through our integrated AMM
+5. **Assert event outcomes** through UMA's Optimistic Oracle V3
+6. **Claim rewards** after trustless market resolution
 
 All without relying on centralized oracles, custodians, or intermediaries.
 
 ---
 
-### Key Features
+### ✨ Key Features
+### 🔮 Trustless Event Resolution
 
-1. **Event Resolution via UMA Optimistic Oracle V3:**
-
-   - Ensures secure and trustless settlement of event outcomes.
-   - Supports off-chain data resolution for a wide range of markets.
-   - Minimizes reliance on centralized oracles, enhancing decentralization.
+- **UMA Optimistic Oracle V3** integration ensures secure and decentralized settlement
+- Supports off-chain data resolution for diverse market types
+- Dispute mechanism for contentious outcomes
+- Minimizes reliance on centralized oracles
 
 2. **Automated Market Maker (AMM):**
 

@@ -150,12 +150,8 @@ contract ForkAMMTest is Test {
         token1.mint(owner, 5 * 1e18);
         token0.approve(address(amm), 5 * 1e18);
         token1.approve(address(amm), 5 * 1e18);
-        (
-            uint256 tokenId,
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        ) = amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
+        (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) =
+            amm.addLiquidity(marketId, owner, 5 * 1e18, 5 * 1e18, -120, 120);
         token0.mint(owner, 1 * 1e17);
         token0.approve(address(amm), 1 * 1e17);
 
@@ -189,25 +185,12 @@ contract ForkAMMTest is Test {
         uint256 token1BalanceBefore = token1.balanceOf(owner);
 
         // Execute direct pool swap
-        uint256 amountOut = amm.directPoolSwap(
-            marketId,
-            1 * 1e17,
-            1 * 1e16,
-            true
-        );
+        uint256 amountOut = amm.directPoolSwap(marketId, 1 * 1e17, 1 * 1e16, true);
 
         // Verify swap happened
         assertGt(amountOut, 1 * 1e16, "Output amount too low");
-        assertEq(
-            token0.balanceOf(owner),
-            token0BalanceBefore - 1 * 1e17,
-            "Token0 not deducted"
-        );
-        assertEq(
-            token1.balanceOf(owner),
-            token1BalanceBefore + amountOut,
-            "Token1 not received"
-        );
+        assertEq(token0.balanceOf(owner), token0BalanceBefore - 1 * 1e17, "Token0 not deducted");
+        assertEq(token1.balanceOf(owner), token1BalanceBefore + amountOut, "Token1 not received");
 
         vm.stopPrank();
     }
