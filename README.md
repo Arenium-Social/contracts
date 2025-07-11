@@ -155,6 +155,21 @@ The repository is organized for clarity and modularity:
    forge test
    ```
 
+
+## 📊 Roadmap
+
+Here are some upcoming milestones for the Arenium protocol:
+
+- ✅ Testnet deployment and full smart contract suite integration
+- 🔜 Mainnet deployment on Avalanche
+- 🔜 Integration with Chainlink Functions for additional data feeds
+- 🔜 Frontend dApp launch with wallet connection and live markets
+- 🔜 Community governance module for fee allocation and market curation
+- 🔜 Bug bounty and audit completion for enhanced security
+
+Stay tuned for frequent updates in [Discord](https://discord.gg/ThMkW8X89k).
+
+
 ### Contributing
 
 We welcome contributions from the community! Please follow these steps:
