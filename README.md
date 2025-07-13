@@ -169,6 +169,17 @@ Here are some upcoming milestones for the Arenium protocol:
 
 Stay tuned for frequent updates in [Discord](https://discord.gg/ThMkW8X89k).
 
+## 🛡️ Security and Audits
+
+Security is a top priority. Our team is:
+
+- Conducting thorough **unit and integration testing** for all contracts
+- Planning third-party **smart contract audits** prior to mainnet deployment
+- Continuously reviewing code for **potential vulnerabilities**
+
+📢 **Note:** Never use unverified smart contracts with real funds outside of testnets. Always DYOR (do your own research).
+
+---
 
 ### Contributing
 
