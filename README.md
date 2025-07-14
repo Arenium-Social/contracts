@@ -40,6 +40,18 @@ All without relying on centralized oracles, custodians, or intermediaries.
 
 ---
 
+## 🧩 Technologies Used
+
+Arenium is built with the following tools and frameworks:
+
+- **Solidity** – Smart contract language for EVM chains
+- **Foundry** – Testing, deployment, and simulation framework
+- **UMA Optimistic Oracle V3** – Decentralized event resolution
+- **Uniswap V3** – Liquidity provisioning and outcome token trading
+- **Avalanche** – Scalable and efficient blockchain network
+
+---
+
 ### ✨ Key Features
 ### 🔮 Trustless Event Resolution
 
