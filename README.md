@@ -227,3 +227,17 @@ From memecoin trends to global events, Arenium empowers you to predict and profi
 - Community-Driven: Designed for and by The Arena community, Arenium thrives on user feedback and participation.
 
 Let’s build the future of prediction markets together with Arenium!
+
+
+## 💡 Frequently Asked Questions (FAQ)
+**Q1. Is Arenium permissionless?**
+
+Yes, anyone can create markets and provide liquidity without whitelisting.
+
+**Q2. Which wallets are supported?**
+
+All wallets compatible with Avalanche C-Chain, including MetaMask and Core Wallet.
+
+**Q3. How are disputes handled?**
+
+Disputes are resolved through UMA’s Optimistic Oracle V3 dispute mechanism to ensure trustless finality.
