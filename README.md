@@ -211,6 +211,10 @@ Join our vibrant community to discuss ideas, share feedback, and stay updated on
 - **Twitter:** [@AreniumApp](https://x.com/TheArenium)
 - **The Arena:** [@AreniumApp](https://starsarena.com/TheArenium)
 
+## 🤝 Support
+
+For support, please open an issue or join our Discord.
+
 ## License
 
 This repository is licensed under the MIT License. See the `LICENSE` file for more information.
