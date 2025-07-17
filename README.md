@@ -193,6 +193,11 @@ Security is a top priority. Our team is:
 
 ---
 
+## 🛠️ Known Issues
+- 🐞 Liquidity migration for outcome tokens between markets is under development.
+
+- 🐞 FeeHandler contract deployment is pending finalization and integration tests.
+
 ### Contributing
 
 We welcome contributions from the community! Please follow these steps:
