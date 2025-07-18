@@ -24,6 +24,21 @@ import {PredictionMarketManager} from "./PredictionMarketManager.sol";
  * @author Arenium Social
  * @notice This contract allows users to create and participate in prediction markets using outcome tokens.
  * @dev The contract integrates with Uniswap V3 for liquidity provision and UMA's Optimistic Oracle V3 for dispute resolution.
+ *      Users can create markets with two possible outcomes, mint outcome tokens backed by collateral, provide liquidity,
+ *      and settle tokens for payouts once markets are resolved through UMA's optimistic oracle system.
+ *
+ * Key Features:
+ * - Binary prediction markets with outcome tokens
+ * - Integration with Uniswap V3 for automated market making
+ * - UMA Optimistic Oracle V3 for decentralized dispute resolution
+ * - Reward mechanism for truthful market resolution
+ * - Whitelist-based market creation control
+ *
+ * Security Considerations:
+ * - Only whitelisted addresses can create markets
+ * - Market outcomes are validated through UMA's optimistic oracle
+ * - Bond requirements prevent spam assertions
+ * - Safe token transfers using OpenZeppelin's SafeERC20
  */
 contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownable, PredictionMarketManager {
     // Custom errors
