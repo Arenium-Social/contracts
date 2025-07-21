@@ -66,8 +66,14 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     /// @dev Thrown when asserting an outcome that doesn't match either market outcome
     error PredictionMarket__InvalidAssertionOutcome();
 
-    // Libraries
+    //////////////////////////////////////////////////////////////
+    //                        LIBRARIES                        //
+    //////////////////////////////////////////////////////////////
+    
+    /// @dev Using SafeERC20 for safe token transfers and approvals
     using SafeERC20 for IERC20;
+    
+    /// @dev Using PMLibrary for market-related operations and data structures
     using PMLibrary for PMLibrary.Market;
 
     // Immutable state variables
