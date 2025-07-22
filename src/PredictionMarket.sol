@@ -72,36 +72,41 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
 
     /// @dev Using SafeERC20 for safe token transfers and approvals
     using SafeERC20 for IERC20;
-    
+
     /// @dev Using PMLibrary for market-related operations and data structures
     using PMLibrary for PMLibrary.Market;
 
     //////////////////////////////////////////////////////////////
     //                   IMMUTABLE VARIABLES                   //
     //////////////////////////////////////////////////////////////
-    
+
     /// @notice UMA Finder contract to locate other UMA contracts
     /// @dev Used to access UMA's registry of contract addresses
     FinderInterface public immutable finder;
-    
+
     /// @notice UMA Optimistic Oracle V3 for dispute resolution
     /// @dev Handles truth assertions and dispute resolution for market outcomes
     OptimisticOracleV3Interface public immutable optimisticOracle;
-    
+
     /// @notice Uniswap V3 AMM contract for liquidity provision
     /// @dev Manages automated market making between outcome tokens
     IAMMContract public immutable amm;
-    
+
     /// @notice Currency token used for rewards and bonds
     /// @dev Must be whitelisted in UMA's collateral whitelist
     IERC20 public immutable currency;
-    
+
     /// @notice Default identifier for UMA Optimistic Oracle assertions
     /// @dev Used to categorize assertion types in UMA's system
     bytes32 public immutable defaultIdentifier;
 
-    // Constants
-    uint256 public constant MAX_FEE = 10000; // 100% in basis points.
+    //////////////////////////////////////////////////////////////
+    //                        CONSTANTS                        //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Maximum fee that can be charged (100% in basis points)
+    /// @dev Used for validation of fee parameters
+    uint256 public constant MAX_FEE = 10000;
 
     // Storage
     mapping(bytes32 => PMLibrary.Market) private markets; // Maps marketId to Market struct.
