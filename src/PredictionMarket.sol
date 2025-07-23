@@ -116,7 +116,9 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     /// @dev Private mapping to store market information
     mapping(bytes32 => PMLibrary.Market) private markets;
 
-    mapping(bytes32 => PMLibrary.AssertedMarket) private assertedMarkets; // Maps assertionId to AssertedMarket.
+    /// @notice Maps assertionId to AssertedMarket struct for callback handling
+    /// @dev Used to track which market and asserter correspond to each assertion
+    mapping(bytes32 => PMLibrary.AssertedMarket) private assertedMarkets;
 
     // Events
     event MarketInitialized(
