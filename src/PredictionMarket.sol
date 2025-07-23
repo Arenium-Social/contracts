@@ -108,9 +108,17 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     /// @dev Used for validation of fee parameters
     uint256 public constant MAX_FEE = 10000;
 
-    // Storage
-    mapping(bytes32 => PMLibrary.Market) private markets; // Maps marketId to Market struct.
-    mapping(bytes32 => PMLibrary.AssertedMarket) private assertedMarkets; // Maps assertionId to AssertedMarket.
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                          //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Maps marketId to Market struct containing all market data
+    /// @dev Private mapping to store market information
+    mapping(bytes32 => PMLibrary.Market) private markets;
+
+    /// @notice Maps assertionId to AssertedMarket struct for callback handling
+    /// @dev Used to track which market and asserter correspond to each assertion
+    mapping(bytes32 => PMLibrary.AssertedMarket) private assertedMarkets;
 
     // Events
     event MarketInitialized(
