@@ -120,7 +120,23 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     /// @dev Used to track which market and asserter correspond to each assertion
     mapping(bytes32 => PMLibrary.AssertedMarket) private assertedMarkets;
 
-    // Events
+    //////////////////////////////////////////////////////////////
+    //                        EVENTS                           //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Emitted when a new prediction market is initialized
+     * @param marketId Unique identifier for the market
+     * @param outcome1 First possible outcome of the market
+     * @param outcome2 Second possible outcome of the market
+     * @param description Human-readable description of the market
+     * @param outcome1Token Address of the token representing outcome1
+     * @param outcome2Token Address of the token representing outcome2
+     * @param reward Amount of currency tokens rewarded for correct assertions
+     * @param requiredBond Minimum bond required to make assertions
+     * @param poolFee Uniswap V3 pool fee tier (in basis points)
+     * @param imageURL URL of the market's associated image
+     */
     event MarketInitialized(
         bytes32 indexed marketId,
         string outcome1,
@@ -133,6 +149,13 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         uint24 poolFee,
         string imageURL
     );
+
+    /**
+     * @notice Emitted when a market outcome is asserted
+     * @param marketId Unique identifier for the market
+     * @param assertedOutcome The outcome being asserted as true
+     * @param assertionId Unique identifier for the assertion in UMA's system
+     */
     event MarketAsserted(bytes32 indexed marketId, string assertedOutcome, bytes32 assertionId);
     event MarketResolved(bytes32 indexed marketId);
     event TokensCreated(bytes32 indexed marketId, address account, uint256 tokensCreated);
