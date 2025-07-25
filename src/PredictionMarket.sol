@@ -157,6 +157,11 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      * @param assertionId Unique identifier for the assertion in UMA's system
      */
     event MarketAsserted(bytes32 indexed marketId, string assertedOutcome, bytes32 assertionId);
+
+    /**
+     * @notice Emitted when a market is resolved after successful assertion
+     * @param marketId Unique identifier for the resolved market
+     */
     event MarketResolved(bytes32 indexed marketId);
     event TokensCreated(bytes32 indexed marketId, address account, uint256 tokensCreated);
     event TokensRedeemed(bytes32 indexed marketId, address account, uint256 tokensRedeemed);
