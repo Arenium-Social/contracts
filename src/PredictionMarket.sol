@@ -171,6 +171,13 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      * @param tokensCreated Amount of outcome tokens created (for each outcome)
      */
     event TokensCreated(bytes32 indexed marketId, address account, uint256 tokensCreated);
+
+    /**
+     * @notice Emitted when outcome tokens are redeemed
+     * @param marketId Unique identifier for the market
+     * @param account Address that redeemed the tokens
+     * @param tokensRedeemed Amount of outcome tokens redeemed
+     */
     event TokensRedeemed(bytes32 indexed marketId, address account, uint256 tokensRedeemed);
     event TokensSettled(
         bytes32 indexed marketId, address account, uint256 payout, uint256 outcome1Tokens, uint256 outcome2Tokens
