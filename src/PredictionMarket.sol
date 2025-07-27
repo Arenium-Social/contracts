@@ -192,12 +192,23 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         bytes32 indexed marketId, address account, uint256 payout, uint256 outcome1Tokens, uint256 outcome2Tokens
     );
 
+    //////////////////////////////////////////////////////////////
+    //                      CONSTRUCTOR                        //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Constructor to initialize the contract with required dependencies.
-     * @param _finder Address of the UMA Finder contract.
-     * @param _currency Address of the currency token used for rewards and bonds.
-     * @param _optimisticOracleV3 Address of the UMA Optimistic Oracle V3 contract.
-     * @param _ammContract Address of the Uniswap V3 AMM contract.
+     * @notice Constructor to initialize the contract with required dependencies
+     * @dev Validates that the currency is whitelisted in UMA's collateral whitelist
+     * @param _finder Address of the UMA Finder contract
+     * @param _currency Address of the currency token used for rewards and bonds
+     * @param _optimisticOracleV3 Address of the UMA Optimistic Oracle V3 contract
+     * @param _ammContract Address of the Uniswap V3 AMM contract
+     *
+     * Requirements:
+     * - _currency must be whitelisted in UMA's collateral whitelist
+     * - All addresses must be valid contract addresses
+     *
+     * @custom:security The constructor validates currency whitelist status to ensure UMA compatibility
      */
     constructor(address _finder, address _currency, address _optimisticOracleV3, address _ammContract) {
         finder = FinderInterface(_finder);
@@ -208,17 +219,38 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         amm = IAMMContract(_ammContract);
     }
 
+    //////////////////////////////////////////////////////////////
+    //                   EXTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Initializes a new prediction market.
+     * @notice Initializes a new prediction market
      * @dev Creates outcome tokens and initializes a Uniswap V3 pool for the market.
-     *      Only callable by whitelisted addresses.
-     * @param outcome1 Short name of the first outcome.
-     * @param outcome2 Short name of the second outcome.
-     * @param description Description of the market.
-     * @param reward Reward available for asserting the true market outcome.
-     * @param requiredBond Expected bond to assert the market outcome.
-     * @param poolFee Uniswap V3 pool fee tier.
-     * @return marketId Unique identifier for the market.
+     *      Only callable by whitelisted addresses through the onlyWhitelisted modifier.
+     *
+     * @param outcome1 Short name of the first outcome (e.g., "YES", "BIDEN")
+     * @param outcome2 Short name of the second outcome (e.g., "NO", "TRUMP")
+     * @param description Human-readable description of the market question
+     * @param reward Amount of currency tokens rewarded for correct market resolution
+     * @param requiredBond Minimum bond required to make assertions (must be >= oracle minimum)
+     * @param poolFee Uniswap V3 pool fee tier (500 = 0.05%, 3000 = 0.3%, 10000 = 1%)
+     * @param imageURL URL pointing to an image representing the market
+     *
+     * @return marketId Unique identifier for the created market
+     *
+     * Requirements:
+     * - Caller must be whitelisted
+     * - outcome1 and outcome2 must be different
+     * - Market with generated ID must not already exist
+     * - If reward > 0, caller must have approved this contract to spend reward amount
+     *
+     * Effects:
+     * - Creates two ERC20 tokens representing the outcomes
+     * - Initializes a Uniswap V3 pool for the outcome tokens
+     * - Transfers reward from caller to contract (if reward > 0)
+     * - Stores market data in the markets mapping
+     *
+     * @custom:security Market ID is generated using block.number and description hash to prevent collisions
      */
     function initializeMarket(
         string memory outcome1,
@@ -280,12 +312,30 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
-     * @notice Creates outcome tokens and adds liquidity to the Uniswap V3 pool.
-     * @dev The caller must approve this contract to spend the currency tokens.
-     * @param marketId Unique identifier for the market.
-     * @param tokensToCreate Amount of tokens to create.
-     * @param tickLower Lower tick bound for the liquidity position.
-     * @param tickUpper Upper tick bound for the liquidity position.
+     * @notice Creates outcome tokens and adds liquidity to the Uniswap V3 pool
+     * @dev Mints equal amounts of both outcome tokens backed by collateral and adds them as liquidity.
+     *      The caller must approve this contract to spend the required currency tokens.
+     *
+     * @param marketId Unique identifier for the market
+     * @param tokensToCreate Total amount of outcome tokens to create (split equally between outcomes)
+     * @param tickLower Lower price bound for the liquidity position (as a tick)
+     * @param tickUpper Upper price bound for the liquidity position (as a tick)
+     *
+     * @return tokenId NFT token ID representing the liquidity position
+     *
+     * Requirements:
+     * - Market must exist
+     * - Caller must have approved this contract to spend tokensToCreate amount of currency
+     * - tickLower must be less than tickUpper
+     * - Ticks must be valid for the pool's tick spacing
+     *
+     * Effects:
+     * - Transfers tokensToCreate amount of currency from caller to contract
+     * - Mints tokensToCreate/2 of each outcome token
+     * - Adds liquidity to the Uniswap V3 pool
+     * - Returns NFT representing the liquidity position to the caller
+     *
+     * @custom:security Tokens are minted to the contract temporarily for liquidity provision
      */
     function createOutcomeTokensLiquidity(bytes32 marketId, uint256 tokensToCreate, int24 tickLower, int24 tickUpper)
         external
