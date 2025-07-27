@@ -312,12 +312,30 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
-     * @notice Creates outcome tokens and adds liquidity to the Uniswap V3 pool.
-     * @dev The caller must approve this contract to spend the currency tokens.
-     * @param marketId Unique identifier for the market.
-     * @param tokensToCreate Amount of tokens to create.
-     * @param tickLower Lower tick bound for the liquidity position.
-     * @param tickUpper Upper tick bound for the liquidity position.
+     * @notice Creates outcome tokens and adds liquidity to the Uniswap V3 pool
+     * @dev Mints equal amounts of both outcome tokens backed by collateral and adds them as liquidity.
+     *      The caller must approve this contract to spend the required currency tokens.
+     *
+     * @param marketId Unique identifier for the market
+     * @param tokensToCreate Total amount of outcome tokens to create (split equally between outcomes)
+     * @param tickLower Lower price bound for the liquidity position (as a tick)
+     * @param tickUpper Upper price bound for the liquidity position (as a tick)
+     *
+     * @return tokenId NFT token ID representing the liquidity position
+     *
+     * Requirements:
+     * - Market must exist
+     * - Caller must have approved this contract to spend tokensToCreate amount of currency
+     * - tickLower must be less than tickUpper
+     * - Ticks must be valid for the pool's tick spacing
+     *
+     * Effects:
+     * - Transfers tokensToCreate amount of currency from caller to contract
+     * - Mints tokensToCreate/2 of each outcome token
+     * - Adds liquidity to the Uniswap V3 pool
+     * - Returns NFT representing the liquidity position to the caller
+     *
+     * @custom:security Tokens are minted to the contract temporarily for liquidity provision
      */
     function createOutcomeTokensLiquidity(bytes32 marketId, uint256 tokensToCreate, int24 tickLower, int24 tickUpper)
         external
