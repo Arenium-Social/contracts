@@ -219,17 +219,38 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         amm = IAMMContract(_ammContract);
     }
 
+    //////////////////////////////////////////////////////////////
+    //                   EXTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Initializes a new prediction market.
+     * @notice Initializes a new prediction market
      * @dev Creates outcome tokens and initializes a Uniswap V3 pool for the market.
-     *      Only callable by whitelisted addresses.
-     * @param outcome1 Short name of the first outcome.
-     * @param outcome2 Short name of the second outcome.
-     * @param description Description of the market.
-     * @param reward Reward available for asserting the true market outcome.
-     * @param requiredBond Expected bond to assert the market outcome.
-     * @param poolFee Uniswap V3 pool fee tier.
-     * @return marketId Unique identifier for the market.
+     *      Only callable by whitelisted addresses through the onlyWhitelisted modifier.
+     *
+     * @param outcome1 Short name of the first outcome (e.g., "YES", "BIDEN")
+     * @param outcome2 Short name of the second outcome (e.g., "NO", "TRUMP")
+     * @param description Human-readable description of the market question
+     * @param reward Amount of currency tokens rewarded for correct market resolution
+     * @param requiredBond Minimum bond required to make assertions (must be >= oracle minimum)
+     * @param poolFee Uniswap V3 pool fee tier (500 = 0.05%, 3000 = 0.3%, 10000 = 1%)
+     * @param imageURL URL pointing to an image representing the market
+     *
+     * @return marketId Unique identifier for the created market
+     *
+     * Requirements:
+     * - Caller must be whitelisted
+     * - outcome1 and outcome2 must be different
+     * - Market with generated ID must not already exist
+     * - If reward > 0, caller must have approved this contract to spend reward amount
+     *
+     * Effects:
+     * - Creates two ERC20 tokens representing the outcomes
+     * - Initializes a Uniswap V3 pool for the outcome tokens
+     * - Transfers reward from caller to contract (if reward > 0)
+     * - Stores market data in the markets mapping
+     *
+     * @custom:security Market ID is generated using block.number and description hash to prevent collisions
      */
     function initializeMarket(
         string memory outcome1,
