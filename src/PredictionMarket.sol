@@ -192,12 +192,23 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         bytes32 indexed marketId, address account, uint256 payout, uint256 outcome1Tokens, uint256 outcome2Tokens
     );
 
+    //////////////////////////////////////////////////////////////
+    //                      CONSTRUCTOR                        //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Constructor to initialize the contract with required dependencies.
-     * @param _finder Address of the UMA Finder contract.
-     * @param _currency Address of the currency token used for rewards and bonds.
-     * @param _optimisticOracleV3 Address of the UMA Optimistic Oracle V3 contract.
-     * @param _ammContract Address of the Uniswap V3 AMM contract.
+     * @notice Constructor to initialize the contract with required dependencies
+     * @dev Validates that the currency is whitelisted in UMA's collateral whitelist
+     * @param _finder Address of the UMA Finder contract
+     * @param _currency Address of the currency token used for rewards and bonds
+     * @param _optimisticOracleV3 Address of the UMA Optimistic Oracle V3 contract
+     * @param _ammContract Address of the Uniswap V3 AMM contract
+     *
+     * Requirements:
+     * - _currency must be whitelisted in UMA's collateral whitelist
+     * - All addresses must be valid contract addresses
+     *
+     * @custom:security The constructor validates currency whitelist status to ensure UMA compatibility
      */
     constructor(address _finder, address _currency, address _optimisticOracleV3, address _ammContract) {
         finder = FinderInterface(_finder);
