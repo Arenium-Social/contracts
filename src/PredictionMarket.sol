@@ -366,11 +366,28 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
-     * @notice Asserts the market outcome using UMA's Optimistic Oracle V3.
-     * @dev Only one concurrent assertion per market is allowed.
-     * @param marketId Unique identifier for the market.
-     * @param assertedOutcome The outcome being asserted.
-     * @return assertionId Unique identifier for the assertion.
+     * @notice Asserts the market outcome using UMA's Optimistic Oracle V3
+     * @dev Submits a claim about the market outcome that can be disputed within the challenge period.
+     *      Only one assertion can be active per market at a time.
+     *
+     * @param marketId Unique identifier for the market
+     * @param assertedOutcome The outcome being asserted as true (must match outcome1 or outcome2)
+     *
+     * @return assertionId Unique identifier for the assertion in UMA's system
+     *
+     * Requirements:
+     * - Market must exist
+     * - assertedOutcome must exactly match either outcome1 or outcome2
+     * - Market must not have an active assertion
+     * - Caller must have approved this contract to spend the required bond amount
+     *
+     * Effects:
+     * - Transfers bond from caller to contract
+     * - Submits assertion to UMA's Optimistic Oracle
+     * - Sets market's assertedOutcomeId to track the assertion
+     * - Stores assertion data for callback handling
+     *
+     * @custom:security Bond amount is the maximum of requiredBond and oracle minimum bond
      */
     function assertMarket(bytes32 marketId, string memory assertedOutcome) external returns (bytes32 assertionId) {
         PMLibrary.Market storage market = markets[marketId];
