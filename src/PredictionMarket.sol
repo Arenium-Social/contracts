@@ -421,10 +421,23 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
-     * @notice Callback function triggered when an assertion is resolved.
-     * @dev If the assertion is resolved truthfully, the market is marked as resolved and the asserter receives the reward.
-     * @param assertionId Unique identifier for the assertion.
-     * @param assertedTruthfully Whether the assertion was resolved truthfully.
+     * @notice Callback function triggered when an assertion is resolved by UMA's Oracle
+     * @dev This function is called by the Optimistic Oracle when an assertion reaches resolution.
+     *      Only the oracle contract can call this function.
+     *
+     * @param assertionId Unique identifier for the resolved assertion
+     * @param assertedTruthfully Whether the assertion was confirmed as truthful
+     *
+     * Requirements:
+     * - Only callable by the Optimistic Oracle contract
+     * - Assertion must exist in assertedMarkets mapping
+     *
+     * Effects:
+     * - If assertion was truthful: marks market as resolved and pays reward to asserter
+     * - If assertion was false: resets market's assertedOutcomeId to allow new assertions
+     * - Cleans up assertion data from assertedMarkets mapping
+     *
+     * @custom:security Access control ensures only the oracle can trigger this callback
      */
     function assertionResolvedCallback(bytes32 assertionId, bool assertedTruthfully) external {
         if (msg.sender != address(optimisticOracle)) {
