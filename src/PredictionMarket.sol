@@ -458,9 +458,13 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
-     * @notice Callback function triggered when an assertion is disputed.
-     * @dev This function does nothing as disputes are handled by the Optimistic Oracle.
-     * @param assertionId Unique identifier for the assertion.
+     * @notice Callback function triggered when an assertion is disputed
+     * @dev This function is called by the Optimistic Oracle when an assertion is disputed.
+     *      Currently implements no logic as disputes are handled entirely by the Oracle.
+     *
+     * @param assertionId Unique identifier for the disputed assertion
+     *
+     * @custom:note This function is required by the callback interface but performs no actions
      */
     function assertionDisputedCallback(bytes32 assertionId) external {}
 
