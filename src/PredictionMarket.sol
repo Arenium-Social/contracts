@@ -458,16 +458,36 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     }
 
     /**
-     * @notice Callback function triggered when an assertion is disputed.
-     * @dev This function does nothing as disputes are handled by the Optimistic Oracle.
-     * @param assertionId Unique identifier for the assertion.
+     * @notice Callback function triggered when an assertion is disputed
+     * @dev This function is called by the Optimistic Oracle when an assertion is disputed.
+     *      Currently implements no logic as disputes are handled entirely by the Oracle.
+     *
+     * @param assertionId Unique identifier for the disputed assertion
+     *
+     * @custom:note This function is required by the callback interface but performs no actions
      */
     function assertionDisputedCallback(bytes32 assertionId) external {}
 
     /**
-     * @notice Settles outcome tokens and calculates the payout based on the resolved market outcome.
-     * @param marketId Unique identifier for the market.
-     * @return payout Amount of currency tokens received.
+     * @notice Settles outcome tokens and calculates payout based on the resolved market outcome
+     * @dev Burns the caller's outcome tokens and transfers the appropriate payout in currency tokens.
+     *      Winning tokens are redeemed 1:1 for currency, losing tokens have no value.
+     *
+     * @param marketId Unique identifier for the market
+     *
+     * @return payout Amount of currency tokens transferred to the caller
+     *
+     * Requirements:
+     * - Market must be resolved
+     * - Caller must have outcome tokens to settle
+     * - Caller must have approved this contract to burn their tokens
+     *
+     * Effects:
+     * - Burns all of caller's outcome1 and outcome2 tokens
+     * - Transfers payout amount to caller
+     * - Payout equals the amount of winning outcome tokens held
+     *
+     * @custom:security Uses burnFrom to ensure proper token burning authorization
      */
     function settleOutcomeTokens(bytes32 marketId) external returns (uint256 payout) {
         PMLibrary.Market storage market = markets[marketId];
