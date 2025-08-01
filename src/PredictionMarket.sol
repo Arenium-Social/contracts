@@ -506,14 +506,26 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         emit TokensSettled(marketId, msg.sender, payout, outcome1Balance, outcome2Balance);
     }
 
+    //////////////////////////////////////////////////////////////
+    //                      VIEW FUNCTIONS                     //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Retrieves simplified market data.
-     * @param marketId Unique identifier for the market.
-     * @return resolved Whether the market is resolved.
-     * @return outcome1Token Address of the first outcome token.
-     * @return outcome2Token Address of the second outcome token.
-     * @return outcome1 First outcome of the market.
-     * @return outcome2 Second outcome of the market.
+     * @notice Retrieves basic market information
+     * @dev Returns essential market data for frontend consumption
+     *
+     * @param marketId Unique identifier for the market
+     *
+     * @return resolved Whether the market has been resolved
+     * @return outcome1Token Address of the first outcome token contract
+     * @return outcome2Token Address of the second outcome token contract
+     * @return outcome1 Byte representation of the first outcome name
+     * @return outcome2 Byte representation of the second outcome name
+     *
+     * Requirements:
+     * - Market must exist
+     *
+     * @custom:note Returns bytes instead of strings for gas efficiency
      */
     function getMarket(bytes32 marketId)
         external
