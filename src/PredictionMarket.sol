@@ -552,6 +552,19 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         );
     }
 
+    /**
+     * @notice Retrieves the complete market data structure
+     * @dev Returns all stored market information including metadata
+     * 
+     * @param marketId Unique identifier for the market
+     * 
+     * @return market Complete Market struct containing all market data
+     * 
+     * Requirements:
+     * - Market must exist (checked by caller)
+     * 
+     * @custom:note Provides access to all market fields for detailed queries
+     */
     function getMarketStruct(bytes32 marketId) external view returns (PMLibrary.Market memory) {
         return markets[marketId];
     }
