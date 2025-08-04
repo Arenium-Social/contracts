@@ -569,6 +569,25 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
         return markets[marketId];
     }
 
+    /**
+     * @notice Retrieves user's liquidity position information for a specific market
+     * @dev Queries the AMM contract for detailed position data
+     * 
+     * @param user Address of the liquidity provider
+     * @param marketId Unique identifier for the market
+     * 
+     * @return operator Address that can operate on the position
+     * @return token0 Address of the first token in the pair
+     * @return token1 Address of the second token in the pair
+     * @return fee Fee tier of the pool
+     * @return liquidity Amount of liquidity in the position
+     * @return tokensOwed0 Amount of token0 fees owed
+     * @return tokensOwed1 Amount of token1 fees owed
+     * @return amount0 Current amount of token0 in the position
+     * @return amount1 Current amount of token1 in the position
+     * 
+     * @custom:note Delegates to the AMM contract for position information
+     */
     function getUserLiquidityInMarket(address user, bytes32 marketId)
         external
         view
