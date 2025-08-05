@@ -55,7 +55,21 @@ contract PredictionMarketManager is Ownable {
      */
     error MarketFactory__AddressNotWhitelisted();
 
-    // Whitelist state
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                          //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Mapping to track whitelisted addresses authorized to create prediction markets
+     * @dev Uses a boolean mapping for gas-efficient lookups. True indicates the address is whitelisted.
+     *      Public visibility allows external contracts and users to verify whitelist status.
+     *
+     * Storage Layout:
+     * - Key: address - The address to check whitelist status for
+     * - Value: bool - True if whitelisted, false otherwise
+     *
+     * @custom:storage This mapping is the core of the access control system
+     */
     mapping(address => bool) public whitelistedAddresses;
 
     /**
