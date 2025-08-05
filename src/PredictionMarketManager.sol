@@ -33,8 +33,16 @@ import {PMLibrary} from "./lib/PMLibrary.sol";
  * @custom:inheritance Designed to be inherited by PredictionMarket contract
  */
 contract PredictionMarketManager is Ownable {
-    // Custom errors
+    //////////////////////////////////////////////////////////////
+    //                        CUSTOM ERRORS                    //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @dev Thrown when a non-whitelisted address attempts to perform a whitelisted-only action
+     * @custom:error Used by the onlyWhitelisted modifier to prevent unauthorized access
+     */
     error MarketFactory__CallerNotWhitelisted();
+
     error MarketFactory__AddressAlreadyWhitelisted();
     error MarketFactory__AddressNotWhitelisted();
 
