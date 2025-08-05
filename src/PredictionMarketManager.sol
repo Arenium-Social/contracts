@@ -86,9 +86,27 @@ contract PredictionMarketManager is Ownable {
      */
     constructor() {}
 
+    //////////////////////////////////////////////////////////////
+    //                       MODIFIERS                         //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Modifier to restrict access to whitelisted addresses.
-     * @dev Reverts if the caller is not in the whitelist.
+     * @notice Modifier to restrict function access to whitelisted addresses only
+     * @dev Checks if the caller's address is in the whitelistedAddresses mapping.
+     *      Reverts with a custom error if the caller is not whitelisted.
+     *
+     * Usage:
+     * - Applied to functions that should only be callable by authorized addresses
+     * - Primarily used for market creation functions in the inheriting contract
+     *
+     * Gas Considerations:
+     * - Uses custom error for gas-efficient reverts
+     * - Single SLOAD operation to check whitelist status
+     *
+     * Requirements:
+     * - Caller must be in the whitelistedAddresses mapping with a value of true
+     *
+     * @custom:modifier This is the core access control mechanism for the contract
      */
     modifier onlyWhitelisted() {
         if (!whitelistedAddresses[msg.sender]) {
