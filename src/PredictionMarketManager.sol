@@ -48,6 +48,11 @@ contract PredictionMarketManager is Ownable {
      * @custom:error Prevents unnecessary state changes and provides clear feedback
      */
     error MarketFactory__AddressAlreadyWhitelisted();
+
+    /**
+     * @dev Thrown when attempting to remove an address that is not currently whitelisted
+     * @custom:error Prevents invalid state transitions and provides clear feedback
+     */
     error MarketFactory__AddressNotWhitelisted();
 
     // Whitelist state
