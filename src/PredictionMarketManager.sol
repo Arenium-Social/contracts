@@ -7,8 +7,30 @@ import {PMLibrary} from "./lib/PMLibrary.sol";
 /**
  * @title PredictionMarketManager
  * @author Arenium Social
- * @notice This contract is responsible for managing prediction markets.
- * @dev The contract allows whitelisted addresses to create prediction markets.
+ * @notice This contract manages access control for prediction market creation through a whitelist system
+ * @dev Serves as a base contract for PredictionMarket, providing whitelist functionality to control
+ *      who can create new prediction markets. The contract inherits from OpenZeppelin's Ownable
+ *      to provide ownership-based access control for whitelist management.
+ *
+ * Key Features:
+ * - Whitelist-based access control for market creation
+ * - Owner-only whitelist management functions
+ * - Gas-efficient boolean mapping for whitelist storage
+ * - Comprehensive error handling with custom errors
+ *
+ * Architecture:
+ * - Designed to be inherited by the main PredictionMarket contract
+ * - Uses OpenZeppelin's battle-tested Ownable pattern
+ * - Implements the principle of least privilege for market creation
+ *
+ * Security Considerations:
+ * - Only the contract owner can modify the whitelist
+ * - Prevents duplicate whitelist entries and invalid removals
+ * - Uses custom errors for gas-efficient error handling
+ * - No external dependencies beyond OpenZeppelin's Ownable
+ *
+ * @custom:security This contract implements access control to prevent unauthorized market creation
+ * @custom:inheritance Designed to be inherited by PredictionMarket contract
  */
 contract PredictionMarketManager is Ownable {
     // Custom errors
