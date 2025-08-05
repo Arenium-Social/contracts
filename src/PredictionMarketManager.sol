@@ -43,6 +43,10 @@ contract PredictionMarketManager is Ownable {
      */
     error MarketFactory__CallerNotWhitelisted();
 
+    /**
+     * @dev Thrown when attempting to add an address that is already whitelisted
+     * @custom:error Prevents unnecessary state changes and provides clear feedback
+     */
     error MarketFactory__AddressAlreadyWhitelisted();
     error MarketFactory__AddressNotWhitelisted();
 
