@@ -73,7 +73,16 @@ contract PredictionMarketManager is Ownable {
     mapping(address => bool) public whitelistedAddresses;
 
     /**
-     * @notice Constructor to initialize the factory contract
+     * @notice Constructor to initialize the PredictionMarketManager contract
+     * @dev Initializes the contract and sets the deployer as the owner through Ownable's constructor.
+     *      The whitelist starts empty, requiring the owner to explicitly add authorized addresses.
+     *
+     * Initialization Effects:
+     * - Sets msg.sender as the contract owner (via Ownable)
+     * - Initializes empty whitelist mapping
+     * - No addresses are whitelisted by default for security
+     *
+     * @custom:security The contract starts with an empty whitelist, requiring explicit authorization
      */
     constructor() {}
 
