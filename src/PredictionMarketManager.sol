@@ -115,10 +115,36 @@ contract PredictionMarketManager is Ownable {
         _;
     }
 
+    //////////////////////////////////////////////////////////////
+    //                   EXTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Adds an address to the whitelist, allowing it to create markets.
-     * @dev Only callable by the contract owner.
-     * @param account Address to add to the whitelist.
+     * @notice Adds an address to the whitelist, granting it permission to create prediction markets
+     * @dev Only callable by the contract owner. Checks if the address is already whitelisted
+     *      to prevent unnecessary state changes and provide clear error feedback.
+     *
+     * @param account The address to add to the whitelist
+     *
+     * Requirements:
+     * - Caller must be the contract owner (enforced by onlyOwner modifier)
+     * - The account must not already be whitelisted
+     * - The account must be a valid address (non-zero)
+     *
+     * Effects:
+     * - Sets whitelistedAddresses[account] to true
+     * - Grants the account permission to use onlyWhitelisted functions
+     *
+     * Gas Considerations:
+     * - Single SSTORE operation if account is not already whitelisted
+     * - Custom error for gas-efficient reverts
+     *
+     * Security:
+     * - Owner-only access prevents unauthorized whitelist modifications
+     * - Duplicate check prevents confusion and unnecessary gas usage
+     *
+     * @custom:access Only callable by the contract owner
+     * @custom:state-change Modifies the whitelistedAddresses mapping
      */
     function addToWhitelist(address account) external onlyOwner {
         if (whitelistedAddresses[account]) {
