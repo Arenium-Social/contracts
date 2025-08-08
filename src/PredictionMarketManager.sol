@@ -228,4 +228,36 @@ contract PredictionMarketManager is Ownable {
     // function owner() public view override returns (address) {
     //     return super.owner();
     // }
+
+    //////////////////////////////////////////////////////////////
+    //                    INTERNAL FUNCTIONS                   //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Internal function to batch add multiple addresses to the whitelist
+     * @dev This function is not currently implemented but would be useful for initial setup
+     *      or bulk whitelist operations. Only callable internally or by inheriting contracts.
+     *
+     * @param accounts Array of addresses to add to the whitelist
+     *
+     * Requirements:
+     * - All addresses must not already be whitelisted
+     * - Caller must have appropriate permissions (if exposed through external function)
+     *
+     * Effects:
+     * - Adds all provided addresses to the whitelist
+     * - More gas-efficient than multiple individual calls
+     *
+     * @custom:future This function could be implemented for batch operations
+     */
+    /*
+    function _batchAddToWhitelist(address[] memory accounts) internal {
+        for (uint256 i = 0; i < accounts.length; i++) {
+            if (!whitelistedAddresses[accounts[i]]) {
+                whitelistedAddresses[accounts[i]] = true;
+                // emit AddressWhitelisted(accounts[i], msg.sender);
+            }
+        }
+    }
+    */
 }
