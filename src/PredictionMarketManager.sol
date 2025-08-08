@@ -214,4 +214,18 @@ contract PredictionMarketManager is Ownable {
     function isWhitelisted(address account) external view returns (bool isWhitelisted) {
         return whitelistedAddresses[account];
     }
+
+    /**
+     * @notice Returns the current owner of the contract
+     * @dev Convenience function that exposes the owner from OpenZeppelin's Ownable contract.
+     *      While Ownable already provides an owner() function, this explicit declaration
+     *      improves contract interface clarity.
+     *
+     * @return owner The address of the current contract owner
+     *
+     * @custom:note This function is inherited from OpenZeppelin's Ownable contract
+     */
+    // function owner() public view override returns (address) {
+    //     return super.owner();
+    // }
 }
