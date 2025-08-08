@@ -154,9 +154,35 @@ contract PredictionMarketManager is Ownable {
     }
 
     /**
-     * @notice Removes an address from the whitelist, revoking its ability to create markets.
-     * @dev Only callable by the contract owner.
-     * @param account Address to remove from the whitelist.
+     * @notice Removes an address from the whitelist, revoking its permission to create prediction markets
+     * @dev Only callable by the contract owner. Checks if the address is currently whitelisted
+     *      to prevent invalid state transitions and provide clear error feedback.
+     *
+     * @param account The address to remove from the whitelist
+     *
+     * Requirements:
+     * - Caller must be the contract owner (enforced by onlyOwner modifier)
+     * - The account must currently be whitelisted
+     * - The account must be a valid address (non-zero)
+     *
+     * Effects:
+     * - Sets whitelistedAddresses[account] to false
+     * - Revokes the account's permission to use onlyWhitelisted functions
+     *
+     * Gas Considerations:
+     * - Single SSTORE operation if account is currently whitelisted
+     * - Custom error for gas-efficient reverts
+     *
+     * Security:
+     * - Owner-only access prevents unauthorized whitelist modifications
+     * - Existence check prevents confusion and provides clear error feedback
+     *
+     * Post-conditions:
+     * - The removed address will no longer be able to call onlyWhitelisted functions
+     * - Any ongoing operations by the address are not affected (only future calls)
+     *
+     * @custom:access Only callable by the contract owner
+     * @custom:state-change Modifies the whitelistedAddresses mapping
      */
     function removeFromWhitelist(address account) external onlyOwner {
         if (!whitelistedAddresses[account]) {
