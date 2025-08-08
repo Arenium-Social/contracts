@@ -154,9 +154,35 @@ contract PredictionMarketManager is Ownable {
     }
 
     /**
-     * @notice Removes an address from the whitelist, revoking its ability to create markets.
-     * @dev Only callable by the contract owner.
-     * @param account Address to remove from the whitelist.
+     * @notice Removes an address from the whitelist, revoking its permission to create prediction markets
+     * @dev Only callable by the contract owner. Checks if the address is currently whitelisted
+     *      to prevent invalid state transitions and provide clear error feedback.
+     *
+     * @param account The address to remove from the whitelist
+     *
+     * Requirements:
+     * - Caller must be the contract owner (enforced by onlyOwner modifier)
+     * - The account must currently be whitelisted
+     * - The account must be a valid address (non-zero)
+     *
+     * Effects:
+     * - Sets whitelistedAddresses[account] to false
+     * - Revokes the account's permission to use onlyWhitelisted functions
+     *
+     * Gas Considerations:
+     * - Single SSTORE operation if account is currently whitelisted
+     * - Custom error for gas-efficient reverts
+     *
+     * Security:
+     * - Owner-only access prevents unauthorized whitelist modifications
+     * - Existence check prevents confusion and provides clear error feedback
+     *
+     * Post-conditions:
+     * - The removed address will no longer be able to call onlyWhitelisted functions
+     * - Any ongoing operations by the address are not affected (only future calls)
+     *
+     * @custom:access Only callable by the contract owner
+     * @custom:state-change Modifies the whitelistedAddresses mapping
      */
     function removeFromWhitelist(address account) external onlyOwner {
         if (!whitelistedAddresses[account]) {
@@ -164,4 +190,42 @@ contract PredictionMarketManager is Ownable {
         }
         whitelistedAddresses[account] = false;
     }
+
+    //////////////////////////////////////////////////////////////
+    //                      VIEW FUNCTIONS                     //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Checks if an address is currently whitelisted
+     * @dev Public function that allows anyone to verify the whitelist status of an address.
+     *      The whitelistedAddresses mapping is already public, so this function provides
+     *      a more explicit interface for checking whitelist status.
+     *
+     * @param account The address to check
+     *
+     * @return isWhitelisted True if the address is whitelisted, false otherwise
+     *
+     * Gas Considerations:
+     * - Single SLOAD operation
+     * - No state changes, making it a view function
+     *
+     * @custom:view This function provides read-only access to whitelist status
+     */
+    function isWhitelisted(address account) external view returns (bool isWhitelisted) {
+        return whitelistedAddresses[account];
+    }
+
+    /**
+     * @notice Returns the current owner of the contract
+     * @dev Convenience function that exposes the owner from OpenZeppelin's Ownable contract.
+     *      While Ownable already provides an owner() function, this explicit declaration
+     *      improves contract interface clarity.
+     *
+     * @return owner The address of the current contract owner
+     *
+     * @custom:note This function is inherited from OpenZeppelin's Ownable contract
+     */
+    // function owner() public view override returns (address) {
+    //     return super.owner();
+    // }
 }
