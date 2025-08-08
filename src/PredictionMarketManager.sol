@@ -191,6 +191,26 @@ contract PredictionMarketManager is Ownable {
         whitelistedAddresses[account] = false;
     }
 
+    //////////////////////////////////////////////////////////////
+    //                      VIEW FUNCTIONS                     //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Checks if an address is currently whitelisted
+     * @dev Public function that allows anyone to verify the whitelist status of an address.
+     *      The whitelistedAddresses mapping is already public, so this function provides
+     *      a more explicit interface for checking whitelist status.
+     *
+     * @param account The address to check
+     *
+     * @return isWhitelisted True if the address is whitelisted, false otherwise
+     *
+     * Gas Considerations:
+     * - Single SLOAD operation
+     * - No state changes, making it a view function
+     *
+     * @custom:view This function provides read-only access to whitelist status
+     */
     function isWhitelisted(address account) external view returns (bool isWhitelisted) {
         return whitelistedAddresses[account];
     }
