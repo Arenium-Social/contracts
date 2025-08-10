@@ -68,7 +68,24 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @dev Manages minting, increasing, decreasing, and collecting from positions
     INonfungiblePositionManager public immutable nonFungiblePositionManager;
 
-    /// @notice Struct to store pool-related data
+    //////////////////////////////////////////////////////////////
+    //                    DATA STRUCTURES                      //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Comprehensive data structure containing all pool-related information
+     * @dev Stores essential pool data for efficient lookups and operations
+     *
+     * @param marketId Unique identifier linking this pool to a prediction market
+     * @param pool Address of the Uniswap V3 pool contract
+     * @param tokenA Address of the first outcome token (lower address)
+     * @param tokenB Address of the second outcome token (higher address)
+     * @param fee Fee tier for the pool (500 = 0.05%, 3000 = 0.3%, 10000 = 1%)
+     * @param poolInitialized Flag indicating if the pool has been initialized with a price
+     *
+     * @custom:ordering tokenA and tokenB are ordered by address (tokenA < tokenB) for consistency
+     * @custom:initialization poolInitialized becomes true after successful price initialization
+     */
     struct PoolData {
         bytes32 marketId; // Unique identifier for the prediction market
         address pool; // Address of the Uniswap V3 pool
