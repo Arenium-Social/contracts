@@ -103,6 +103,8 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
 
+    /// @notice Maps market ID to its corresponding pool data
+    /// @dev Primary lookup mechanism for pools by market identifier
     mapping(bytes32 => PoolData) public marketIdToPool;
 
     /// @dev Maps marketId to PoolData
