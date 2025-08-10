@@ -16,10 +16,40 @@ import {INonfungiblePositionManager} from "./interfaces/INonfungiblePositionMana
 /**
  * @title AMMContract
  * @author Arenium Social
- * @notice This contract manages the trading of outcome tokens from a prediction market using Uniswap V3 liquidity pools.
- * @notice This contract also handles user's position in pools(i.e. tickets), the owner of position NFT is this contract
- * to manage liquidity position for the user, such as add and remove liquidity.
- * @dev The creation of pools is automated when a new market is initialized in the prediction market.
+ * @notice This contract manages automated market making for prediction market outcome tokens using Uniswap V3
+ * @dev Integrates with Uniswap V3 to provide liquidity pools, position management, and token swapping for
+ *      prediction market outcome tokens. The contract acts as a custodian for users' liquidity positions,
+ *      holding the NFT tokens while tracking user ownership and allowing users to manage their positions.
+ *
+ * Key Features:
+ * - Automated pool creation for new prediction markets
+ * - Liquidity provision and management through Uniswap V3 NFT positions
+ * - Token swapping with slippage protection
+ * - Position tracking and management for multiple users
+ * - Direct pool interaction for custom trading scenarios
+ * - Comprehensive pool analytics and position queries
+ *
+ * Architecture:
+ * - Built on Uniswap V3 concentrated liquidity model
+ * - Uses NFT-based position management for precise liquidity control
+ * - Implements callback pattern for direct pool interactions
+ * - Integrates with prediction market contract for automated setup
+ *
+ * Security Considerations:
+ * - Position NFTs are held by this contract but tracked per user
+ * - Callback verification ensures only registered pools can trigger callbacks
+ * - Slippage protection on all swap operations
+ * - Owner-only functions for emergency management
+ * - Safe token transfers using OpenZeppelin's SafeERC20
+ *
+ * Gas Optimizations:
+ * - Batch operations where possible
+ * - Efficient storage patterns with mappings
+ * - Direct pool interactions to bypass router fees when appropriate
+ *
+ * @custom:security This contract holds user positions as custodian while maintaining user ownership tracking
+ * @custom:integration Designed to work seamlessly with PredictionMarket contract
+ * @custom:uniswap Implements Uniswap V3 callback interface for direct pool interactions
  */
 contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @notice Immutable Uniswap V3 factory and swap router addresses
