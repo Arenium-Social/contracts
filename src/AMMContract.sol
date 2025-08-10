@@ -87,12 +87,12 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
      * @custom:initialization poolInitialized becomes true after successful price initialization
      */
     struct PoolData {
-        bytes32 marketId; // Unique identifier for the prediction market
-        address pool; // Address of the Uniswap V3 pool
-        address tokenA; // Address of the first token in the pool
-        address tokenB; // Address of the second token in the pool
-        uint24 fee; // Fee tier for the pool
-        bool poolInitialized; // Flag to check if the pool is initialized
+        bytes32 marketId; // Links to prediction market
+        address pool; // Uniswap V3 pool address
+        address tokenA; // First token (lower address)
+        address tokenB; // Second token (higher address)
+        uint24 fee; // Pool fee tier
+        bool poolInitialized; // Initialization status
     }
 
     /// @notice Array to store all pools
