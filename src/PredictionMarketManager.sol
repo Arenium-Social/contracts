@@ -260,4 +260,32 @@ contract PredictionMarketManager is Ownable {
         }
     }
     */
+
+    /**
+     * @notice Internal function to batch remove multiple addresses from the whitelist
+     * @dev This function is not currently implemented but would be useful for bulk
+     *      whitelist cleanup operations. Only callable internally or by inheriting contracts.
+     *
+     * @param accounts Array of addresses to remove from the whitelist
+     *
+     * Requirements:
+     * - All addresses must currently be whitelisted
+     * - Caller must have appropriate permissions (if exposed through external function)
+     *
+     * Effects:
+     * - Removes all provided addresses from the whitelist
+     * - More gas-efficient than multiple individual calls
+     *
+     * @custom:future This function could be implemented for batch operations
+     */
+    /*
+    function _batchRemoveFromWhitelist(address[] memory accounts) internal {
+        for (uint256 i = 0; i < accounts.length; i++) {
+            if (whitelistedAddresses[accounts[i]]) {
+                whitelistedAddresses[accounts[i]] = false;
+                // emit AddressRemovedFromWhitelist(accounts[i], msg.sender);
+            }
+        }
+    }
+    */
 }
