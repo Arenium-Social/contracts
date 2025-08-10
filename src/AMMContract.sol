@@ -64,6 +64,8 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @dev Provides standardized swap interface with slippage protection
     ISwapRouter public immutable swapRouter;
 
+    /// @notice Uniswap V3 position manager for NFT-based liquidity positions
+    /// @dev Manages minting, increasing, decreasing, and collecting from positions
     INonfungiblePositionManager public immutable nonFungiblePositionManager;
 
     /// @notice Struct to store pool-related data
