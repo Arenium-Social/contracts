@@ -60,7 +60,10 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @dev Used to create new pools and verify pool existence
     IUniswapV3Factory public immutable magicFactory;
 
+    /// @notice Uniswap V3 swap router for executing token swaps
+    /// @dev Provides standardized swap interface with slippage protection
     ISwapRouter public immutable swapRouter;
+
     INonfungiblePositionManager public immutable nonFungiblePositionManager;
 
     /// @notice Struct to store pool-related data
