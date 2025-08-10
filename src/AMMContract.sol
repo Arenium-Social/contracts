@@ -52,8 +52,14 @@ import {INonfungiblePositionManager} from "./interfaces/INonfungiblePositionMana
  * @custom:uniswap Implements Uniswap V3 callback interface for direct pool interactions
  */
 contract AMMContract is Ownable, IUniswapV3SwapCallback {
-    /// @notice Immutable Uniswap V3 factory and swap router addresses
+    //////////////////////////////////////////////////////////////
+    //                   IMMUTABLE VARIABLES                   //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Uniswap V3 factory contract for pool creation and queries
+    /// @dev Used to create new pools and verify pool existence
     IUniswapV3Factory public immutable magicFactory;
+
     ISwapRouter public immutable swapRouter;
     INonfungiblePositionManager public immutable nonFungiblePositionManager;
 
