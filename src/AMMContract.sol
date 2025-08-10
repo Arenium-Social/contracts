@@ -95,7 +95,12 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
         bool poolInitialized; // Initialization status
     }
 
-    /// @notice Array to store all pools
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                          //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Array storing all created pools for enumeration and analytics
+    /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
 
     mapping(bytes32 => PoolData) public marketIdToPool;
