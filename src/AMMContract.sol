@@ -16,30 +16,95 @@ import {INonfungiblePositionManager} from "./interfaces/INonfungiblePositionMana
 /**
  * @title AMMContract
  * @author Arenium Social
- * @notice This contract manages the trading of outcome tokens from a prediction market using Uniswap V3 liquidity pools.
- * @notice This contract also handles user's position in pools(i.e. tickets), the owner of position NFT is this contract
- * to manage liquidity position for the user, such as add and remove liquidity.
- * @dev The creation of pools is automated when a new market is initialized in the prediction market.
+ * @notice This contract manages automated market making for prediction market outcome tokens using Uniswap V3
+ * @dev Integrates with Uniswap V3 to provide liquidity pools, position management, and token swapping for
+ *      prediction market outcome tokens. The contract acts as a custodian for users' liquidity positions,
+ *      holding the NFT tokens while tracking user ownership and allowing users to manage their positions.
+ *
+ * Key Features:
+ * - Automated pool creation for new prediction markets
+ * - Liquidity provision and management through Uniswap V3 NFT positions
+ * - Token swapping with slippage protection
+ * - Position tracking and management for multiple users
+ * - Direct pool interaction for custom trading scenarios
+ * - Comprehensive pool analytics and position queries
+ *
+ * Architecture:
+ * - Built on Uniswap V3 concentrated liquidity model
+ * - Uses NFT-based position management for precise liquidity control
+ * - Implements callback pattern for direct pool interactions
+ * - Integrates with prediction market contract for automated setup
+ *
+ * Security Considerations:
+ * - Position NFTs are held by this contract but tracked per user
+ * - Callback verification ensures only registered pools can trigger callbacks
+ * - Slippage protection on all swap operations
+ * - Owner-only functions for emergency management
+ * - Safe token transfers using OpenZeppelin's SafeERC20
+ *
+ * Gas Optimizations:
+ * - Batch operations where possible
+ * - Efficient storage patterns with mappings
+ * - Direct pool interactions to bypass router fees when appropriate
+ *
+ * @custom:security This contract holds user positions as custodian while maintaining user ownership tracking
+ * @custom:integration Designed to work seamlessly with PredictionMarket contract
+ * @custom:uniswap Implements Uniswap V3 callback interface for direct pool interactions
  */
 contract AMMContract is Ownable, IUniswapV3SwapCallback {
-    /// @notice Immutable Uniswap V3 factory and swap router addresses
+    //////////////////////////////////////////////////////////////
+    //                   IMMUTABLE VARIABLES                   //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Uniswap V3 factory contract for pool creation and queries
+    /// @dev Used to create new pools and verify pool existence
     IUniswapV3Factory public immutable magicFactory;
+
+    /// @notice Uniswap V3 swap router for executing token swaps
+    /// @dev Provides standardized swap interface with slippage protection
     ISwapRouter public immutable swapRouter;
+
+    /// @notice Uniswap V3 position manager for NFT-based liquidity positions
+    /// @dev Manages minting, increasing, decreasing, and collecting from positions
     INonfungiblePositionManager public immutable nonFungiblePositionManager;
 
-    /// @notice Struct to store pool-related data
+    //////////////////////////////////////////////////////////////
+    //                    DATA STRUCTURES                      //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Comprehensive data structure containing all pool-related information
+     * @dev Stores essential pool data for efficient lookups and operations
+     *
+     * @param marketId Unique identifier linking this pool to a prediction market
+     * @param pool Address of the Uniswap V3 pool contract
+     * @param tokenA Address of the first outcome token (lower address)
+     * @param tokenB Address of the second outcome token (higher address)
+     * @param fee Fee tier for the pool (500 = 0.05%, 3000 = 0.3%, 10000 = 1%)
+     * @param poolInitialized Flag indicating if the pool has been initialized with a price
+     *
+     * @custom:ordering tokenA and tokenB are ordered by address (tokenA < tokenB) for consistency
+     * @custom:initialization poolInitialized becomes true after successful price initialization
+     */
     struct PoolData {
-        bytes32 marketId; // Unique identifier for the prediction market
-        address pool; // Address of the Uniswap V3 pool
-        address tokenA; // Address of the first token in the pool
-        address tokenB; // Address of the second token in the pool
-        uint24 fee; // Fee tier for the pool
-        bool poolInitialized; // Flag to check if the pool is initialized
+        bytes32 marketId; // Links to prediction market
+        address pool; // Uniswap V3 pool address
+        address tokenA; // First token (lower address)
+        address tokenB; // Second token (higher address)
+        uint24 fee; // Pool fee tier
+        bool poolInitialized; // Initialization status
     }
 
-    /// @notice Array to store all pools
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                          //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Array storing all created pools for enumeration and analytics
+    /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
 
+    /// @notice Maps market ID to its corresponding pool data
+    /// @dev Primary lookup mechanism for pools by market identifier
     mapping(bytes32 => PoolData) public marketIdToPool;
 
     /// @dev Maps marketId to PoolData
