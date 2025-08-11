@@ -107,8 +107,10 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @dev Primary lookup mechanism for pools by market identifier
     mapping(bytes32 => PoolData) public marketIdToPool;
 
-    /// @dev Maps marketId to PoolData
+    /// @notice Maps pool address to its corresponding pool data
+    /// @dev Enables reverse lookup from pool address to market data
     mapping(address => PoolData) public poolAddressToPool;
+
     /// @dev Maps pool address to PoolData
     mapping(address => mapping(address => address)) public tokenPairToPoolAddress;
     /// @dev Maps token pairs to pool addresses
