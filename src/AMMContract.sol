@@ -115,9 +115,10 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     /// @dev Bidirectional mapping: both (tokenA, tokenB) and (tokenB, tokenA) point to same pool
     mapping(address => mapping(address => address)) public tokenPairToPoolAddress;
 
-    /// @dev Maps token pairs to pool addresses
+    /// @notice Maps user address and market ID to their NFT position ID
+    /// @dev Tracks which NFT position belongs to each user in each market
+    /// @custom:constraint Each user can only have one position per market
     mapping(address => mapping(bytes32 => uint256)) public userAddressToMarketIdToPositionId;
-    /// @dev Maps user address to their position token id in the respective market
 
     event PoolCreated(address indexed pool);
     event PoolInitialized(bytes32 indexed marketId, address indexed pool, address tokenA, address tokenB, uint24 fee);
