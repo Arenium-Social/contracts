@@ -123,13 +123,21 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     //////////////////////////////////////////////////////////////
     //                          EVENTS                         //
     //////////////////////////////////////////////////////////////
-    
+
     /**
      * @notice Emitted when a new Uniswap V3 pool is created
      * @param pool Address of the newly created pool contract
      */
     event PoolCreated(address indexed pool);
-    
+
+    /**
+     * @notice Emitted when a pool is successfully initialized with a starting price
+     * @param marketId Unique identifier for the prediction market
+     * @param pool Address of the initialized pool
+     * @param tokenA Address of the first outcome token
+     * @param tokenB Address of the second outcome token
+     * @param fee Fee tier of the pool
+     */
     event PoolInitialized(bytes32 indexed marketId, address indexed pool, address tokenA, address tokenB, uint24 fee);
 
     event NewPositionMinted(address indexed user, bytes32 indexed marketId, uint256 amount0, uint256 amount1);
