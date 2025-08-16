@@ -174,9 +174,18 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
      */
     event TokensCollected(address user, uint256 amount0Collected, uint256 amount1Collected);
 
+    /**
+     * @notice Emitted when tokens are swapped through the AMM
+     * @param marketId Market identifier for the pool used
+     * @param tokenIn Address of the input token
+     * @param tokenOut Address of the output token
+     * @param amountIn Amount of input tokens provided
+     * @param amountOut Actual amount of output tokens received
+     */
     event TokensSwapped(
         bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
     );
+
     event ProtocolFeeCollected(address recipient, uint256 amountA, uint256 amountB);
     event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
 
