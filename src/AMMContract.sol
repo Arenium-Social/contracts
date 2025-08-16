@@ -166,7 +166,14 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
      */
     event LiquidityRemoved(address user, uint128 liquidity, uint256 amount0Decreased, uint256 amount1Decreased);
 
+    /**
+     * @notice Emitted when tokens (including fees) are collected from a position
+     * @param user Address of the user collecting tokens
+     * @param amount0Collected Amount of tokenA collected (includes fees)
+     * @param amount1Collected Amount of tokenB collected (includes fees)
+     */
     event TokensCollected(address user, uint256 amount0Collected, uint256 amount1Collected);
+
     event TokensSwapped(
         bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
     );
