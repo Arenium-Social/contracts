@@ -140,14 +140,67 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
      */
     event PoolInitialized(bytes32 indexed marketId, address indexed pool, address tokenA, address tokenB, uint24 fee);
 
+    /**
+     * @notice Emitted when a new liquidity position is minted for a user
+     * @param user Address of the user who owns the position
+     * @param marketId Market identifier for the position
+     * @param amount0 Initial amount of tokenA added to the position
+     * @param amount1 Initial amount of tokenB added to the position
+     */
     event NewPositionMinted(address indexed user, bytes32 indexed marketId, uint256 amount0, uint256 amount1);
+
+    /**
+     * @notice Emitted when liquidity is added to a pool (new or existing position)
+     * @param marketId Market identifier where liquidity was added
+     * @param amount0 Amount of tokenA added
+     * @param amount1 Amount of tokenB added
+     */
     event LiquidityAdded(bytes32 indexed marketId, uint256 indexed amount0, uint256 indexed amount1);
+
+    /**
+     * @notice Emitted when liquidity is removed from a position
+     * @param user Address of the user removing liquidity
+     * @param liquidity Amount of liquidity removed
+     * @param amount0Decreased Amount of tokenA made available for collection
+     * @param amount1Decreased Amount of tokenB made available for collection
+     */
     event LiquidityRemoved(address user, uint128 liquidity, uint256 amount0Decreased, uint256 amount1Decreased);
+
+    /**
+     * @notice Emitted when tokens (including fees) are collected from a position
+     * @param user Address of the user collecting tokens
+     * @param amount0Collected Amount of tokenA collected (includes fees)
+     * @param amount1Collected Amount of tokenB collected (includes fees)
+     */
     event TokensCollected(address user, uint256 amount0Collected, uint256 amount1Collected);
+
+    /**
+     * @notice Emitted when tokens are swapped through the AMM
+     * @param marketId Market identifier for the pool used
+     * @param tokenIn Address of the input token
+     * @param tokenOut Address of the output token
+     * @param amountIn Amount of input tokens provided
+     * @param amountOut Actual amount of output tokens received
+     */
     event TokensSwapped(
         bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
     );
+
+    /**
+     * @notice Emitted when protocol fees are collected by the owner
+     * @param recipient Address receiving the collected fees
+     * @param amountA Amount of tokenA collected
+     * @param amountB Amount of tokenB collected
+     */
     event ProtocolFeeCollected(address recipient, uint256 amountA, uint256 amountB);
+
+    /**
+     * @notice Emitted when trading fees are collected from a specific market
+     * @param recipient Address receiving the collected fees
+     * @param marketId Market identifier for the fees collected
+     * @param amountA Amount of tokenA collected as fees
+     * @param amountB Amount of tokenB collected as fees
+     */
     event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
 
     constructor(address _uniswapV3Factory, address _uniswapSwapRouter, address _uniswapNonFungiblePositionManager) {
