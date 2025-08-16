@@ -186,7 +186,14 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
         bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
     );
 
+    /**
+     * @notice Emitted when protocol fees are collected by the owner
+     * @param recipient Address receiving the collected fees
+     * @param amountA Amount of tokenA collected
+     * @param amountB Amount of tokenB collected
+     */
     event ProtocolFeeCollected(address recipient, uint256 amountA, uint256 amountB);
+
     event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
 
     constructor(address _uniswapV3Factory, address _uniswapSwapRouter, address _uniswapNonFungiblePositionManager) {
