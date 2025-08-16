@@ -149,7 +149,14 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
      */
     event NewPositionMinted(address indexed user, bytes32 indexed marketId, uint256 amount0, uint256 amount1);
 
+    /**
+     * @notice Emitted when liquidity is added to a pool (new or existing position)
+     * @param marketId Market identifier where liquidity was added
+     * @param amount0 Amount of tokenA added
+     * @param amount1 Amount of tokenB added
+     */
     event LiquidityAdded(bytes32 indexed marketId, uint256 indexed amount0, uint256 indexed amount1);
+
     event LiquidityRemoved(address user, uint128 liquidity, uint256 amount0Decreased, uint256 amount1Decreased);
     event TokensCollected(address user, uint256 amount0Collected, uint256 amount1Collected);
     event TokensSwapped(
