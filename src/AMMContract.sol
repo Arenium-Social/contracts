@@ -779,12 +779,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to execute a swap.
-     * @param _inputToken Address of the input token.
-     * @param _outputToken Address of the output token.
-     * @param _amountIn Amount of input tokens to swap.
-     * @param _amountOutMinimum Minimum amount of output tokens to receive.
-     * @param _marketId Unique identifier for the prediction market.
+     * @notice Internal function to execute a token swap through the Uniswap router
+     * @dev Handles token approval and executes swap through the official router with
+     *      automatic slippage protection and price limits.
+     *
+     * @param _inputToken Address of the token being sold
+     * @param _outputToken Address of the token being bought
+     * @param _amountIn Amount of input tokens to swap
+     * @param _amountOutMinimum Minimum amount of output tokens to receive
+     * @param _marketId Market identifier for the swap (determines pool and fee tier)
+     *
+     * Requirements:
+     * - This contract must have sufficient input token balance
+     * - Router must be approved to spend input tokens
+     * - Swap must result in at least _amountOutMinimum output tokens
+     *
+     * Effects:
+     * - Approves router to spend input tokens
+     * - Executes exact input swap through router
+     * - Output tokens are sent directly to original swap caller (msg.sender)
+     * - Emits TokensSwapped event with actual amounts
+     *
+     * @custom:router Uses official Uniswap router for maximum compatibility
+     * @custom:limits Automatically calculates appropriate price limits based on swap direction
      */
     function _executeSwap(
         address _inputToken,
