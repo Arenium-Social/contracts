@@ -585,10 +585,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to add liquidity to an existing position.
-     * @param poolData PoolData struct containing pool information.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
+     * @notice Internal function to add liquidity to an existing position
+     * @dev Increases liquidity in a user's existing NFT position by adding more tokens
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user adding liquidity
+     * @param _amount0 Amount of tokenA to add
+     * @param _amount1 Amount of tokenB to add
+     *
+     * @return liquidity Amount of liquidity added
+     * @return amount0 Actual amount of tokenA used
+     * @return amount1 Actual amount of tokenB used
+     *
+     * Requirements:
+     * - User must have an existing position
+     * - This contract must have sufficient token balances and approvals
+     *
+     * Effects:
+     * - Approves position manager to spend additional tokens
+     * - Increases liquidity in the existing NFT position
+     * - Returns actual amounts used (may differ from requested)
+     *
+     * @custom:existing Only works with positions that already exist for the user
+     * @custom:precision Actual amounts may differ due to current pool price and ratios
      */
     function _addLiquidityToExistingPosition(
         PoolData memory poolData,
