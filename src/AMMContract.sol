@@ -231,12 +231,35 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
         nonFungiblePositionManager = INonfungiblePositionManager(_uniswapNonFungiblePositionManager);
     }
 
+    //////////////////////////////////////////////////////////////
+    //                   EXTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Abstract function to create, initialize and update pool data in this contract.
-     * @param _tokenA Address of the first token.
-     * @param _tokenB Address of the second token.
-     * @param _fee Fee tier for the pool.
-     * @param _marketId Unique identifier for the prediction market.
+     * @notice Creates and initializes a new Uniswap V3 pool for a prediction market
+     * @dev This function creates a pool, initializes it with equal pricing (1:1), and sets up all
+     *      necessary mappings for efficient pool management and lookups.
+     *
+     * @param _tokenA Address of the first outcome token
+     * @param _tokenB Address of the second outcome token
+     * @param _fee Fee tier for the pool (500 for 0.05%, 3000 for 0.3%, 10000 for 1%)
+     * @param _marketId Unique identifier for the prediction market
+     *
+     * @return poolAddress Address of the created and initialized pool
+     *
+     * Requirements:
+     * - Tokens must be different addresses
+     * - Pool for this market must not already exist
+     * - Fee tier must be supported by Uniswap V3
+     *
+     * Effects:
+     * - Creates new Uniswap V3 pool through factory
+     * - Initializes pool with 1:1 price ratio (sqrt(1) * 2^96)
+     * - Updates all relevant mappings for pool tracking
+     * - Adds pool to the pools array for enumeration
+     *
+     * @custom:pricing Pool is initialized with equal pricing (50/50) between outcome tokens
+     * @custom:ordering Token addresses are ordered (tokenA < tokenB) for Uniswap compatibility
      */
     function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
         external
