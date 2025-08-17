@@ -737,10 +737,28 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to collect tokens from an existing position.
-     * @param _user Address of the user.
-     * @return amount0Collected Amount of tokenA collected.
-     * @return amount1Collected Amount of tokenB collected.
+     * @notice Internal function to collect tokens from a position
+     * @dev Collects all available tokens from a position, including withdrawn liquidity and
+     *      accumulated trading fees. Transfers tokens directly to the user.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user collecting tokens
+     *
+     * @return amount0Collected Total amount of tokenA collected (liquidity + fees)
+     * @return amount1Collected Total amount of tokenB collected (liquidity + fees)
+     *
+     * Requirements:
+     * - User must have an existing position
+     * - Position must have tokens available for collection
+     *
+     * Effects:
+     * - Collects all available tokens from the position
+     * - Transfers collected tokens directly to the user
+     * - Resets the position's collectable token amounts to zero
+     * - Emits TokensCollected event
+     *
+     * @custom:comprehensive Collects both withdrawn liquidity and earned fees in one operation
+     * @custom:direct Tokens are transferred directly to user, not held by this contract
      */
     function _collectTokensFromPosition(PoolData memory poolData, address _user)
         internal
