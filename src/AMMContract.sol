@@ -678,13 +678,31 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to decrease liquidity from an existing position.
-     * @param _user Address of the user.
-     * @param _liquidity Liquidity to decrease.
-     * @param _amount0Min Minimum amount of tokenA to receive.
-     * @param _amount1Min Minimum amount of tokenB to receive.
-     * @return amount0Decreased Amount of tokenA decreased.
-     * @return amount1Decreased Amount of tokenB decreased.
+     * @notice Internal function to decrease liquidity from an existing position
+     * @dev Removes specified amount of liquidity from a user's position, making tokens
+     *      available for collection. Validates sufficient liquidity and balances exist.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user removing liquidity
+     * @param _liquidity Amount of liquidity to remove
+     * @param _amount0Min Minimum amount of tokenA expected (slippage protection)
+     * @param _amount1Min Minimum amount of tokenB expected (slippage protection)
+     *
+     * @return amount0Decreased Amount of tokenA made available for collection
+     * @return amount1Decreased Amount of tokenB made available for collection
+     *
+     * Requirements:
+     * - User must have an existing position
+     * - Position must have sufficient liquidity to remove
+     * - Available tokens must meet minimum thresholds
+     *
+     * Effects:
+     * - Reduces liquidity in the NFT position
+     * - Makes tokens available for collection (but doesn't transfer them)
+     * - Emits LiquidityRemoved event
+     *
+     * @custom:validation Comprehensive checks ensure operation safety and slippage protection
+     * @custom:collection Tokens are made available but require separate collection call
      */
     function _decreaseLiquidity(
         PoolData memory poolData,
