@@ -349,16 +349,33 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Abstract Function to remove liquidity and collect tokens from an existing position.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _user Address of the user.
-     * @param _liquidity Liquidity to decrease.
-     * @param _amount0Min Minimum amount of tokenA to receive.
-     * @param _amount1Min Minimum amount of tokenB to receive.
-     * @return amount0Decreased Amount of tokenA decreased.
-     * @return amount1Decreased Amount of tokenB decreased.
-     * @return amount0Collected Amount of tokenA collected.
-     * @return amount1Collected Amount of tokenB collected.
+     * @notice Removes liquidity from an existing position and collects the tokens
+     * @dev Decreases liquidity from the position and immediately collects the withdrawn tokens
+     *      plus any accumulated fees. Both operations are atomic to ensure user receives tokens.
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _user Address of the user removing liquidity
+     * @param _liquidity Amount of liquidity to remove from the position
+     * @param _amount0Min Minimum amount of tokenA to receive (slippage protection)
+     * @param _amount1Min Minimum amount of tokenB to receive (slippage protection)
+     *
+     * @return amount0Decreased Amount of tokenA made available by removing liquidity
+     * @return amount1Decreased Amount of tokenB made available by removing liquidity
+     * @return amount0Collected Total tokenA collected (withdrawn + fees)
+     * @return amount1Collected Total tokenB collected (withdrawn + fees)
+     *
+     * Requirements:
+     * - User must have an existing position in the specified market
+     * - Position must have sufficient liquidity to remove
+     * - Amounts received must meet minimum thresholds (slippage protection)
+     *
+     * Effects:
+     * - Reduces liquidity in the user's position
+     * - Transfers withdrawn tokens and fees directly to user
+     * - Updates position state to reflect reduced liquidity
+     *
+     * @custom:fees Collected amounts include both withdrawn liquidity and accumulated trading fees
+     * @custom:atomic Liquidity removal and token collection happen in the same transaction
      */
     function removeLiquidity(
         bytes32 _marketId,
