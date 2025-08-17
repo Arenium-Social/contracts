@@ -203,6 +203,28 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
      */
     event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
 
+    //////////////////////////////////////////////////////////////
+    //                      CONSTRUCTOR                        //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Constructor to initialize the AMM contract with Uniswap V3 dependencies
+     * @dev Sets up the contract with necessary Uniswap V3 contract addresses
+     *
+     * @param _uniswapV3Factory Address of the Uniswap V3 factory contract
+     * @param _uniswapSwapRouter Address of the Uniswap V3 swap router contract
+     * @param _uniswapNonFungiblePositionManager Address of the Uniswap V3 position manager contract
+     *
+     * Requirements:
+     * - All provided addresses must be valid Uniswap V3 contracts
+     * - Contracts must be deployed on the same network
+     *
+     * Effects:
+     * - Sets immutable contract references for Uniswap V3 integration
+     * - Initializes Ownable with msg.sender as owner
+     *
+     * @custom:security Immutable addresses prevent malicious contract swapping
+     */
     constructor(address _uniswapV3Factory, address _uniswapSwapRouter, address _uniswapNonFungiblePositionManager) {
         magicFactory = IUniswapV3Factory(_uniswapV3Factory);
         swapRouter = ISwapRouter(_uniswapSwapRouter);
