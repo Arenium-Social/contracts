@@ -282,17 +282,36 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Abstract function to add liquidity to a pool.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _user Address of the user.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
-     * @param _tickLower Lower tick bound for the liquidity position.
-     * @param _tickUpper Upper tick bound for the liquidity position.
-     * @return tokenId The token ID of the position.
-     * @return liquidity The liquidity of the position.
-     * @return amount0 The amount of tokenA in the position.
-     * @return amount1 The amount of tokenB in the position.
+     * @notice Adds liquidity to a prediction market pool
+     * @dev Creates a new position or adds to existing position. The contract holds the NFT but tracks
+     *      user ownership. Handles token transfers, approvals, and refunds automatically.
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _user Address of the user adding liquidity
+     * @param _amount0 Desired amount of tokenA to add
+     * @param _amount1 Desired amount of tokenB to add
+     * @param _tickLower Lower price bound for the liquidity position
+     * @param _tickUpper Upper price bound for the liquidity position
+     *
+     * @return tokenId The NFT token ID representing the position (0 for new positions initially)
+     * @return liquidity Current total liquidity in the position after adding
+     * @return amount0 Actual amount of tokenA in the position
+     * @return amount1 Actual amount of tokenB in the position
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     * - User must have approved this contract to spend the required token amounts
+     * - Tick range must be valid (tickLower < tickUpper)
+     * - Tick values must align with the pool's tick spacing
+     *
+     * Effects:
+     * - Transfers tokens from user to this contract
+     * - Mints new position NFT or increases existing position liquidity
+     * - Refunds any unused tokens to the user
+     * - Updates position tracking mappings
+     *
+     * @custom:slippage Users should account for slippage when setting amount parameters
+     * @custom:refund Unused tokens are automatically refunded to maintain exact ratios
      */
     function addLiquidity(
         bytes32 _marketId,
