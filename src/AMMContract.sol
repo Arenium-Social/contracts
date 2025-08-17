@@ -478,9 +478,26 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to initialize the pool and update pool data in this contract.
-     * @dev The pool is created with a price of 1 (equal weights for both tokens).
-     * @param poolData PoolData struct containing pool information.
+     * @notice Internal function to initialize pool with starting price and update contract mappings
+     * @dev Sets the initial price to 1:1 (equal value for both outcome tokens) and updates all
+     *      tracking mappings for efficient lookups
+     *
+     * @param poolData PoolData struct containing complete pool information
+     *
+     * Requirements:
+     * - Pool must not already be initialized in this contract
+     * - Pool contract must exist and be valid
+     *
+     * Effects:
+     * - Initializes pool with sqrt(1) * 2^96 price (equal weighting)
+     * - Updates marketIdToPool mapping for market-based lookups
+     * - Updates poolAddressToPool mapping for reverse lookups
+     * - Updates bidirectional tokenPairToPoolAddress mapping
+     * - Adds pool to pools array for enumeration
+     * - Sets poolInitialized flag to true
+     *
+     * @custom:pricing Initial price of sqrt(1) * 2^96 represents equal token values
+     * @custom:mappings Updates all lookup mappings for comprehensive pool tracking
      */
     function _initializePoolAndUpdateContract(PoolData memory poolData) internal {
         require(marketIdToPool[poolData.marketId].pool == address(0), "Pool already initialised");
