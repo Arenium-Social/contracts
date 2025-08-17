@@ -393,12 +393,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Abstract Function to swap tokens in a specified pool.
-     * @dev The swap is executed using the Uniswap V3 swap router.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _amountIn Amount of input tokens to swap.
-     * @param _amountOutMinimum Minimum amount of output tokens to receive.
-     * @param _zeroForOne Direction of the swap (true for tokenA to tokenB, false for tokenB to tokenA).
+     * @notice Swaps tokens using the Uniswap V3 router with slippage protection
+     * @dev Executes a token swap through the official Uniswap router, providing standardized
+     *      pricing and slippage protection. Users must approve token spending before calling.
+     *
+     * @param _marketId Unique identifier for the prediction market (determines pool and fee tier)
+     * @param _amountIn Amount of input tokens to swap
+     * @param _amountOutMinimum Minimum amount of output tokens to receive (slippage protection)
+     * @param _zeroForOne Direction of swap: true for tokenA→tokenB, false for tokenB→tokenA
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     * - User must have approved this contract to spend _amountIn of input token
+     * - User must have sufficient balance of input token
+     * - Swap must result in at least _amountOutMinimum output tokens
+     *
+     * Effects:
+     * - Transfers input tokens from user to this contract
+     * - Executes swap through Uniswap V3 router
+     * - Transfers output tokens directly to user
+     * - Emits swap event with actual amounts
+     *
+     * @custom:routing Uses official Uniswap router for maximum compatibility and safety
+     * @custom:fees Router fees are automatically handled by Uniswap
      */
     function swap(bytes32 _marketId, uint256 _amountIn, uint256 _amountOutMinimum, bool _zeroForOne) external {
         PoolData storage poolData = marketIdToPool[_marketId];
