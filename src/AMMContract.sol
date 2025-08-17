@@ -519,15 +519,35 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to mint a new position for a user.
-     * @notice User must not have a position in the pool to mint a new position.
-     * @dev Position is minted to this contract, but in the contract data user's position is stored.
-     * @param poolData PoolData struct containing pool information.
-     * @param _user Address of the user.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
-     * @param _tickLower Lower tick bound for the liquidity position.
-     * @param _tickUpper Upper tick bound for the liquidity position.
+     * @notice Internal function to mint a new NFT liquidity position for a user
+     * @dev Creates a new concentrated liquidity position and assigns it to the user in our tracking system.
+     *      The NFT is held by this contract but ownership is tracked per user.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user for whom to mint the position
+     * @param _amount0 Amount of tokenA to add to the position
+     * @param _amount1 Amount of tokenB to add to the position
+     * @param _tickLower Lower tick bound for the liquidity position
+     * @param _tickUpper Upper tick bound for the liquidity position
+     *
+     * @return tokenId The NFT token ID of the newly minted position
+     * @return liquidity Amount of liquidity minted
+     * @return amount0 Actual amount of tokenA used (may be less than requested)
+     * @return amount1 Actual amount of tokenB used (may be less than requested)
+     *
+     * Requirements:
+     * - User must not already have a position in this market
+     * - This contract must have sufficient token balances and approvals
+     * - Tick range must be valid for the pool
+     *
+     * Effects:
+     * - Approves position manager to spend tokens
+     * - Mints new NFT position through position manager
+     * - Updates userAddressToMarketIdToPositionId mapping
+     * - Emits NewPositionMinted event
+     *
+     * @custom:custody NFT is minted to this contract address but tracked per user
+     * @custom:precision Actual amounts may differ from requested due to price precision
      */
     function _mintNewPosition(
         PoolData memory poolData,
