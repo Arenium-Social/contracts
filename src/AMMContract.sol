@@ -431,12 +431,33 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
         _executeSwap(inputToken, outputToken, _amountIn, _amountOutMinimum, _marketId);
     }
 
+    //////////////////////////////////////////////////////////////
+    //                   INTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Internal Function to create a new Uniswap V3 pool for a given market.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _tokenA Address of the first token.
-     * @param _tokenB Address of the second token.
-     * @param _fee Fee tier for the pool.
+     * @notice Internal function to create a new Uniswap V3 pool for a prediction market
+     * @dev Handles token ordering, pool creation through factory, and validation
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _tokenA Address of the first outcome token
+     * @param _tokenB Address of the second outcome token
+     * @param _fee Fee tier for the pool
+     *
+     * @return poolAddress Address of the newly created pool
+     *
+     * Requirements:
+     * - Tokens must be different addresses
+     * - Pool for this market must not already exist
+     * - Pool creation must succeed (non-zero address returned)
+     *
+     * Effects:
+     * - Orders tokens by address (ensures tokenA < tokenB)
+     * - Creates pool through Uniswap factory
+     * - Emits PoolCreated event
+     *
+     * @custom:ordering Ensures consistent token ordering for Uniswap compatibility
+     * @custom:validation Prevents duplicate pools and invalid token pairs
      */
     function _createPool(bytes32 _marketId, address _tokenA, address _tokenB, uint24 _fee)
         internal
