@@ -203,18 +203,63 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
      */
     event FeeCollected(address recipient, bytes32 indexed marketId, uint256 amountA, uint256 amountB);
 
+    //////////////////////////////////////////////////////////////
+    //                      CONSTRUCTOR                        //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Constructor to initialize the AMM contract with Uniswap V3 dependencies
+     * @dev Sets up the contract with necessary Uniswap V3 contract addresses
+     *
+     * @param _uniswapV3Factory Address of the Uniswap V3 factory contract
+     * @param _uniswapSwapRouter Address of the Uniswap V3 swap router contract
+     * @param _uniswapNonFungiblePositionManager Address of the Uniswap V3 position manager contract
+     *
+     * Requirements:
+     * - All provided addresses must be valid Uniswap V3 contracts
+     * - Contracts must be deployed on the same network
+     *
+     * Effects:
+     * - Sets immutable contract references for Uniswap V3 integration
+     * - Initializes Ownable with msg.sender as owner
+     *
+     * @custom:security Immutable addresses prevent malicious contract swapping
+     */
     constructor(address _uniswapV3Factory, address _uniswapSwapRouter, address _uniswapNonFungiblePositionManager) {
         magicFactory = IUniswapV3Factory(_uniswapV3Factory);
         swapRouter = ISwapRouter(_uniswapSwapRouter);
         nonFungiblePositionManager = INonfungiblePositionManager(_uniswapNonFungiblePositionManager);
     }
 
+    //////////////////////////////////////////////////////////////
+    //                   EXTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Abstract function to create, initialize and update pool data in this contract.
-     * @param _tokenA Address of the first token.
-     * @param _tokenB Address of the second token.
-     * @param _fee Fee tier for the pool.
-     * @param _marketId Unique identifier for the prediction market.
+     * @notice Creates and initializes a new Uniswap V3 pool for a prediction market
+     * @dev This function creates a pool, initializes it with equal pricing (1:1), and sets up all
+     *      necessary mappings for efficient pool management and lookups.
+     *
+     * @param _tokenA Address of the first outcome token
+     * @param _tokenB Address of the second outcome token
+     * @param _fee Fee tier for the pool (500 for 0.05%, 3000 for 0.3%, 10000 for 1%)
+     * @param _marketId Unique identifier for the prediction market
+     *
+     * @return poolAddress Address of the created and initialized pool
+     *
+     * Requirements:
+     * - Tokens must be different addresses
+     * - Pool for this market must not already exist
+     * - Fee tier must be supported by Uniswap V3
+     *
+     * Effects:
+     * - Creates new Uniswap V3 pool through factory
+     * - Initializes pool with 1:1 price ratio (sqrt(1) * 2^96)
+     * - Updates all relevant mappings for pool tracking
+     * - Adds pool to the pools array for enumeration
+     *
+     * @custom:pricing Pool is initialized with equal pricing (50/50) between outcome tokens
+     * @custom:ordering Token addresses are ordered (tokenA < tokenB) for Uniswap compatibility
      */
     function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
         external
@@ -237,17 +282,36 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Abstract function to add liquidity to a pool.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _user Address of the user.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
-     * @param _tickLower Lower tick bound for the liquidity position.
-     * @param _tickUpper Upper tick bound for the liquidity position.
-     * @return tokenId The token ID of the position.
-     * @return liquidity The liquidity of the position.
-     * @return amount0 The amount of tokenA in the position.
-     * @return amount1 The amount of tokenB in the position.
+     * @notice Adds liquidity to a prediction market pool
+     * @dev Creates a new position or adds to existing position. The contract holds the NFT but tracks
+     *      user ownership. Handles token transfers, approvals, and refunds automatically.
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _user Address of the user adding liquidity
+     * @param _amount0 Desired amount of tokenA to add
+     * @param _amount1 Desired amount of tokenB to add
+     * @param _tickLower Lower price bound for the liquidity position
+     * @param _tickUpper Upper price bound for the liquidity position
+     *
+     * @return tokenId The NFT token ID representing the position (0 for new positions initially)
+     * @return liquidity Current total liquidity in the position after adding
+     * @return amount0 Actual amount of tokenA in the position
+     * @return amount1 Actual amount of tokenB in the position
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     * - User must have approved this contract to spend the required token amounts
+     * - Tick range must be valid (tickLower < tickUpper)
+     * - Tick values must align with the pool's tick spacing
+     *
+     * Effects:
+     * - Transfers tokens from user to this contract
+     * - Mints new position NFT or increases existing position liquidity
+     * - Refunds any unused tokens to the user
+     * - Updates position tracking mappings
+     *
+     * @custom:slippage Users should account for slippage when setting amount parameters
+     * @custom:refund Unused tokens are automatically refunded to maintain exact ratios
      */
     function addLiquidity(
         bytes32 _marketId,
@@ -285,16 +349,33 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Abstract Function to remove liquidity and collect tokens from an existing position.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _user Address of the user.
-     * @param _liquidity Liquidity to decrease.
-     * @param _amount0Min Minimum amount of tokenA to receive.
-     * @param _amount1Min Minimum amount of tokenB to receive.
-     * @return amount0Decreased Amount of tokenA decreased.
-     * @return amount1Decreased Amount of tokenB decreased.
-     * @return amount0Collected Amount of tokenA collected.
-     * @return amount1Collected Amount of tokenB collected.
+     * @notice Removes liquidity from an existing position and collects the tokens
+     * @dev Decreases liquidity from the position and immediately collects the withdrawn tokens
+     *      plus any accumulated fees. Both operations are atomic to ensure user receives tokens.
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _user Address of the user removing liquidity
+     * @param _liquidity Amount of liquidity to remove from the position
+     * @param _amount0Min Minimum amount of tokenA to receive (slippage protection)
+     * @param _amount1Min Minimum amount of tokenB to receive (slippage protection)
+     *
+     * @return amount0Decreased Amount of tokenA made available by removing liquidity
+     * @return amount1Decreased Amount of tokenB made available by removing liquidity
+     * @return amount0Collected Total tokenA collected (withdrawn + fees)
+     * @return amount1Collected Total tokenB collected (withdrawn + fees)
+     *
+     * Requirements:
+     * - User must have an existing position in the specified market
+     * - Position must have sufficient liquidity to remove
+     * - Amounts received must meet minimum thresholds (slippage protection)
+     *
+     * Effects:
+     * - Reduces liquidity in the user's position
+     * - Transfers withdrawn tokens and fees directly to user
+     * - Updates position state to reflect reduced liquidity
+     *
+     * @custom:fees Collected amounts include both withdrawn liquidity and accumulated trading fees
+     * @custom:atomic Liquidity removal and token collection happen in the same transaction
      */
     function removeLiquidity(
         bytes32 _marketId,
@@ -312,12 +393,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Abstract Function to swap tokens in a specified pool.
-     * @dev The swap is executed using the Uniswap V3 swap router.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _amountIn Amount of input tokens to swap.
-     * @param _amountOutMinimum Minimum amount of output tokens to receive.
-     * @param _zeroForOne Direction of the swap (true for tokenA to tokenB, false for tokenB to tokenA).
+     * @notice Swaps tokens using the Uniswap V3 router with slippage protection
+     * @dev Executes a token swap through the official Uniswap router, providing standardized
+     *      pricing and slippage protection. Users must approve token spending before calling.
+     *
+     * @param _marketId Unique identifier for the prediction market (determines pool and fee tier)
+     * @param _amountIn Amount of input tokens to swap
+     * @param _amountOutMinimum Minimum amount of output tokens to receive (slippage protection)
+     * @param _zeroForOne Direction of swap: true for tokenA→tokenB, false for tokenB→tokenA
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     * - User must have approved this contract to spend _amountIn of input token
+     * - User must have sufficient balance of input token
+     * - Swap must result in at least _amountOutMinimum output tokens
+     *
+     * Effects:
+     * - Transfers input tokens from user to this contract
+     * - Executes swap through Uniswap V3 router
+     * - Transfers output tokens directly to user
+     * - Emits swap event with actual amounts
+     *
+     * @custom:routing Uses official Uniswap router for maximum compatibility and safety
+     * @custom:fees Router fees are automatically handled by Uniswap
      */
     function swap(bytes32 _marketId, uint256 _amountIn, uint256 _amountOutMinimum, bool _zeroForOne) external {
         PoolData storage poolData = marketIdToPool[_marketId];
@@ -333,12 +431,33 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
         _executeSwap(inputToken, outputToken, _amountIn, _amountOutMinimum, _marketId);
     }
 
+    //////////////////////////////////////////////////////////////
+    //                   INTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Internal Function to create a new Uniswap V3 pool for a given market.
-     * @param _marketId Unique identifier for the prediction market.
-     * @param _tokenA Address of the first token.
-     * @param _tokenB Address of the second token.
-     * @param _fee Fee tier for the pool.
+     * @notice Internal function to create a new Uniswap V3 pool for a prediction market
+     * @dev Handles token ordering, pool creation through factory, and validation
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _tokenA Address of the first outcome token
+     * @param _tokenB Address of the second outcome token
+     * @param _fee Fee tier for the pool
+     *
+     * @return poolAddress Address of the newly created pool
+     *
+     * Requirements:
+     * - Tokens must be different addresses
+     * - Pool for this market must not already exist
+     * - Pool creation must succeed (non-zero address returned)
+     *
+     * Effects:
+     * - Orders tokens by address (ensures tokenA < tokenB)
+     * - Creates pool through Uniswap factory
+     * - Emits PoolCreated event
+     *
+     * @custom:ordering Ensures consistent token ordering for Uniswap compatibility
+     * @custom:validation Prevents duplicate pools and invalid token pairs
      */
     function _createPool(bytes32 _marketId, address _tokenA, address _tokenB, uint24 _fee)
         internal
@@ -359,9 +478,26 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to initialize the pool and update pool data in this contract.
-     * @dev The pool is created with a price of 1 (equal weights for both tokens).
-     * @param poolData PoolData struct containing pool information.
+     * @notice Internal function to initialize pool with starting price and update contract mappings
+     * @dev Sets the initial price to 1:1 (equal value for both outcome tokens) and updates all
+     *      tracking mappings for efficient lookups
+     *
+     * @param poolData PoolData struct containing complete pool information
+     *
+     * Requirements:
+     * - Pool must not already be initialized in this contract
+     * - Pool contract must exist and be valid
+     *
+     * Effects:
+     * - Initializes pool with sqrt(1) * 2^96 price (equal weighting)
+     * - Updates marketIdToPool mapping for market-based lookups
+     * - Updates poolAddressToPool mapping for reverse lookups
+     * - Updates bidirectional tokenPairToPoolAddress mapping
+     * - Adds pool to pools array for enumeration
+     * - Sets poolInitialized flag to true
+     *
+     * @custom:pricing Initial price of sqrt(1) * 2^96 represents equal token values
+     * @custom:mappings Updates all lookup mappings for comprehensive pool tracking
      */
     function _initializePoolAndUpdateContract(PoolData memory poolData) internal {
         require(marketIdToPool[poolData.marketId].pool == address(0), "Pool already initialised");
@@ -383,15 +519,35 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to mint a new position for a user.
-     * @notice User must not have a position in the pool to mint a new position.
-     * @dev Position is minted to this contract, but in the contract data user's position is stored.
-     * @param poolData PoolData struct containing pool information.
-     * @param _user Address of the user.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
-     * @param _tickLower Lower tick bound for the liquidity position.
-     * @param _tickUpper Upper tick bound for the liquidity position.
+     * @notice Internal function to mint a new NFT liquidity position for a user
+     * @dev Creates a new concentrated liquidity position and assigns it to the user in our tracking system.
+     *      The NFT is held by this contract but ownership is tracked per user.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user for whom to mint the position
+     * @param _amount0 Amount of tokenA to add to the position
+     * @param _amount1 Amount of tokenB to add to the position
+     * @param _tickLower Lower tick bound for the liquidity position
+     * @param _tickUpper Upper tick bound for the liquidity position
+     *
+     * @return tokenId The NFT token ID of the newly minted position
+     * @return liquidity Amount of liquidity minted
+     * @return amount0 Actual amount of tokenA used (may be less than requested)
+     * @return amount1 Actual amount of tokenB used (may be less than requested)
+     *
+     * Requirements:
+     * - User must not already have a position in this market
+     * - This contract must have sufficient token balances and approvals
+     * - Tick range must be valid for the pool
+     *
+     * Effects:
+     * - Approves position manager to spend tokens
+     * - Mints new NFT position through position manager
+     * - Updates userAddressToMarketIdToPositionId mapping
+     * - Emits NewPositionMinted event
+     *
+     * @custom:custody NFT is minted to this contract address but tracked per user
+     * @custom:precision Actual amounts may differ from requested due to price precision
      */
     function _mintNewPosition(
         PoolData memory poolData,
@@ -429,10 +585,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to add liquidity to an existing position.
-     * @param poolData PoolData struct containing pool information.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
+     * @notice Internal function to add liquidity to an existing position
+     * @dev Increases liquidity in a user's existing NFT position by adding more tokens
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user adding liquidity
+     * @param _amount0 Amount of tokenA to add
+     * @param _amount1 Amount of tokenB to add
+     *
+     * @return liquidity Amount of liquidity added
+     * @return amount0 Actual amount of tokenA used
+     * @return amount1 Actual amount of tokenB used
+     *
+     * Requirements:
+     * - User must have an existing position
+     * - This contract must have sufficient token balances and approvals
+     *
+     * Effects:
+     * - Approves position manager to spend additional tokens
+     * - Increases liquidity in the existing NFT position
+     * - Returns actual amounts used (may differ from requested)
+     *
+     * @custom:existing Only works with positions that already exist for the user
+     * @custom:precision Actual amounts may differ due to current pool price and ratios
      */
     function _addLiquidityToExistingPosition(
         PoolData memory poolData,
@@ -460,12 +635,26 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to refund the user if there is a difference between liquidity added actually and liquidity added in the params.
-     * @param poolData PoolData struct containing pool information.
-     * @param amount0 Amount of tokenA in the position.
-     * @param amount1 Amount of tokenB in the position.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
+     * @notice Internal function to refund unused tokens to the user after minting/adding liquidity
+     * @dev Due to price precision and ratios, not all provided tokens may be used. This function
+     *      refunds any unused tokens back to the user.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param amount0 Actual amount of tokenA used in the position
+     * @param amount1 Actual amount of tokenB used in the position
+     * @param _amount0 Original amount of tokenA provided by user
+     * @param _amount1 Original amount of tokenB provided by user
+     *
+     * @return amount0Refunded Amount of tokenA refunded to user
+     * @return amount1Refunded Amount of tokenB refunded to user
+     *
+     * Effects:
+     * - Calculates difference between provided and used amounts
+     * - Transfers unused tokens back to the user
+     * - Updates approval amounts for unused tokens
+     *
+     * @custom:precision Handles cases where exact token ratios cannot be maintained
+     * @custom:refund Ensures users don't lose unused tokens in liquidity operations
      */
     function _refundExtraLiquidityWhileMinting(
         PoolData memory poolData,
@@ -489,13 +678,31 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to decrease liquidity from an existing position.
-     * @param _user Address of the user.
-     * @param _liquidity Liquidity to decrease.
-     * @param _amount0Min Minimum amount of tokenA to receive.
-     * @param _amount1Min Minimum amount of tokenB to receive.
-     * @return amount0Decreased Amount of tokenA decreased.
-     * @return amount1Decreased Amount of tokenB decreased.
+     * @notice Internal function to decrease liquidity from an existing position
+     * @dev Removes specified amount of liquidity from a user's position, making tokens
+     *      available for collection. Validates sufficient liquidity and balances exist.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user removing liquidity
+     * @param _liquidity Amount of liquidity to remove
+     * @param _amount0Min Minimum amount of tokenA expected (slippage protection)
+     * @param _amount1Min Minimum amount of tokenB expected (slippage protection)
+     *
+     * @return amount0Decreased Amount of tokenA made available for collection
+     * @return amount1Decreased Amount of tokenB made available for collection
+     *
+     * Requirements:
+     * - User must have an existing position
+     * - Position must have sufficient liquidity to remove
+     * - Available tokens must meet minimum thresholds
+     *
+     * Effects:
+     * - Reduces liquidity in the NFT position
+     * - Makes tokens available for collection (but doesn't transfer them)
+     * - Emits LiquidityRemoved event
+     *
+     * @custom:validation Comprehensive checks ensure operation safety and slippage protection
+     * @custom:collection Tokens are made available but require separate collection call
      */
     function _decreaseLiquidity(
         PoolData memory poolData,
@@ -530,10 +737,28 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to collect tokens from an existing position.
-     * @param _user Address of the user.
-     * @return amount0Collected Amount of tokenA collected.
-     * @return amount1Collected Amount of tokenB collected.
+     * @notice Internal function to collect tokens from a position
+     * @dev Collects all available tokens from a position, including withdrawn liquidity and
+     *      accumulated trading fees. Transfers tokens directly to the user.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param _user Address of the user collecting tokens
+     *
+     * @return amount0Collected Total amount of tokenA collected (liquidity + fees)
+     * @return amount1Collected Total amount of tokenB collected (liquidity + fees)
+     *
+     * Requirements:
+     * - User must have an existing position
+     * - Position must have tokens available for collection
+     *
+     * Effects:
+     * - Collects all available tokens from the position
+     * - Transfers collected tokens directly to the user
+     * - Resets the position's collectable token amounts to zero
+     * - Emits TokensCollected event
+     *
+     * @custom:comprehensive Collects both withdrawn liquidity and earned fees in one operation
+     * @custom:direct Tokens are transferred directly to user, not held by this contract
      */
     function _collectTokensFromPosition(PoolData memory poolData, address _user)
         internal
@@ -554,12 +779,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to execute a swap.
-     * @param _inputToken Address of the input token.
-     * @param _outputToken Address of the output token.
-     * @param _amountIn Amount of input tokens to swap.
-     * @param _amountOutMinimum Minimum amount of output tokens to receive.
-     * @param _marketId Unique identifier for the prediction market.
+     * @notice Internal function to execute a token swap through the Uniswap router
+     * @dev Handles token approval and executes swap through the official router with
+     *      automatic slippage protection and price limits.
+     *
+     * @param _inputToken Address of the token being sold
+     * @param _outputToken Address of the token being bought
+     * @param _amountIn Amount of input tokens to swap
+     * @param _amountOutMinimum Minimum amount of output tokens to receive
+     * @param _marketId Market identifier for the swap (determines pool and fee tier)
+     *
+     * Requirements:
+     * - This contract must have sufficient input token balance
+     * - Router must be approved to spend input tokens
+     * - Swap must result in at least _amountOutMinimum output tokens
+     *
+     * Effects:
+     * - Approves router to spend input tokens
+     * - Executes exact input swap through router
+     * - Output tokens are sent directly to original swap caller (msg.sender)
+     * - Emits TokensSwapped event with actual amounts
+     *
+     * @custom:router Uses official Uniswap router for maximum compatibility
+     * @custom:limits Automatically calculates appropriate price limits based on swap direction
      */
     function _executeSwap(
         address _inputToken,
