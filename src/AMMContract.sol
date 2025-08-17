@@ -635,12 +635,26 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to refund the user if there is a difference between liquidity added actually and liquidity added in the params.
-     * @param poolData PoolData struct containing pool information.
-     * @param amount0 Amount of tokenA in the position.
-     * @param amount1 Amount of tokenB in the position.
-     * @param _amount0 Amount of tokenA to add.
-     * @param _amount1 Amount of tokenB to add.
+     * @notice Internal function to refund unused tokens to the user after minting/adding liquidity
+     * @dev Due to price precision and ratios, not all provided tokens may be used. This function
+     *      refunds any unused tokens back to the user.
+     *
+     * @param poolData PoolData struct containing pool information
+     * @param amount0 Actual amount of tokenA used in the position
+     * @param amount1 Actual amount of tokenB used in the position
+     * @param _amount0 Original amount of tokenA provided by user
+     * @param _amount1 Original amount of tokenB provided by user
+     *
+     * @return amount0Refunded Amount of tokenA refunded to user
+     * @return amount1Refunded Amount of tokenB refunded to user
+     *
+     * Effects:
+     * - Calculates difference between provided and used amounts
+     * - Transfers unused tokens back to the user
+     * - Updates approval amounts for unused tokens
+     *
+     * @custom:precision Handles cases where exact token ratios cannot be maintained
+     * @custom:refund Ensures users don't lose unused tokens in liquidity operations
      */
     function _refundExtraLiquidityWhileMinting(
         PoolData memory poolData,
