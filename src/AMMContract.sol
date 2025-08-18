@@ -1090,12 +1090,20 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to get the amount of tokenA and tokenB in a user's position.
-     * @param tickLower Lower tick bound for the liquidity position.
-     * @param tickUpper Upper tick bound for the liquidity position.
-     * @param liquidity Liquidity in the position.
-     * @return amount0 Amount of tokenA in the position.
-     * @return amount1 Amount of tokenB in the position.
+     * @notice Helper function to calculate token amounts for a given liquidity position
+     * @dev Uses Uniswap's math libraries to compute how many tokens a liquidity amount represents
+     *      at the current price and within the specified tick range.
+     *
+     * @param sqrtPriceX96 Current square root price in X96 format
+     * @param tickLower Lower tick bound for the liquidity position
+     * @param tickUpper Upper tick bound for the liquidity position
+     * @param liquidity Amount of liquidity to calculate tokens for
+     *
+     * @return amount0 Amount of token0 represented by the liquidity
+     * @return amount1 Amount of token1 represented by the liquidity
+     *
+     * @custom:math Uses Uniswap's precise mathematical formulas for concentrated liquidity
+     * @custom:range Only counts liquidity that's active within the current price range
      */
     function getAmountsForLiquidityHelper(uint160 sqrtPriceX96, int24 tickLower, int24 tickUpper, uint128 liquidity)
         public
