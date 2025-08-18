@@ -1056,10 +1056,22 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves the reserves of both tokens in a specified pool.
-     * @param marketId Unique identifier for the prediction market.
-     * @return reserve0 Amount of tokenA in the pool.
-     * @return reserve1 Amount of tokenB in the pool.
+     * @notice Retrieves the current token reserves in a specified pool
+     * @dev Calculates the total liquidity-weighted reserves based on current price and total pool liquidity
+     *
+     * @param marketId Unique identifier for the prediction market
+     *
+     * @return reserve0 Total amount of tokenA available in the pool
+     * @return reserve1 Total amount of tokenB available in the pool
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     *
+     * Effects:
+     * - No state changes, pure view function
+     *
+     * @custom:calculation Uses current pool price and total liquidity to compute reserves
+     * @custom:precision Calculations use Uniswap's high-precision math libraries
      */
     function getPoolReserves(bytes32 marketId) external view returns (uint256 reserve0, uint256 reserve1) {
         PoolData memory poolData = marketIdToPool[marketId];
