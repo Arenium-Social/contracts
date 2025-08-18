@@ -834,11 +834,25 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Callback function called by Uniswap V3 pools during swaps
-     * @dev Only callable by pools we've registered in our mappings
-     * @param amount0Delta Amount of token0 owed to the pool (positive) or to receive (negative)
-     * @param amount1Delta Amount of token1 owed to the pool (positive) or to receive (negative)
-     * @param data Encoded data containing the original swap initiator
+     * @notice Callback function called by Uniswap V3 pools during direct swaps
+     * @dev This function is called by pool contracts to collect payment for swaps. Only registered
+     *      pools can call this function, and it handles the token transfer to complete the swap.
+     *
+     * @param amount0Delta Amount of token0 owed to pool (positive) or received (negative)
+     * @param amount1Delta Amount of token1 owed to pool (positive) or received (negative)
+     * @param data Encoded data containing swap initiator and contract addresses
+     *
+     * Requirements:
+     * - Only callable by registered pool contracts
+     * - At least one delta must be positive (payment required)
+     * - Contract must have sufficient token balance for payment
+     *
+     * Effects:
+     * - Transfers required tokens to the calling pool
+     * - Completes the swap transaction initiated by directPoolSwap
+     *
+     * @custom:security Verifies caller is a registered pool to prevent unauthorized calls
+     * @custom:callback This implements Uniswap's required callback interface for direct swaps
      */
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
         // Verify the callback is from a known pool
