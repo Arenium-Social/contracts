@@ -873,13 +873,31 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Execute a swap directly through the pool, bypassing the router
-     * @dev This function is useful for testing or when the router doesn't recognize locally created pools
+     * @notice Executes a swap directly through the pool, bypassing the router
+     * @dev Provides direct pool interaction for scenarios where the router may not work
+     *      (e.g., newly created pools not yet recognized). Uses callback pattern for payment.
+     *
      * @param _marketId Unique identifier for the prediction market
      * @param _amountIn Amount of input tokens to swap
      * @param _amountOutMinimum Minimum amount of output tokens to receive
-     * @param _zeroForOne Direction of the swap (true for tokenA to tokenB, false for tokenB to tokenA)
-     * @return amountOut The actual amount of output tokens received
+     * @param _zeroForOne Direction of swap: true for tokenA→tokenB, false for tokenB→tokenA
+     *
+     * @return amountOut Actual amount of output tokens received
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     * - User must have approved this contract to spend _amountIn of input token
+     * - User must have sufficient balance of input token
+     * - Swap must result in at least _amountOutMinimum output tokens
+     *
+     * Effects:
+     * - Transfers input tokens from user to this contract
+     * - Executes swap directly through pool contract
+     * - Pool calls back to this contract for payment via uniswapV3SwapCallback
+     * - Transfers output tokens directly to user
+     *
+     * @custom:callback Uses Uniswap's callback pattern for trustless token payment
+     * @custom:direct Bypasses router for maximum control and compatibility with new pools
      */
     function directPoolSwap(bytes32 _marketId, uint256 _amountIn, uint256 _amountOutMinimum, bool _zeroForOne)
         external
