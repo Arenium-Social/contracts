@@ -994,19 +994,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves the position details for a given token ID.
-     * @param _user The ID of the position to retrieve.
-     * @return operator The operator of the position.
-     * @return token0 The address of the first token in the position.
-     * @return token1 The address of the second token in the position.
-     * @return fee The fee tier of the position.
-     * @return liquidity The liquidity of the position.
-     * @return tickLower The lower tick bound of the position.
-     * @return tickUpper The upper tick bound of the position.
-     * @return tokensOwed0 The uncollected amount of token0 owed to the position.
-     * @return tokensOwed1 The uncollected amount of token1 owed to the position.
-     * @return amount0 The amount of token0 in the position.
-     * @return amount1 The amount of token1 in the position.
+     * @notice Retrieves comprehensive position details for a user in a specific market
+     * @dev Combines NFT position data with current liquidity calculations to provide complete position info
+     *
+     * @param _user Address of the user whose position to query
+     * @param _marketId Market identifier for the position
+     *
+     * @return operator Address authorized to operate on the position (should be this contract)
+     * @return token0 Address of the first token in the position
+     * @return token1 Address of the second token in the position
+     * @return fee Fee tier of the position
+     * @return liquidity Current liquidity in the position
+     * @return tickLower Lower tick bound of the position
+     * @return tickUpper Upper tick bound of the position
+     * @return tokensOwed0 Uncollected fees for token0
+     * @return tokensOwed1 Uncollected fees for token1
+     * @return amount0 Current amount of token0 represented by the position
+     * @return amount1 Current amount of token1 represented by the position
+     *
+     * Requirements:
+     * - User must have a position in the specified market
+     *
+     * @custom:calculation amount0 and amount1 are calculated based on current pool price
+     * @custom:fees tokensOwed values represent fees earned but not yet collected
      */
     function getUserPositionInPool(address _user, bytes32 _marketId)
         public
