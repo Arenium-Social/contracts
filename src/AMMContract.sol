@@ -834,11 +834,25 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Callback function called by Uniswap V3 pools during swaps
-     * @dev Only callable by pools we've registered in our mappings
-     * @param amount0Delta Amount of token0 owed to the pool (positive) or to receive (negative)
-     * @param amount1Delta Amount of token1 owed to the pool (positive) or to receive (negative)
-     * @param data Encoded data containing the original swap initiator
+     * @notice Callback function called by Uniswap V3 pools during direct swaps
+     * @dev This function is called by pool contracts to collect payment for swaps. Only registered
+     *      pools can call this function, and it handles the token transfer to complete the swap.
+     *
+     * @param amount0Delta Amount of token0 owed to pool (positive) or received (negative)
+     * @param amount1Delta Amount of token1 owed to pool (positive) or received (negative)
+     * @param data Encoded data containing swap initiator and contract addresses
+     *
+     * Requirements:
+     * - Only callable by registered pool contracts
+     * - At least one delta must be positive (payment required)
+     * - Contract must have sufficient token balance for payment
+     *
+     * Effects:
+     * - Transfers required tokens to the calling pool
+     * - Completes the swap transaction initiated by directPoolSwap
+     *
+     * @custom:security Verifies caller is a registered pool to prevent unauthorized calls
+     * @custom:callback This implements Uniswap's required callback interface for direct swaps
      */
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
         // Verify the callback is from a known pool
@@ -859,13 +873,31 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Execute a swap directly through the pool, bypassing the router
-     * @dev This function is useful for testing or when the router doesn't recognize locally created pools
+     * @notice Executes a swap directly through the pool, bypassing the router
+     * @dev Provides direct pool interaction for scenarios where the router may not work
+     *      (e.g., newly created pools not yet recognized). Uses callback pattern for payment.
+     *
      * @param _marketId Unique identifier for the prediction market
      * @param _amountIn Amount of input tokens to swap
      * @param _amountOutMinimum Minimum amount of output tokens to receive
-     * @param _zeroForOne Direction of the swap (true for tokenA to tokenB, false for tokenB to tokenA)
-     * @return amountOut The actual amount of output tokens received
+     * @param _zeroForOne Direction of swap: true for tokenA→tokenB, false for tokenB→tokenA
+     *
+     * @return amountOut Actual amount of output tokens received
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     * - User must have approved this contract to spend _amountIn of input token
+     * - User must have sufficient balance of input token
+     * - Swap must result in at least _amountOutMinimum output tokens
+     *
+     * Effects:
+     * - Transfers input tokens from user to this contract
+     * - Executes swap directly through pool contract
+     * - Pool calls back to this contract for payment via uniswapV3SwapCallback
+     * - Transfers output tokens directly to user
+     *
+     * @custom:callback Uses Uniswap's callback pattern for trustless token payment
+     * @custom:direct Bypasses router for maximum control and compatibility with new pools
      */
     function directPoolSwap(bytes32 _marketId, uint256 _amountIn, uint256 _amountOutMinimum, bool _zeroForOne)
         external
@@ -910,12 +942,21 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
         return amountOut;
     }
 
+    //////////////////////////////////////////////////////////////
+    //                      VIEW FUNCTIONS                     //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Retrieves the pool address using token addresses and fee tier.
-     * @param tokenA Address of the first token.
-     * @param tokenB Address of the second token.
-     * @param fee Fee tier for the pool.
-     * @return pool Address of the pool.
+     * @notice Retrieves the pool address for given token addresses and fee tier
+     * @dev Queries the Uniswap factory for the pool address. Returns zero address if pool doesn't exist.
+     *
+     * @param tokenA Address of the first token
+     * @param tokenB Address of the second token
+     * @param fee Fee tier for the pool
+     *
+     * @return pool Address of the pool (zero address if doesn't exist)
+     *
+     * @custom:factory Queries Uniswap factory directly for maximum reliability
      */
     function getPoolUsingParams(address tokenA, address tokenB, uint24 fee) external view returns (address pool) {
         pool = magicFactory.getPool(tokenA, tokenB, fee);
@@ -923,9 +964,14 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves pool data using the market ID.
-     * @param marketId Unique identifier for the prediction market.
-     * @return pool PoolData struct containing pool information.
+     * @notice Retrieves complete pool data using market ID
+     * @dev Primary method for getting pool information associated with a prediction market
+     *
+     * @param marketId Unique identifier for the prediction market
+     *
+     * @return pool Complete PoolData struct containing all pool information
+     *
+     * @custom:lookup Most efficient way to get pool data for market-based operations
      */
     function getPoolUsingMarketId(bytes32 marketId) external view returns (PoolData memory pool) {
         pool = marketIdToPool[marketId];
@@ -933,9 +979,14 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves pool data using the pool address.
-     * @param poolAddress Address of the pool.
-     * @return pool PoolData struct containing pool information.
+     * @notice Retrieves complete pool data using pool address
+     * @dev Reverse lookup to get market information from pool address
+     *
+     * @param poolAddress Address of the Uniswap V3 pool
+     *
+     * @return pool Complete PoolData struct containing all pool information
+     *
+     * @custom:reverse Useful for callback functions and external integrations
      */
     function getPoolUsingAddress(address poolAddress) external view returns (PoolData memory pool) {
         pool = poolAddressToPool[poolAddress];
@@ -943,19 +994,29 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves the position details for a given token ID.
-     * @param _user The ID of the position to retrieve.
-     * @return operator The operator of the position.
-     * @return token0 The address of the first token in the position.
-     * @return token1 The address of the second token in the position.
-     * @return fee The fee tier of the position.
-     * @return liquidity The liquidity of the position.
-     * @return tickLower The lower tick bound of the position.
-     * @return tickUpper The upper tick bound of the position.
-     * @return tokensOwed0 The uncollected amount of token0 owed to the position.
-     * @return tokensOwed1 The uncollected amount of token1 owed to the position.
-     * @return amount0 The amount of token0 in the position.
-     * @return amount1 The amount of token1 in the position.
+     * @notice Retrieves comprehensive position details for a user in a specific market
+     * @dev Combines NFT position data with current liquidity calculations to provide complete position info
+     *
+     * @param _user Address of the user whose position to query
+     * @param _marketId Market identifier for the position
+     *
+     * @return operator Address authorized to operate on the position (should be this contract)
+     * @return token0 Address of the first token in the position
+     * @return token1 Address of the second token in the position
+     * @return fee Fee tier of the position
+     * @return liquidity Current liquidity in the position
+     * @return tickLower Lower tick bound of the position
+     * @return tickUpper Upper tick bound of the position
+     * @return tokensOwed0 Uncollected fees for token0
+     * @return tokensOwed1 Uncollected fees for token1
+     * @return amount0 Current amount of token0 represented by the position
+     * @return amount1 Current amount of token1 represented by the position
+     *
+     * Requirements:
+     * - User must have a position in the specified market
+     *
+     * @custom:calculation amount0 and amount1 are calculated based on current pool price
+     * @custom:fees tokensOwed values represent fees earned but not yet collected
      */
     function getUserPositionInPool(address _user, bytes32 _marketId)
         public
@@ -982,18 +1043,35 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves all pools stored in the contract.
-     * @return Array of PoolData structs.
+     * @notice Retrieves all pools created and managed by this contract
+     * @dev Returns the complete array of PoolData structs for analytics and enumeration
+     *
+     * @return Array of PoolData structs representing all managed pools
+     *
+     * @custom:analytics Useful for building dashboards and analyzing pool performance
+     * @custom:enumeration Provides a way to iterate through all pools when mapping keys are unknown
      */
     function getAllPools() external view returns (PoolData[] memory) {
         return pools;
     }
 
     /**
-     * @notice Retrieves the reserves of both tokens in a specified pool.
-     * @param marketId Unique identifier for the prediction market.
-     * @return reserve0 Amount of tokenA in the pool.
-     * @return reserve1 Amount of tokenB in the pool.
+     * @notice Retrieves the current token reserves in a specified pool
+     * @dev Calculates the total liquidity-weighted reserves based on current price and total pool liquidity
+     *
+     * @param marketId Unique identifier for the prediction market
+     *
+     * @return reserve0 Total amount of tokenA available in the pool
+     * @return reserve1 Total amount of tokenB available in the pool
+     *
+     * Requirements:
+     * - Pool must be initialized and active
+     *
+     * Effects:
+     * - No state changes, pure view function
+     *
+     * @custom:calculation Uses current pool price and total liquidity to compute reserves
+     * @custom:precision Calculations use Uniswap's high-precision math libraries
      */
     function getPoolReserves(bytes32 marketId) external view returns (uint256 reserve0, uint256 reserve1) {
         PoolData memory poolData = marketIdToPool[marketId];
@@ -1012,12 +1090,20 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Internal Function to get the amount of tokenA and tokenB in a user's position.
-     * @param tickLower Lower tick bound for the liquidity position.
-     * @param tickUpper Upper tick bound for the liquidity position.
-     * @param liquidity Liquidity in the position.
-     * @return amount0 Amount of tokenA in the position.
-     * @return amount1 Amount of tokenB in the position.
+     * @notice Helper function to calculate token amounts for a given liquidity position
+     * @dev Uses Uniswap's math libraries to compute how many tokens a liquidity amount represents
+     *      at the current price and within the specified tick range.
+     *
+     * @param sqrtPriceX96 Current square root price in X96 format
+     * @param tickLower Lower tick bound for the liquidity position
+     * @param tickUpper Upper tick bound for the liquidity position
+     * @param liquidity Amount of liquidity to calculate tokens for
+     *
+     * @return amount0 Amount of token0 represented by the liquidity
+     * @return amount1 Amount of token1 represented by the liquidity
+     *
+     * @custom:math Uses Uniswap's precise mathematical formulas for concentrated liquidity
+     * @custom:range Only counts liquidity that's active within the current price range
      */
     function getAmountsForLiquidityHelper(uint160 sqrtPriceX96, int24 tickLower, int24 tickUpper, uint128 liquidity)
         public
