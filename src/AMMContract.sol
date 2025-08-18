@@ -1043,8 +1043,13 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves all pools stored in the contract.
-     * @return Array of PoolData structs.
+     * @notice Retrieves all pools created and managed by this contract
+     * @dev Returns the complete array of PoolData structs for analytics and enumeration
+     *
+     * @return Array of PoolData structs representing all managed pools
+     *
+     * @custom:analytics Useful for building dashboards and analyzing pool performance
+     * @custom:enumeration Provides a way to iterate through all pools when mapping keys are unknown
      */
     function getAllPools() external view returns (PoolData[] memory) {
         return pools;
