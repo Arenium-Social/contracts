@@ -942,12 +942,21 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
         return amountOut;
     }
 
+    //////////////////////////////////////////////////////////////
+    //                      VIEW FUNCTIONS                     //
+    //////////////////////////////////////////////////////////////
+
     /**
-     * @notice Retrieves the pool address using token addresses and fee tier.
-     * @param tokenA Address of the first token.
-     * @param tokenB Address of the second token.
-     * @param fee Fee tier for the pool.
-     * @return pool Address of the pool.
+     * @notice Retrieves the pool address for given token addresses and fee tier
+     * @dev Queries the Uniswap factory for the pool address. Returns zero address if pool doesn't exist.
+     *
+     * @param tokenA Address of the first token
+     * @param tokenB Address of the second token
+     * @param fee Fee tier for the pool
+     *
+     * @return pool Address of the pool (zero address if doesn't exist)
+     *
+     * @custom:factory Queries Uniswap factory directly for maximum reliability
      */
     function getPoolUsingParams(address tokenA, address tokenB, uint24 fee) external view returns (address pool) {
         pool = magicFactory.getPool(tokenA, tokenB, fee);
