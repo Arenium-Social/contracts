@@ -979,9 +979,14 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves pool data using the pool address.
-     * @param poolAddress Address of the pool.
-     * @return pool PoolData struct containing pool information.
+     * @notice Retrieves complete pool data using pool address
+     * @dev Reverse lookup to get market information from pool address
+     *
+     * @param poolAddress Address of the Uniswap V3 pool
+     *
+     * @return pool Complete PoolData struct containing all pool information
+     *
+     * @custom:reverse Useful for callback functions and external integrations
      */
     function getPoolUsingAddress(address poolAddress) external view returns (PoolData memory pool) {
         pool = poolAddressToPool[poolAddress];
