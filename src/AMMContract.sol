@@ -964,9 +964,14 @@ contract AMMContract is Ownable, IUniswapV3SwapCallback {
     }
 
     /**
-     * @notice Retrieves pool data using the market ID.
-     * @param marketId Unique identifier for the prediction market.
-     * @return pool PoolData struct containing pool information.
+     * @notice Retrieves complete pool data using market ID
+     * @dev Primary method for getting pool information associated with a prediction market
+     *
+     * @param marketId Unique identifier for the prediction market
+     *
+     * @return pool Complete PoolData struct containing all pool information
+     *
+     * @custom:lookup Most efficient way to get pool data for market-based operations
      */
     function getPoolUsingMarketId(bytes32 marketId) external view returns (PoolData memory pool) {
         pool = marketIdToPool[marketId];
