@@ -21,6 +21,10 @@ build:
 	@echo "Building contracts..."
 	forge build
 
+.PHONY: clean
+clean:
+	@echo "Cleaning build artifacts..."
+	forge clean
 
 # ==============================================================================
 deploy all:
