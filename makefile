@@ -30,6 +30,26 @@ clean:
 install:
 	@echo "Installing dependencies..."
 	forge install
+
+.PHONY: update
+update:
+	@echo "Updating dependencies..."
+	forge update
+
+# ======================
+# Test Commands
+# ======================
+
+.PHONY: test
+test:
+	@echo "Running all tests..."
+	forge test
+
+.PHONY: test-unit
+test-unit:
+	@echo "Running unit tests..."
+	forge test --match-path "test/unit/*"
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
