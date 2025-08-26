@@ -104,6 +104,10 @@ deploy-amm-base:
 		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
 		--broadcast
 
+# ======================
+# Deployment Commands - Avalanche (Future)
+# ======================
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
