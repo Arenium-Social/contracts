@@ -69,6 +69,11 @@ test-gas:
 test-coverage:
 	@echo "Running coverage report..."
 	forge coverage
+
+# ======================
+# Deployment Commands - Base Sepolia
+# ======================
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
