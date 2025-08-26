@@ -108,6 +108,16 @@ deploy-amm-base:
 # Deployment Commands - Avalanche (Future)
 # ======================
 
+.PHONY: deploy-avalanche
+deploy-avalanche:
+	@echo "Deploying all contracts to Avalanche..."
+	forge script script/DeployAll.s.sol:DeployAll \
+		--rpc-url $(AVALANCHE_RPC_URL) \
+		$(FORGE_FLAGS) \
+		$(VERIFY_FLAGS) \
+		--verifier-url $(AVALANCHE_VERIFIER_URL) \
+		--broadcast
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
