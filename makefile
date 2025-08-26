@@ -74,6 +74,16 @@ test-coverage:
 # Deployment Commands - Base Sepolia
 # ======================
 
+.PHONY: deploy-base-sepolia
+deploy-base-sepolia:
+	@echo "Deploying all contracts to Base Sepolia..."
+	forge script script/DeployAll.s.sol:DeployAll \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(FORGE_FLAGS) \
+		$(VERIFY_FLAGS) \
+		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
+		--broadcast
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
