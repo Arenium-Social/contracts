@@ -50,6 +50,74 @@ test-unit:
 	@echo "Running unit tests..."
 	forge test --match-path "test/unit/*"
 
+.PHONY: test-integration
+test-integration:
+	@echo "Running integration tests..."
+	forge test --match-path "test/integration/*"
+
+.PHONY: test-fork
+test-fork:
+	@echo "Running fork tests..."
+	forge test --match-path "test/fork-uint/*"
+
+.PHONY: test-gas
+test-gas:
+	@echo "Running gas report..."
+	forge test --gas-report
+
+.PHONY: test-coverage
+test-coverage:
+	@echo "Running coverage report..."
+	forge coverage
+
+# ======================
+# Deployment Commands - Base Sepolia
+# ======================
+
+.PHONY: deploy-base-sepolia
+deploy-base-sepolia:
+	@echo "Deploying all contracts to Base Sepolia..."
+	forge script script/DeployAll.s.sol:DeployAll \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(FORGE_FLAGS) \
+		$(VERIFY_FLAGS) \
+		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
+		--broadcast
+
+.PHONY: deploy-manager-base
+deploy-manager-base:
+	@echo "Deploying PredictionMarketManager to Base Sepolia..."
+	forge script script/deployments/DeployManager.s.sol:DeployManager \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(FORGE_FLAGS) \
+		$(VERIFY_FLAGS) \
+		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
+		--broadcast
+
+.PHONY: deploy-amm-base
+deploy-amm-base:
+	@echo "Deploying AMMContract to Base Sepolia..."
+	forge script script/deployments/DeployAMM.s.sol:DeployAMM \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(FORGE_FLAGS) \
+		$(VERIFY_FLAGS) \
+		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
+		--broadcast
+
+# ======================
+# Deployment Commands - Avalanche (Future)
+# ======================
+
+.PHONY: deploy-avalanche
+deploy-avalanche:
+	@echo "Deploying all contracts to Avalanche..."
+	forge script script/DeployAll.s.sol:DeployAll \
+		--rpc-url $(AVALANCHE_RPC_URL) \
+		$(FORGE_FLAGS) \
+		$(VERIFY_FLAGS) \
+		--verifier-url $(AVALANCHE_VERIFIER_URL) \
+		--broadcast
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
