@@ -55,6 +55,10 @@ test-integration:
 	@echo "Running integration tests..."
 	forge test --match-path "test/integration/*"
 
+.PHONY: test-fork
+test-fork:
+	@echo "Running fork tests..."
+	forge test --match-path "test/fork-uint/*"
 
 # ==============================================================================
 deploy all:
