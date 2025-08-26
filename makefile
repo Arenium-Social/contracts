@@ -94,6 +94,16 @@ deploy-manager-base:
 		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
 		--broadcast
 
+.PHONY: deploy-amm-base
+deploy-amm-base:
+	@echo "Deploying AMMContract to Base Sepolia..."
+	forge script script/deployments/DeployAMM.s.sol:DeployAMM \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(FORGE_FLAGS) \
+		$(VERIFY_FLAGS) \
+		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
+		--broadcast
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
