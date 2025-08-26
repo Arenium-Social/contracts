@@ -50,6 +50,12 @@ test-unit:
 	@echo "Running unit tests..."
 	forge test --match-path "test/unit/*"
 
+.PHONY: test-integration
+test-integration:
+	@echo "Running integration tests..."
+	forge test --match-path "test/integration/*"
+
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
