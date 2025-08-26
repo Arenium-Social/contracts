@@ -118,6 +118,18 @@ deploy-avalanche:
 		--verifier-url $(AVALANCHE_VERIFIER_URL) \
 		--broadcast
 
+# ======================
+# Interaction Scripts
+# ======================
+
+.PHONY: interact-amm
+interact-amm:
+	@echo "Running AMM interaction script..."
+	forge script script/interaction-scripts/AMMScript.s.sol:AMMScript \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(FORGE_FLAGS) \
+		--broadcast
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
