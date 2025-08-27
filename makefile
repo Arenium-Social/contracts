@@ -138,6 +138,13 @@ interact-market:
 		$(FORGE_FLAGS) \
 		--broadcast
 
+.PHONY: create-market
+create-market:
+	@echo "Creating a new prediction market..."
+	forge script script/interaction-scripts/CreateMarket.s.sol:CreateMarket \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(FORGE_FLAGS) \
+		--broadcast
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
