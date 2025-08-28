@@ -150,6 +150,16 @@ create-market:
 # Verification Commands
 # ======================
 
+.PHONY: verify-base
+verify-base:
+	@echo "Verifying contracts on Base Sepolia..."
+	forge verify-contract \
+		--verifier blockscout \
+		--verifier-url $(BASE_SEPOLIA_VERIFIER_URL) \
+		--rpc-url $(BASE_SEPOLIA_RPC_URL) \
+		$(CONTRACT_ADDRESS) \
+		$(CONTRACT_NAME)
+
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
