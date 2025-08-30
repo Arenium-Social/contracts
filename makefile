@@ -174,6 +174,9 @@ format-check:
 	@echo "Checking code formatting..."
 	forge fmt --check
 
+.PHONY: clear
+clear:
+	clear
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
