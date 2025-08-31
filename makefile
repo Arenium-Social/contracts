@@ -182,6 +182,20 @@ clear:
 console:
 	@echo "Starting Forge console..."
 	forge console
+
+# Generate documentation
+.PHONY: doc
+doc:
+	@echo "Generating documentation..."
+	forge doc
+
+# ======================
+# Contract Size Check
+# ======================
+.PHONY: size
+size:
+	@echo "Checking contract sizes..."
+	forge build --sizes
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
