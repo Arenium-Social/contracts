@@ -189,6 +189,9 @@ doc:
 	@echo "Generating documentation..."
 	forge doc
 
+# ======================
+# Contract Size Check
+# ======================
 .PHONY: size
 size:
 	@echo "Checking contract sizes..."
