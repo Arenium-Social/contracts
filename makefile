@@ -183,6 +183,7 @@ console:
 	@echo "Starting Forge console..."
 	forge console
 
+# Generate documentation
 .PHONY: doc
 doc:
 	@echo "Generating documentation..."
