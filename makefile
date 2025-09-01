@@ -200,6 +200,10 @@ size:
 # ======================
 # Local Development
 # ======================
+.PHONY: anvil
+anvil:
+	@echo "Starting Anvil local node..."
+	anvil
 
 # ==============================================================================
 deploy all:
