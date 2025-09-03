@@ -216,6 +216,10 @@ deploy-local:
 # ======================
 # Security & Analysis
 # ======================
+.PHONY: slither
+slither:
+	@echo "Running Slither analysis..."
+	slither .
 
 # ==============================================================================
 deploy all:
