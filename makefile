@@ -270,6 +270,8 @@ help:
 	@echo "  slither        - Run Slither analysis"
 	@echo "  mythril        - Run Mythril analysis"
 
+# Default target
+.DEFAULT_GOAL := help
 # ==============================================================================
 deploy all:
 	forge script script/DeployAll.s.sol:DeployAll --rpc-url $(BASE_SEPLOIA_RPC_URL) --private-key $(PRIVATE_KEY) --verify --verifier blockscout --verifier-url https://base-sepolia.blockscout.com/api/ --broadcast -vvvv
