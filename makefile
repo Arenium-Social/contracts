@@ -229,6 +229,46 @@ mythril:
 # ======================
 # Help
 # ======================
+.PHONY: help
+help:
+	@echo "Arenium Protocol - Available Commands:"
+	@echo ""
+	@echo "Build Commands:"
+	@echo "  build          - Compile all contracts"
+	@echo "  clean          - Remove build artifacts"
+	@echo "  install        - Install dependencies"
+	@echo "  update         - Update dependencies"
+	@echo ""
+	@echo "Test Commands:"
+	@echo "  test           - Run all tests"
+	@echo "  test-unit      - Run unit tests only"
+	@echo "  test-integration - Run integration tests only"
+	@echo "  test-fork      - Run fork tests only"
+	@echo "  test-gas       - Run gas report"
+	@echo "  test-coverage  - Run coverage report"
+	@echo ""
+	@echo "Deployment Commands:"
+	@echo "  deploy-base-sepolia - Deploy all contracts to Base Sepolia"
+	@echo "  deploy-manager-base - Deploy PredictionMarketManager only"
+	@echo "  deploy-amm-base     - Deploy AMMContract only"
+	@echo "  deploy-avalanche    - Deploy to Avalanche (future)"
+	@echo ""
+	@echo "Interaction Commands:"
+	@echo "  interact-amm    - Run AMM interaction script"
+	@echo "  interact-market - Run Market interaction script"
+	@echo "  create-market   - Create a new prediction market"
+	@echo ""
+	@echo "Development Utilities:"
+	@echo "  format         - Format code"
+	@echo "  format-check   - Check code formatting"
+	@echo "  doc            - Generate documentation"
+	@echo "  size           - Check contract sizes"
+	@echo "  anvil          - Start local Anvil node"
+	@echo "  deploy-local   - Deploy to local Anvil"
+	@echo ""
+	@echo "Security & Analysis:"
+	@echo "  slither        - Run Slither analysis"
+	@echo "  mythril        - Run Mythril analysis"
 
 # ==============================================================================
 deploy all:
