@@ -272,5 +272,3 @@ help:
 
 # Default target
 .DEFAULT_GOAL := help
-
-forge script script/DeployAll.s.sol:DeployAll --rpc-url $BASE_SEPOLIA_RPC_URL --private-key $PRIVATE_KEY --verify --verifier blockscout --broadcast --verifier-url BASE_SEPOLIA_VERIFIER_URL
