@@ -273,8 +273,6 @@ help:
 # Default target
 .DEFAULT_GOAL := help
 
-interaction script:
-	forge script script/interaction-scripts/AMMScript.s.sol:AMMScript --rpc-url $BASE_SEPOLIA_RPC_URL --private-key $PRIVATE_KEY --broadcast -vvvv
 clear:
 	clear
 
