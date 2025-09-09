@@ -30,6 +30,23 @@ import {AMMContract} from "../../src/AMMContract.sol";
  * - Re-running the script with the same parameters may revert if the pool has already been initialized.
  */
 contract AMMScript is Script {
+    /**
+     * @notice Executes the deployment or interaction logic for the AMMContract.
+     * @dev 
+     * - Calls the `initializePool()` function on an existing AMMContract instance.
+     * - Pool initialization involves setting token pair addresses, fee tier, and market identifier.
+     * - Console logging is used for on-chain debugging and transaction verification.
+     *
+     * @custom:interaction
+     * This function is designed to be executed as an off-chain script using Foundry’s `forge script` command.
+     * It is **not intended** to be called by other on-chain contracts.
+     *
+     * @custom:requires
+     * - A valid deployed AMMContract must exist at the specified address.
+     * - `tokenA` and `tokenB` must be valid ERC-20 token addresses.
+     * - `fee` must adhere to the AMMContract’s expected fee constraints.
+     * - `marketId` must be unique for new markets.
+     */
     function run() external {
         // HelperConfig helperConfig = new HelperConfig();
         vm.startBroadcast();
