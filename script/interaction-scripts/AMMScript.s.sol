@@ -48,15 +48,28 @@ contract AMMScript is Script {
      * - `marketId` must be unique for new markets.
      */
     function run() external {
+        // NOTE: Uncomment if you wish to configure environments dynamically
         // HelperConfig helperConfig = new HelperConfig();
+
+        // Begin broadcasting transactions (Foundry cheatcode)
         vm.startBroadcast();
+
+        // Reference to an already deployed AMMContract
         AMMContract amm = AMMContract(0xE382B600D1b68d645AF14414110eEf0CFEb49Ecc);
+
+        // Define parameters for pool initialization
         address tokenA = 0x036CbD53842c5426634e7929541eC2318f3dCF7e;
         address tokenB = 0x808456652fdb597867f38412077A9182bf77359F;
-        uint24 fee = 5000000;
+        uint24 fee = 5000000; // Example fee value (must be supported by AMMContract)
         bytes32 marketId = 0x0000000000000000000000000000000000000000000000000000000000000001;
+
+        // Initialize a liquidity pool in the AMMContract
         amm.initializePool(tokenA, tokenB, fee, marketId);
+
+        // Log the AMM contract address for debugging and confirmation
         console2.log("Pool Address: ", address(amm));
+
+        // End broadcasting transactions
         vm.stopBroadcast();
     }
 }
