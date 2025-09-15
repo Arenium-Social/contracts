@@ -8,6 +8,19 @@ import {AMMContract} from "../../src/AMMContract.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
+/**
+ * @title AddLiquidityScript
+ * @author Your Name/Organization
+ * @notice Foundry deployment script for adding liquidity to a prediction market
+ * @dev This script creates outcome token liquidity in a prediction market by:
+ *      1. Configuring network-specific parameters via HelperConfig
+ *      2. Approving USDC spending for the prediction market contract
+ *      3. Reading current tick data from a Uniswap V3 pool
+ *      4. Creating liquidity position with specified tick range
+ * 
+ * @custom:security This script uses hardcoded addresses - ensure they match your deployment network
+ * @custom:network Currently configured for Base Sepolia testnet
+ */
 contract AddLiquidityScript is Script {
     function run() external {
         HelperConfig helperConfig = new HelperConfig();
