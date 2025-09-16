@@ -22,6 +22,27 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
  * @custom:network Currently configured for Base Sepolia testnet
  */
 contract AddLiquidityScript is Script {
+    /**
+     * @notice Main execution function that adds liquidity to the prediction market
+     * @dev Executes the following workflow:
+     *      1. Loads Base Sepolia network configuration
+     *      2. Connects to deployed AMM and PredictionMarket contracts
+     *      3. Approves USDC token spending (1 USDC = 1e6 units)
+     *      4. Retrieves current tick from Uniswap V3 pool for price reference
+     *      5. Creates liquidity position with symmetric tick range (-120 to +120)
+     * 
+     * @custom:broadcast This function uses vm.startBroadcast()/vm.stopBroadcast() for transaction execution
+     * @custom:gas-optimization Consider batching operations to reduce gas costs in production
+     * 
+     * Requirements:
+     * - Caller must have sufficient USDC balance (at least 1e6 units)
+     * - Prediction market contract must be properly deployed and functional
+     * - Network configuration must match the target deployment environment
+     * 
+     * Emits:
+     * - Console logs for tick value and generated token ID
+     * - Events from PredictionMarket.createOutcomeTokensLiquidity()
+     */
     function run() external {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory config;
