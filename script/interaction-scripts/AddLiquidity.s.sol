@@ -17,7 +17,7 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
  *      2. Approving USDC spending for the prediction market contract
  *      3. Reading current tick data from a Uniswap V3 pool
  *      4. Creating liquidity position with specified tick range
- * 
+ *
  * @custom:security This script uses hardcoded addresses - ensure they match your deployment network
  * @custom:network Currently configured for Base Sepolia testnet
  */
@@ -30,15 +30,15 @@ contract AddLiquidityScript is Script {
      *      3. Approves USDC token spending (1 USDC = 1e6 units)
      *      4. Retrieves current tick from Uniswap V3 pool for price reference
      *      5. Creates liquidity position with symmetric tick range (-120 to +120)
-     * 
+     *
      * @custom:broadcast This function uses vm.startBroadcast()/vm.stopBroadcast() for transaction execution
      * @custom:gas-optimization Consider batching operations to reduce gas costs in production
-     * 
+     *
      * Requirements:
      * - Caller must have sufficient USDC balance (at least 1e6 units)
      * - Prediction market contract must be properly deployed and functional
      * - Network configuration must match the target deployment environment
-     * 
+     *
      * Emits:
      * - Console logs for tick value and generated token ID
      * - Events from PredictionMarket.createOutcomeTokensLiquidity()

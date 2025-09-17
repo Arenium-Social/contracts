@@ -555,14 +555,14 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     /**
      * @notice Retrieves the complete market data structure
      * @dev Returns all stored market information including metadata
-     * 
+     *
      * @param marketId Unique identifier for the market
-     * 
+     *
      * @return market Complete Market struct containing all market data
-     * 
+     *
      * Requirements:
      * - Market must exist (checked by caller)
-     * 
+     *
      * @custom:note Provides access to all market fields for detailed queries
      */
     function getMarketStruct(bytes32 marketId) external view returns (PMLibrary.Market memory) {
@@ -572,10 +572,10 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
     /**
      * @notice Retrieves user's liquidity position information for a specific market
      * @dev Queries the AMM contract for detailed position data
-     * 
+     *
      * @param user Address of the liquidity provider
      * @param marketId Unique identifier for the market
-     * 
+     *
      * @return operator Address that can operate on the position
      * @return token0 Address of the first token in the pair
      * @return token1 Address of the second token in the pair
@@ -585,7 +585,7 @@ contract PredictionMarket is OptimisticOracleV3CallbackRecipientInterface, Ownab
      * @return tokensOwed1 Amount of token1 fees owed
      * @return amount0 Current amount of token0 in the position
      * @return amount1 Current amount of token1 in the position
-     * 
+     *
      * @custom:note Delegates to the AMM contract for position information
      */
     function getUserLiquidityInMarket(address user, bytes32 marketId)
