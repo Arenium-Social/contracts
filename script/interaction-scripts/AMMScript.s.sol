@@ -7,9 +7,9 @@ import {AMMContract} from "../../src/AMMContract.sol";
 
 /**
  * @title AMMScript
- * @author 
+ * @author
  * @notice This Foundry script is used to deploy or interact with an already deployed AMMContract instance.
- * @dev 
+ * @dev
  * - The script demonstrates how to initialize a liquidity pool in the AMMContract.
  * - It connects to a pre-deployed AMM contract at a fixed address and calls `initializePool()`.
  * - Uses Foundry's `vm.startBroadcast()` and `vm.stopBroadcast()` to send actual transactions.
@@ -32,7 +32,7 @@ import {AMMContract} from "../../src/AMMContract.sol";
 contract AMMScript is Script {
     /**
      * @notice Executes the deployment or interaction logic for the AMMContract.
-     * @dev 
+     * @dev
      * - Calls the `initializePool()` function on an existing AMMContract instance.
      * - Pool initialization involves setting token pair addresses, fee tier, and market identifier.
      * - Console logging is used for on-chain debugging and transaction verification.
