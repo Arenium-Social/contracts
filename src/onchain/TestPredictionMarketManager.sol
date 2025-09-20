@@ -15,4 +15,21 @@ contract TestPredictionMarketManager is Ownable {
     error CallerNotWhitelisted();
     error AddressAlreadyWhitelisted();
     error AddressNotWhitelisted();
+
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                          //
+    //////////////////////////////////////////////////////////////
+
+    mapping(address => bool) public whitelistedAddresses;
+
+    //////////////////////////////////////////////////////////////
+    //                       MODIFIERS                         //
+    //////////////////////////////////////////////////////////////
+
+    modifier onlyWhitelisted() {
+        if (!whitelistedAddresses[msg.sender]) {
+            revert CallerNotWhitelisted();
+        }
+        _;
+    }
 }
