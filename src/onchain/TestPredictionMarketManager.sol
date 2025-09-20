@@ -25,4 +25,11 @@ contract TestPredictionMarketManager is Ownable {
     //////////////////////////////////////////////////////////////
     //                       MODIFIERS                         //
     //////////////////////////////////////////////////////////////
+
+    modifier onlyWhitelisted() {
+        if (!whitelistedAddresses[msg.sender]) {
+            revert CallerNotWhitelisted();
+        }
+        _;
+    }
 }
