@@ -16,7 +16,9 @@ contract TestPredictionMarketManager is Ownable {
     error AddressAlreadyWhitelisted();
     error AddressNotWhitelisted();
 
-        //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
     //                        STORAGE                          //
     //////////////////////////////////////////////////////////////
+
+    mapping(address => bool) public whitelistedAddresses;
 }
