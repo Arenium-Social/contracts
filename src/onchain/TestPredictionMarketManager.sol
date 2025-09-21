@@ -43,4 +43,11 @@ contract TestPredictionMarketManager is Ownable {
         }
         whitelistedAddresses[account] = true;
     }
+
+    function removeFromWhitelist(address account) external onlyOwner {
+        if (!whitelistedAddresses[account]) {
+            revert AddressNotWhitelisted();
+        }
+        whitelistedAddresses[account] = false;
+    }
 }
