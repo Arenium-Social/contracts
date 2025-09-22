@@ -54,4 +54,9 @@ contract TestPredictionMarketManager is Ownable {
     function isWhitelisted(address account) external view returns (bool) {
         return whitelistedAddresses[account];
     }
+
+    // Test function to verify whitelist works
+    function whitelistedOnlyFunction() external onlyWhitelisted returns (string memory) {
+        return "Success: You are whitelisted!";
+    }
 }
