@@ -38,4 +38,4 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @custom:testing This contract is designed for testing and development purposes only
  * @custom:amm Implements simplified constant product AMM formula (x * y = k)
  */
-contract TestAMMContract {}
+contract Test_AMMContract is Ownable {}
