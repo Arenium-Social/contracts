@@ -40,4 +40,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @custom:compatibility Maintains interface compatibility with the main AMM contract
  * @custom:formula Uses constant product formula: reserveA * reserveB = k (constant)
  */
-contract Test_AMMContract is Ownable {}
+contract Test_AMMContract is Ownable {
+//////////////////////////////////////////////////////////////
+//                    DATA STRUCTURES                      //
+//////////////////////////////////////////////////////////////
+}
