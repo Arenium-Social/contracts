@@ -41,7 +41,16 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @custom:formula Uses constant product formula: reserveA * reserveB = k (constant)
  */
 contract Test_AMMContract is Ownable {
-//////////////////////////////////////////////////////////////
-//                    DATA STRUCTURES                      //
-//////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    //                    DATA STRUCTURES                      //
+    //////////////////////////////////////////////////////////////
+
+    struct PoolData {
+        bytes32 marketId; // Links to prediction market
+        address tokenA; // First token (lower address)
+        address tokenB; // Second token (higher address)
+        uint256 reserveA; // Current reserve of tokenA
+        uint256 reserveB; // Current reserve of tokenB
+        bool poolInitialized; // Pool creation status
+    }
 }
