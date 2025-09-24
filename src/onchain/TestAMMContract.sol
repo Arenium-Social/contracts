@@ -45,6 +45,20 @@ contract Test_AMMContract is Ownable {
     //                    DATA STRUCTURES                      //
     //////////////////////////////////////////////////////////////
 
+    /**
+     * @notice Comprehensive data structure containing all pool-related information
+     * @dev Simplified version that stores essential pool data for testing
+     *
+     * @param marketId Unique identifier linking this pool to a prediction market
+     * @param tokenA Address of the first outcome token (always ordered lower address first)
+     * @param tokenB Address of the second outcome token (always ordered higher address second)
+     * @param reserveA Current reserve amount of tokenA in the pool
+     * @param reserveB Current reserve amount of tokenB in the pool
+     * @param poolInitialized Flag indicating if the pool has been created and is active
+     *
+     * @custom:ordering tokenA and tokenB are ordered by address (tokenA < tokenB) for consistency
+     * @custom:reserves Reserves represent the actual token balances held by this contract
+     */
     struct PoolData {
         bytes32 marketId; // Links to prediction market
         address tokenA; // First token (lower address)
