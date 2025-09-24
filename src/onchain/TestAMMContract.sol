@@ -6,36 +6,38 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title Test_AMMContract
- * @notice Simplified Automated Market Maker for testing prediction market functionality
- * @dev This contract implements a basic constant product AMM (x * y = k) for testing purposes.
- *      It provides liquidity pools, token swapping, and position management without the complexity
- *      of Uniswap V3's concentrated liquidity model.
+ * @author Arenium Social
+ * @notice Simplified automated market maker contract for testing prediction market functionality
+ * @dev This is a testing version that implements a basic constant product AMM (x * y = k) instead
+ *      of the complex Uniswap V3 concentrated liquidity model. It provides essential AMM functionality
+ *      for creating pools, managing liquidity, and executing swaps between outcome tokens.
  *
  * Key Features:
- * - Simple constant product formula for price discovery
+ * - Simple constant product formula for token swapping
  * - Basic liquidity provision and removal
- * - Token swapping with slippage protection
- * - Pool creation and management for prediction market tokens
+ * - Pool creation and management for prediction markets
  * - User position tracking
+ * - Slippage protection on swaps
  *
  * Architecture:
- * - Built for testing prediction market outcome tokens
- * - Uses simplified reserve-based liquidity model
- * - Maintains compatibility with main contract interfaces
- * - No external dependencies beyond OpenZeppelin
+ * - Built on constant product AMM model (x * y = k)
+ * - Simplified reserve-based liquidity tracking
+ * - Direct token transfers without complex callbacks
+ * - Compatible interface with the main AMM contract
  *
  * Security Considerations:
- * - Uses safe token transfers via IERC20
- * - Implements slippage protection for swaps and liquidity operations
- * - Owner-only functions for emergency management
- * - Simple validation for pool creation and operations
+ * - Safe token transfers using OpenZeppelin's IERC20
+ * - Slippage protection on all swap operations
+ * - Owner-only emergency functions
+ * - Input validation on all public functions
  *
  * Gas Optimizations:
- * - Simplified calculations compared to Uniswap V3
+ * - Simple mathematical operations
  * - Efficient storage patterns with mappings
  * - Minimal external calls
  *
- * @custom:testing This contract is designed for testing and development purposes only
- * @custom:amm Implements simplified constant product AMM formula (x * y = k)
+ * @custom:testing This contract is designed for testing purposes and uses simplified logic
+ * @custom:compatibility Maintains interface compatibility with the main AMM contract
+ * @custom:formula Uses constant product formula: reserveA * reserveB = k (constant)
  */
 contract Test_AMMContract is Ownable {}
