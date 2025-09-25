@@ -71,4 +71,5 @@ contract Test_AMMContract is Ownable {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                          //
     //////////////////////////////////////////////////////////////
+    mapping(bytes32 => PoolData) public marketIdToPool;
 }
