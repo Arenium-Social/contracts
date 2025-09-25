@@ -71,5 +71,8 @@ contract Test_AMMContract is Ownable {
     //////////////////////////////////////////////////////////////
     //                        STORAGE                          //
     //////////////////////////////////////////////////////////////
+
+    /// @notice Maps market ID to its corresponding pool data for primary lookups
+    /// @dev Main storage mapping for pool information indexed by market identifier
     mapping(bytes32 => PoolData) public marketIdToPool;
 }
