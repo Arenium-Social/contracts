@@ -67,4 +67,17 @@ contract Test_AMMContract is Ownable {
         uint256 reserveB; // Current reserve of tokenB
         bool poolInitialized; // Pool creation status
     }
+
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                          //
+    //////////////////////////////////////////////////////////////
+
+    /// @notice Maps market ID to its corresponding pool data for primary lookups
+    /// @dev Main storage mapping for pool information indexed by market identifier
+    mapping(bytes32 => PoolData) public marketIdToPool;
+
+    /// @notice Maps token pairs to pool addresses for reverse lookups
+    /// @dev Bidirectional mapping: both (tokenA, tokenB) and (tokenB, tokenA) point to same pool
+    /// @dev In this simplified version, all pools are managed by this contract so address is always address(this)
+    mapping(address => mapping(address => address)) public tokenPairToPoolAddress;
 }
