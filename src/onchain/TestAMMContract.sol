@@ -67,4 +67,8 @@ contract Test_AMMContract is Ownable {
         uint256 reserveB; // Current reserve of tokenB
         bool poolInitialized; // Pool creation status
     }
+
+    //////////////////////////////////////////////////////////////
+    //                        STORAGE                          //
+    //////////////////////////////////////////////////////////////
 }
