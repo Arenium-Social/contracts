@@ -80,4 +80,7 @@ contract Test_AMMContract is Ownable {
     /// @dev Bidirectional mapping: both (tokenA, tokenB) and (tokenB, tokenA) point to same pool
     /// @dev In this simplified version, all pools are managed by this contract so address is always address(this)
     mapping(address => mapping(address => address)) public tokenPairToPoolAddress;
+
+        mapping(address => mapping(bytes32 => uint256)) public userLiquidity;
+
 }
