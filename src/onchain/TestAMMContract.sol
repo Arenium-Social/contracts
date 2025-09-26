@@ -85,4 +85,6 @@ contract Test_AMMContract is Ownable {
     /// @dev Tracks how much liquidity each user has provided to each market pool
     /// @dev Simplified tracking compared to NFT-based positions in the main contract
     mapping(address => mapping(bytes32 => uint256)) public userLiquidity;
+
+    PoolData[] public pools;
 }
