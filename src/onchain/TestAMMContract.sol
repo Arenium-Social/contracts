@@ -80,4 +80,13 @@ contract Test_AMMContract is Ownable {
     /// @dev Bidirectional mapping: both (tokenA, tokenB) and (tokenB, tokenA) point to same pool
     /// @dev In this simplified version, all pools are managed by this contract so address is always address(this)
     mapping(address => mapping(address => address)) public tokenPairToPoolAddress;
+
+    /// @notice Maps user address and market ID to their liquidity amount
+    /// @dev Tracks how much liquidity each user has provided to each market pool
+    /// @dev Simplified tracking compared to NFT-based positions in the main contract
+    mapping(address => mapping(bytes32 => uint256)) public userLiquidity;
+
+    /// @notice Array storing all created pools for enumeration and analytics
+    /// @dev Provides a way to iterate through all pools managed by this contract
+    PoolData[] public pools;
 }
