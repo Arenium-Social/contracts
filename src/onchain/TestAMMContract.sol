@@ -103,4 +103,6 @@ contract Test_AMMContract is Ownable {
      * @param marketId Unique identifier for the prediction market
      */
     event PoolInitialized(bytes32 indexed marketId);
+
+    event LiquidityAdded(bytes32 indexed marketId, address indexed user, uint256 amount0, uint256 amount1);
 }
