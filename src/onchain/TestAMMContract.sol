@@ -97,4 +97,6 @@ contract Test_AMMContract is Ownable {
      * @param tokenB Address of the second outcome token
      */
     event PoolCreated(bytes32 indexed marketId, address tokenA, address tokenB);
+
+    event PoolInitialized(bytes32 indexed marketId);
 }
