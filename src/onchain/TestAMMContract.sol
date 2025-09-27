@@ -89,4 +89,27 @@ contract Test_AMMContract is Ownable {
     /// @notice Array storing all created pools for enumeration and analytics
     /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
+
+    /**
+     * @notice Emitted when a new pool is created for a prediction market
+     * @param marketId Unique identifier for the prediction market
+     * @param tokenA Address of the first outcome token
+     * @param tokenB Address of the second outcome token
+     */
+    event PoolCreated(bytes32 indexed marketId, address tokenA, address tokenB);
+
+    /**
+     * @notice Emitted when a pool is successfully initialized and ready for use
+     * @param marketId Unique identifier for the prediction market
+     */
+    event PoolInitialized(bytes32 indexed marketId);
+
+    /**
+     * @notice Emitted when liquidity is added to a pool
+     * @param marketId Market identifier where liquidity was added
+     * @param user Address of the user who added liquidity
+     * @param amount0 Amount of tokenA added to reserves
+     * @param amount1 Amount of tokenB added to reserves
+     */
+    event LiquidityAdded(bytes32 indexed marketId, address indexed user, uint256 amount0, uint256 amount1);
 }
