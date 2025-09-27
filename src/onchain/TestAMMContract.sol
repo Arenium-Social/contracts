@@ -89,4 +89,6 @@ contract Test_AMMContract is Ownable {
     /// @notice Array storing all created pools for enumeration and analytics
     /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
+
+    event PoolCreated(bytes32 indexed marketId, address tokenA, address tokenB);
 }
