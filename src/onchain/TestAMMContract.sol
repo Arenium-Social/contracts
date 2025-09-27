@@ -98,5 +98,9 @@ contract Test_AMMContract is Ownable {
      */
     event PoolCreated(bytes32 indexed marketId, address tokenA, address tokenB);
 
+    /**
+     * @notice Emitted when a pool is successfully initialized and ready for use
+     * @param marketId Unique identifier for the prediction market
+     */
     event PoolInitialized(bytes32 indexed marketId);
 }
