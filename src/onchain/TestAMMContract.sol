@@ -113,5 +113,12 @@ contract Test_AMMContract is Ownable {
      */
     event LiquidityAdded(bytes32 indexed marketId, address indexed user, uint256 amount0, uint256 amount1);
 
+    /**
+     * @notice Emitted when liquidity is removed from a pool
+     * @param marketId Market identifier where liquidity was removed
+     * @param user Address of the user who removed liquidity
+     * @param amount0 Amount of tokenA removed from reserves and returned to user
+     * @param amount1 Amount of tokenB removed from reserves and returned to user
+     */
     event LiquidityRemoved(bytes32 indexed marketId, address indexed user, uint256 amount0, uint256 amount1);
 }
