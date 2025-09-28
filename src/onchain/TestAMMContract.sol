@@ -112,4 +112,25 @@ contract Test_AMMContract is Ownable {
      * @param amount1 Amount of tokenB added to reserves
      */
     event LiquidityAdded(bytes32 indexed marketId, address indexed user, uint256 amount0, uint256 amount1);
+
+    /**
+     * @notice Emitted when liquidity is removed from a pool
+     * @param marketId Market identifier where liquidity was removed
+     * @param user Address of the user who removed liquidity
+     * @param amount0 Amount of tokenA removed from reserves and returned to user
+     * @param amount1 Amount of tokenB removed from reserves and returned to user
+     */
+    event LiquidityRemoved(bytes32 indexed marketId, address indexed user, uint256 amount0, uint256 amount1);
+
+    /**
+     * @notice Emitted when tokens are swapped through the AMM
+     * @param marketId Market identifier for the pool used in the swap
+     * @param tokenIn Address of the input token provided by user
+     * @param tokenOut Address of the output token received by user
+     * @param amountIn Amount of input tokens provided
+     * @param amountOut Actual amount of output tokens received
+     */
+    event TokensSwapped(
+        bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
+    );
 }

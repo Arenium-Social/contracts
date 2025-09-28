@@ -1,0 +1,20 @@
+{
+  "lib/forge-std": {
+    "rev": "1eea5bae12ae557d589f9f0f0edae2faa47cb262"
+  },
+  "lib/openzeppelin-contracts": {
+    "branch": {
+      "name": "v4.9.6",
+      "rev": "dc44c9f1a4c3b10af99492eed84f83ed244203f6"
+    }
+  },
+  "lib/protocol": {
+    "rev": "eb88c9b011bf927ba35e54758ab97fad536873aa"
+  },
+  "lib/v3-core": {
+    "rev": "e3589b192d0be27e100cd0daaf6c97204fdb1899"
+  },
+  "lib/v3-periphery": {
+    "rev": "80f26c86c57b8a5e4b913f42844d4c8bd274d058"
+  }
+}
