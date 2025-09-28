@@ -121,4 +121,8 @@ contract Test_AMMContract is Ownable {
      * @param amount1 Amount of tokenB removed from reserves and returned to user
      */
     event LiquidityRemoved(bytes32 indexed marketId, address indexed user, uint256 amount0, uint256 amount1);
+
+    event TokensSwapped(
+        bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
+    );
 }
