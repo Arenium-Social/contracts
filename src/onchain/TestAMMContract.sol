@@ -90,6 +90,10 @@ contract Test_AMMContract is Ownable {
     /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
 
+    //////////////////////////////////////////////////////////////
+    //                        EVENTS                           //
+    //////////////////////////////////////////////////////////////
+
     /**
      * @notice Emitted when a new pool is created for a prediction market
      * @param marketId Unique identifier for the prediction market
