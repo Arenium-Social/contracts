@@ -228,4 +228,68 @@ contract Test_AMMContract is Ownable {
 
         return address(this);
     }
+
+    /**
+     * @notice Adds liquidity to a prediction market pool
+     * @dev Transfers tokens from the user and adds them to the pool reserves. Updates user's
+     *      liquidity tracking. In this simplified version, tick parameters are ignored.
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _user Address of the user adding liquidity (should be msg.sender in practice)
+     * @param _amount0 Amount of tokenA to add to the pool
+     * @param _amount1 Amount of tokenB to add to the pool
+     * @param _tickLower Lower price bound (ignored in simplified version, kept for compatibility)
+     * @param _tickUpper Upper price bound (ignored in simplified version, kept for compatibility)
+     *
+     * @return tokenId Token ID representing the position (simplified to always return 1)
+     * @return liquidity Amount of liquidity added (calculated as average of both amounts)
+     * @return amount0 Actual amount of tokenA added (same as input in simplified version)
+     * @return amount1 Actual amount of tokenB added (same as input in simplified version)
+     *
+     * Requirements:
+     * - Pool must exist and be initialized
+     * - User must have approved this contract to spend the required token amounts
+     * - User must have sufficient balance of both tokens
+     * - Amount parameters must be greater than zero
+     *
+     * Effects:
+     * - Transfers _amount0 of tokenA from user to this contract
+     * - Transfers _amount1 of tokenB from user to this contract
+     * - Updates pool reserves (reserveA += _amount0, reserveB += _amount1)
+     * - Updates user's liquidity tracking
+     * - Emits LiquidityAdded event
+     *
+     * @custom:simplified Uses simple average for liquidity calculation instead of complex formulas
+     * @custom:compatibility Returns values in same format as main contract for interface compatibility
+     */
+    function addLiquidity(
+        bytes32 _marketId,
+        address _user,
+        uint256 _amount0,
+        uint256 _amount1,
+        int24 _tickLower, // Ignored in simple version
+        int24 _tickUpper // Ignored in simple version
+    ) external returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) {
+        PoolData storage pool = marketIdToPool[_marketId];
+        require(pool.poolInitialized, "Pool not active");
+        require(_amount0 > 0 && _amount1 > 0, "Amounts must be greater than zero");
+
+        // Transfer tokens from user to this contract
+        IERC20(pool.tokenA).transferFrom(msg.sender, address(this), _amount0);
+        IERC20(pool.tokenB).transferFrom(msg.sender, address(this), _amount1);
+
+        // Update pool reserves
+        pool.reserveA += _amount0;
+        pool.reserveB += _amount1;
+
+        // Track user liquidity using simple calculation
+        // In a real AMM, this would use more complex formulas considering current reserves
+        uint256 liquidityAdded = (_amount0 + _amount1) / 2;
+        userLiquidity[_user][_marketId] += liquidityAdded;
+
+        emit LiquidityAdded(_marketId, _user, _amount0, _amount1);
+
+        // Return values for interface compatibility
+        return (1, uint128(liquidityAdded), _amount0, _amount1);
+    }
 }
