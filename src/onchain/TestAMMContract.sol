@@ -90,6 +90,14 @@ contract Test_AMMContract is Ownable {
     /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
 
+    /// @notice Total number of pools created by this contract
+    /// @dev Counter for tracking pool creation, used for analytics and validation
+    uint256 public totalPools;
+
+    //////////////////////////////////////////////////////////////
+    //                        EVENTS                           //
+    //////////////////////////////////////////////////////////////
+
     /**
      * @notice Emitted when a new pool is created for a prediction market
      * @param marketId Unique identifier for the prediction market
@@ -133,4 +141,91 @@ contract Test_AMMContract is Ownable {
     event TokensSwapped(
         bytes32 indexed marketId, address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut
     );
+
+    //////////////////////////////////////////////////////////////
+    //                      CONSTRUCTOR                        //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Constructor to initialize the Test_AMMContract
+     * @dev Sets up the contract with the deployer as owner through OpenZeppelin's Ownable
+     *      No additional initialization required for the simplified version
+     *
+     * Effects:
+     * - Sets msg.sender as the contract owner
+     * - Initializes empty storage mappings
+     * - Sets totalPools counter to 0
+     *
+     * @custom:testing This simplified constructor doesn't need external contract addresses
+     */
+    constructor() {}
+
+    //////////////////////////////////////////////////////////////
+    //                   EXTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Creates and initializes a new pool for a prediction market
+     * @dev Creates a new pool with the specified tokens and associates it with a market ID.
+     *      Tokens are automatically ordered by address to ensure consistency.
+     *
+     * @param _tokenA Address of the first outcome token
+     * @param _tokenB Address of the second outcome token
+     * @param _fee Fee tier parameter (ignored in simplified version, kept for interface compatibility)
+     * @param _marketId Unique identifier for the prediction market
+     *
+     * @return poolAddress Address of this contract (simplified - all pools managed here)
+     *
+     * Requirements:
+     * - Tokens must be different addresses
+     * - Pool for this market must not already exist
+     * - Both token addresses must be valid (non-zero)
+     *
+     * Effects:
+     * - Creates new PoolData struct and stores it in marketIdToPool
+     * - Updates tokenPairToPoolAddress bidirectional mapping
+     * - Adds pool to the pools array for enumeration
+     * - Increments totalPools counter
+     * - Emits PoolCreated and PoolInitialized events
+     *
+     * @custom:ordering Automatically orders tokens by address (tokenA < tokenB)
+     * @custom:compatibility Returns address(this) for compatibility with main contract interface
+     */
+    function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
+        external
+        returns (address poolAddress)
+    {
+        require(marketIdToPool[_marketId].tokenA == address(0), "Pool already exists");
+        require(_tokenA != _tokenB, "Tokens must be different");
+        require(_tokenA != address(0) && _tokenB != address(0), "Invalid token addresses");
+
+        // Order tokens by address to ensure consistency
+        if (_tokenA > _tokenB) {
+            (_tokenA, _tokenB) = (_tokenB, _tokenA);
+        }
+
+        // Create new pool data structure
+        PoolData memory pool = PoolData({
+            marketId: _marketId,
+            tokenA: _tokenA,
+            tokenB: _tokenB,
+            reserveA: 0,
+            reserveB: 0,
+            poolInitialized: true
+        });
+
+        // Store pool data in mappings
+        marketIdToPool[_marketId] = pool;
+        tokenPairToPoolAddress[_tokenA][_tokenB] = address(this);
+        tokenPairToPoolAddress[_tokenB][_tokenA] = address(this);
+
+        // Add to pools array for enumeration
+        pools.push(pool);
+        totalPools++;
+
+        emit PoolCreated(_marketId, _tokenA, _tokenB);
+        emit PoolInitialized(_marketId);
+
+        return address(this);
+    }
 }
