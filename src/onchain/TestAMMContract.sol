@@ -160,6 +160,33 @@ contract Test_AMMContract is Ownable {
     //                   EXTERNAL FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
 
+    /**
+     * @notice Creates and initializes a new pool for a prediction market
+     * @dev Creates a new pool with the specified tokens and associates it with a market ID.
+     *      Tokens are automatically ordered by address to ensure consistency.
+     *
+     * @param _tokenA Address of the first outcome token
+     * @param _tokenB Address of the second outcome token  
+     * @param _fee Fee tier parameter (ignored in simplified version, kept for interface compatibility)
+     * @param _marketId Unique identifier for the prediction market
+     *
+     * @return poolAddress Address of this contract (simplified - all pools managed here)
+     *
+     * Requirements:
+     * - Tokens must be different addresses
+     * - Pool for this market must not already exist
+     * - Both token addresses must be valid (non-zero)
+     *
+     * Effects:
+     * - Creates new PoolData struct and stores it in marketIdToPool
+     * - Updates tokenPairToPoolAddress bidirectional mapping
+     * - Adds pool to the pools array for enumeration
+     * - Increments totalPools counter
+     * - Emits PoolCreated and PoolInitialized events
+     *
+     * @custom:ordering Automatically orders tokens by address (tokenA < tokenB)
+     * @custom:compatibility Returns address(this) for compatibility with main contract interface
+     */
 function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
         external
         returns (address poolAddress)
