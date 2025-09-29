@@ -155,4 +155,9 @@ contract Test_AMMContract is Ownable {
      * @custom:testing This simplified constructor doesn't need external contract addresses
      */
     constructor() {}
+
+    //////////////////////////////////////////////////////////////
+    //                   EXTERNAL FUNCTIONS                    //
+    //////////////////////////////////////////////////////////////
+
 }
