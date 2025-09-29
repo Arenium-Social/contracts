@@ -93,7 +93,7 @@ contract Test_AMMContract is Ownable {
     /// @notice Total number of pools created by this contract
     /// @dev Counter for tracking pool creation, used for analytics and validation
     uint256 public totalPools;
-    
+
     //////////////////////////////////////////////////////////////
     //                        EVENTS                           //
     //////////////////////////////////////////////////////////////
@@ -170,7 +170,7 @@ contract Test_AMMContract is Ownable {
      *      Tokens are automatically ordered by address to ensure consistency.
      *
      * @param _tokenA Address of the first outcome token
-     * @param _tokenB Address of the second outcome token  
+     * @param _tokenB Address of the second outcome token
      * @param _fee Fee tier parameter (ignored in simplified version, kept for interface compatibility)
      * @param _marketId Unique identifier for the prediction market
      *
@@ -191,7 +191,7 @@ contract Test_AMMContract is Ownable {
      * @custom:ordering Automatically orders tokens by address (tokenA < tokenB)
      * @custom:compatibility Returns address(this) for compatibility with main contract interface
      */
-function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
+    function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
         external
         returns (address poolAddress)
     {
@@ -218,7 +218,7 @@ function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _
         marketIdToPool[_marketId] = pool;
         tokenPairToPoolAddress[_tokenA][_tokenB] = address(this);
         tokenPairToPoolAddress[_tokenB][_tokenA] = address(this);
-        
+
         // Add to pools array for enumeration
         pools.push(pool);
         totalPools++;
@@ -228,5 +228,4 @@ function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _
 
         return address(this);
     }
-
 }
