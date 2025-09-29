@@ -90,6 +90,10 @@ contract Test_AMMContract is Ownable {
     /// @dev Provides a way to iterate through all pools managed by this contract
     PoolData[] public pools;
 
+    /// @notice Total number of pools created by this contract
+    /// @dev Counter for tracking pool creation, used for analytics and validation
+    uint256 public totalPools;
+    
     //////////////////////////////////////////////////////////////
     //                        EVENTS                           //
     //////////////////////////////////////////////////////////////
