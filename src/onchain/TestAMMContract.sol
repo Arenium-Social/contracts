@@ -142,4 +142,17 @@ contract Test_AMMContract is Ownable {
     //                      CONSTRUCTOR                        //
     //////////////////////////////////////////////////////////////
 
+    /**
+     * @notice Constructor to initialize the Test_AMMContract
+     * @dev Sets up the contract with the deployer as owner through OpenZeppelin's Ownable
+     *      No additional initialization required for the simplified version
+     *
+     * Effects:
+     * - Sets msg.sender as the contract owner
+     * - Initializes empty storage mappings
+     * - Sets totalPools counter to 0
+     *
+     * @custom:testing This simplified constructor doesn't need external contract addresses
+     */
+    constructor() {}
 }
