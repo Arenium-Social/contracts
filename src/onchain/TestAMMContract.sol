@@ -160,4 +160,42 @@ contract Test_AMMContract is Ownable {
     //                   EXTERNAL FUNCTIONS                    //
     //////////////////////////////////////////////////////////////
 
+function initializePool(address _tokenA, address _tokenB, uint24 _fee, bytes32 _marketId)
+        external
+        returns (address poolAddress)
+    {
+        require(marketIdToPool[_marketId].tokenA == address(0), "Pool already exists");
+        require(_tokenA != _tokenB, "Tokens must be different");
+        require(_tokenA != address(0) && _tokenB != address(0), "Invalid token addresses");
+
+        // Order tokens by address to ensure consistency
+        if (_tokenA > _tokenB) {
+            (_tokenA, _tokenB) = (_tokenB, _tokenA);
+        }
+
+        // Create new pool data structure
+        PoolData memory pool = PoolData({
+            marketId: _marketId,
+            tokenA: _tokenA,
+            tokenB: _tokenB,
+            reserveA: 0,
+            reserveB: 0,
+            poolInitialized: true
+        });
+
+        // Store pool data in mappings
+        marketIdToPool[_marketId] = pool;
+        tokenPairToPoolAddress[_tokenA][_tokenB] = address(this);
+        tokenPairToPoolAddress[_tokenB][_tokenA] = address(this);
+        
+        // Add to pools array for enumeration
+        pools.push(pool);
+        totalPools++;
+
+        emit PoolCreated(_marketId, _tokenA, _tokenB);
+        emit PoolInitialized(_marketId);
+
+        return address(this);
+    }
+
 }
