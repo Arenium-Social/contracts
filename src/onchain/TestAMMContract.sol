@@ -305,7 +305,7 @@ contract Test_AMMContract is Ownable {
      * @param _amount1Min Minimum amount of tokenB to receive (slippage protection)
      *
      * @return amount0Decreased Amount of tokenA removed and returned to user
-     * @return amount1Decreased Amount of tokenB removed and returned to user  
+     * @return amount1Decreased Amount of tokenB removed and returned to user
      * @return amount0Collected Same as amount0Decreased (simplified - no separate fees)
      * @return amount1Collected Same as amount1Decreased (simplified - no separate fees)
      *
