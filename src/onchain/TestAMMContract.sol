@@ -292,4 +292,46 @@ contract Test_AMMContract is Ownable {
         // Return values for interface compatibility
         return (1, uint128(liquidityAdded), _amount0, _amount1);
     }
+
+    function removeLiquidity(
+        bytes32 _marketId,
+        address _user,
+        uint128 _liquidity,
+        uint256 _amount0Min,
+        uint256 _amount1Min
+    )
+        external
+        returns (uint256 amount0Decreased, uint256 amount1Decreased, uint256 amount0Collected, uint256 amount1Collected)
+    {
+        PoolData storage pool = marketIdToPool[_marketId];
+        require(pool.poolInitialized, "Pool not active");
+        require(userLiquidity[_user][_marketId] >= _liquidity, "Insufficient liquidity");
+
+        // Calculate proportional amounts based on user's liquidity share
+        // This is simplified - real AMMs use more complex calculations
+        uint256 totalLiquidity = pool.reserveA + pool.reserveB;
+        require(totalLiquidity > 0, "No liquidity in pool");
+
+        amount0Decreased = (pool.reserveA * _liquidity) / totalLiquidity;
+        amount1Decreased = (pool.reserveB * _liquidity) / totalLiquidity;
+
+        // Slippage protection
+        require(amount0Decreased >= _amount0Min && amount1Decreased >= _amount1Min, "Slippage too high");
+        require(pool.reserveA >= amount0Decreased && pool.reserveB >= amount1Decreased, "Insufficient pool reserves");
+
+        // Update pool reserves and user liquidity tracking
+        pool.reserveA -= amount0Decreased;
+        pool.reserveB -= amount1Decreased;
+        userLiquidity[_user][_marketId] -= _liquidity;
+
+        // Transfer tokens back to user
+        IERC20(pool.tokenA).transfer(_user, amount0Decreased);
+        IERC20(pool.tokenB).transfer(_user, amount1Decreased);
+
+        // In simplified version, collected amounts are the same as decreased amounts
+        amount0Collected = amount0Decreased;
+        amount1Collected = amount1Decreased;
+
+        emit LiquidityRemoved(_marketId, _user, amount0Decreased, amount1Decreased);
+    }
 }
