@@ -293,6 +293,38 @@ contract Test_AMMContract is Ownable {
         return (1, uint128(liquidityAdded), _amount0, _amount1);
     }
 
+    /**
+     * @notice Removes liquidity from a pool and returns tokens to the user
+     * @dev Calculates proportional token amounts based on user's liquidity share and current reserves.
+     *      Transfers the calculated amounts back to the user and updates tracking.
+     *
+     * @param _marketId Unique identifier for the prediction market
+     * @param _user Address of the user removing liquidity
+     * @param _liquidity Amount of liquidity to remove from the position
+     * @param _amount0Min Minimum amount of tokenA to receive (slippage protection)
+     * @param _amount1Min Minimum amount of tokenB to receive (slippage protection)
+     *
+     * @return amount0Decreased Amount of tokenA removed and returned to user
+     * @return amount1Decreased Amount of tokenB removed and returned to user  
+     * @return amount0Collected Same as amount0Decreased (simplified - no separate fees)
+     * @return amount1Collected Same as amount1Decreased (simplified - no separate fees)
+     *
+     * Requirements:
+     * - Pool must exist and be initialized
+     * - User must have sufficient liquidity to remove
+     * - Calculated amounts must meet minimum thresholds (slippage protection)
+     * - Pool must have sufficient reserves for the withdrawal
+     *
+     * Effects:
+     * - Calculates proportional token amounts based on liquidity share
+     * - Updates pool reserves (reserveA -= amount0, reserveB -= amount1)
+     * - Updates user's liquidity tracking (decreases by _liquidity amount)
+     * - Transfers calculated token amounts to user
+     * - Emits LiquidityRemoved event
+     *
+     * @custom:proportional Uses simple proportion: userShare = _liquidity / totalLiquidity
+     * @custom:slippage Includes slippage protection via minimum amount parameters
+     */
     function removeLiquidity(
         bytes32 _marketId,
         address _user,
