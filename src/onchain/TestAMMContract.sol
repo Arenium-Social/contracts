@@ -379,7 +379,7 @@ contract Test_AMMContract is Ownable {
         // Get current reserves for the swap calculation
         uint256 reserveIn = _zeroForOne ? pool.reserveA : pool.reserveB;
         uint256 reserveOut = _zeroForOne ? pool.reserveB : pool.reserveA;
-        
+
         require(reserveIn > 0 && reserveOut > 0, "Insufficient pool liquidity");
 
         // Calculate output amount using constant product formula: x * y = k
@@ -394,11 +394,11 @@ contract Test_AMMContract is Ownable {
 
         // Update pool reserves
         if (_zeroForOne) {
-            pool.reserveA += _amountIn;   // Increase tokenA reserve
-            pool.reserveB -= amountOut;   // Decrease tokenB reserve
+            pool.reserveA += _amountIn; // Increase tokenA reserve
+            pool.reserveB -= amountOut; // Decrease tokenB reserve
         } else {
-            pool.reserveB += _amountIn;   // Increase tokenB reserve
-            pool.reserveA -= amountOut;   // Decrease tokenA reserve
+            pool.reserveB += _amountIn; // Increase tokenB reserve
+            pool.reserveA -= amountOut; // Decrease tokenA reserve
         }
 
         // Transfer output tokens to user
