@@ -367,6 +367,34 @@ contract Test_AMMContract is Ownable {
         emit LiquidityRemoved(_marketId, _user, amount0Decreased, amount1Decreased);
     }
 
+    /**
+     * @notice Swaps tokens using the constant product AMM formula
+     * @dev Implements the classic x * y = k constant product formula for token swapping.
+     *      Provides slippage protection and automatically updates pool reserves.
+     *
+     * @param _marketId Unique identifier for the prediction market (determines which pool to use)
+     * @param _amountIn Amount of input tokens to swap
+     * @param _amountOutMinimum Minimum amount of output tokens to receive (slippage protection)
+     * @param _zeroForOne Direction of swap: true for tokenA→tokenB, false for tokenB→tokenA
+     *
+     * Requirements:
+     * - Pool must exist and be initialized
+     * - User must have approved this contract to spend _amountIn of input token
+     * - User must have sufficient balance of input token
+     * - Calculated output must meet minimum threshold (slippage protection)
+     * - Pool must have sufficient reserves of output token
+     *
+     * Effects:
+     * - Transfers input tokens from user to this contract
+     * - Calculates output amount using constant product formula
+     * - Updates pool reserves (increases input reserve, decreases output reserve)
+     * - Transfers calculated output tokens to user
+     * - Emits TokensSwapped event
+     *
+     * @custom:formula Uses constant product: (reserveIn + amountIn) * (reserveOut - amountOut) = k
+     * @custom:simplified Simplified calculation: amountOut = (reserveOut * amountIn) / (reserveIn + amountIn)
+     * @custom:slippage Automatic slippage protection via _amountOutMinimum parameter
+     */
     function swap(bytes32 _marketId, uint256 _amountIn, uint256 _amountOutMinimum, bool _zeroForOne) external {
         PoolData storage pool = marketIdToPool[_marketId];
         require(pool.poolInitialized, "Pool not active");
