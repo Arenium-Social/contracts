@@ -366,4 +366,44 @@ contract Test_AMMContract is Ownable {
 
         emit LiquidityRemoved(_marketId, _user, amount0Decreased, amount1Decreased);
     }
+
+    function swap(bytes32 _marketId, uint256 _amountIn, uint256 _amountOutMinimum, bool _zeroForOne) external {
+        PoolData storage pool = marketIdToPool[_marketId];
+        require(pool.poolInitialized, "Pool not active");
+        require(_amountIn > 0, "Amount in must be greater than zero");
+
+        // Determine input and output tokens based on swap direction
+        address inputToken = _zeroForOne ? pool.tokenA : pool.tokenB;
+        address outputToken = _zeroForOne ? pool.tokenB : pool.tokenA;
+
+        // Get current reserves for the swap calculation
+        uint256 reserveIn = _zeroForOne ? pool.reserveA : pool.reserveB;
+        uint256 reserveOut = _zeroForOne ? pool.reserveB : pool.reserveA;
+        
+        require(reserveIn > 0 && reserveOut > 0, "Insufficient pool liquidity");
+
+        // Calculate output amount using constant product formula: x * y = k
+        // Formula: amountOut = (reserveOut * amountIn) / (reserveIn + amountIn)
+        // This maintains the invariant: (reserveIn + amountIn) * (reserveOut - amountOut) = reserveIn * reserveOut
+        uint256 amountOut = (reserveOut * _amountIn) / (reserveIn + _amountIn);
+        require(amountOut >= _amountOutMinimum, "Insufficient output amount");
+        require(reserveOut > amountOut, "Insufficient output reserve");
+
+        // Transfer input tokens from user to this contract
+        IERC20(inputToken).transferFrom(msg.sender, address(this), _amountIn);
+
+        // Update pool reserves
+        if (_zeroForOne) {
+            pool.reserveA += _amountIn;   // Increase tokenA reserve
+            pool.reserveB -= amountOut;   // Decrease tokenB reserve
+        } else {
+            pool.reserveB += _amountIn;   // Increase tokenB reserve
+            pool.reserveA -= amountOut;   // Decrease tokenA reserve
+        }
+
+        // Transfer output tokens to user
+        IERC20(outputToken).transfer(msg.sender, amountOut);
+
+        emit TokensSwapped(_marketId, inputToken, outputToken, _amountIn, amountOut);
+    }
 }
