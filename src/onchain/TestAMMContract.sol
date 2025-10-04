@@ -453,7 +453,7 @@ contract Test_AMMContract is Ownable {
         return marketIdToPool[marketId];
     }
 
-        function getUserPositionInPool(address _user, bytes32 _marketId)
+    function getUserPositionInPool(address _user, bytes32 _marketId)
         external
         view
         returns (
@@ -472,19 +472,19 @@ contract Test_AMMContract is Ownable {
     {
         PoolData memory pool = marketIdToPool[_marketId];
         uint256 userLiq = userLiquidity[_user][_marketId];
-        
+
         return (
-            address(this),      // operator - this contract manages all positions
-            pool.tokenA,        // token0 - first token address
-            pool.tokenB,        // token1 - second token address
-            3000,               // fee - fixed at 0.3% for compatibility
-            uint128(userLiq),   // liquidity - user's liquidity amount
-            0,                  // tickLower - not used in simplified version
-            0,                  // tickUpper - not used in simplified version
-            0,                  // tokensOwed0 - no separate fee tracking
-            0,                  // tokensOwed1 - no separate fee tracking
-            userLiq / 2,        // amount0 - simplified estimation
-            userLiq / 2         // amount1 - simplified estimation
+            address(this), // operator - this contract manages all positions
+            pool.tokenA, // token0 - first token address
+            pool.tokenB, // token1 - second token address
+            3000, // fee - fixed at 0.3% for compatibility
+            uint128(userLiq), // liquidity - user's liquidity amount
+            0, // tickLower - not used in simplified version
+            0, // tickUpper - not used in simplified version
+            0, // tokensOwed0 - no separate fee tracking
+            0, // tokensOwed1 - no separate fee tracking
+            userLiq / 2, // amount0 - simplified estimation
+            userLiq / 2 // amount1 - simplified estimation
         );
     }
 }
