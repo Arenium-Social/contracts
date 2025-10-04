@@ -434,4 +434,22 @@ contract Test_AMMContract is Ownable {
 
         emit TokensSwapped(_marketId, inputToken, outputToken, _amountIn, amountOut);
     }
+
+    //////////////////////////////////////////////////////////////
+    //                      VIEW FUNCTIONS                     //
+    //////////////////////////////////////////////////////////////
+
+    /**
+     * @notice Retrieves complete pool data for a given market ID
+     * @dev Returns the PoolData struct containing all pool information
+     *
+     * @param marketId Unique identifier for the prediction market
+     *
+     * @return pool Complete PoolData struct with all pool information
+     *
+     * @custom:lookup Primary method for getting pool information by market ID
+     */
+    function getPoolUsingMarketId(bytes32 marketId) external view returns (PoolData memory) {
+        return marketIdToPool[marketId];
+    }
 }
