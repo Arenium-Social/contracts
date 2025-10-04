@@ -434,4 +434,8 @@ contract Test_AMMContract is Ownable {
 
         emit TokensSwapped(_marketId, inputToken, outputToken, _amountIn, amountOut);
     }
+
+    //////////////////////////////////////////////////////////////
+    //                      VIEW FUNCTIONS                     //
+    //////////////////////////////////////////////////////////////
 }
