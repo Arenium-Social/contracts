@@ -438,4 +438,8 @@ contract Test_AMMContract is Ownable {
     //////////////////////////////////////////////////////////////
     //                      VIEW FUNCTIONS                     //
     //////////////////////////////////////////////////////////////
+
+    function getPoolUsingMarketId(bytes32 marketId) external view returns (PoolData memory) {
+        return marketIdToPool[marketId];
+    }
 }
