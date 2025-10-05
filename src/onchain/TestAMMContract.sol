@@ -453,6 +453,29 @@ contract Test_AMMContract is Ownable {
         return marketIdToPool[marketId];
     }
 
+    /**
+     * @notice Retrieves user's liquidity position information for a specific market
+     * @dev Returns position data in a format compatible with the main AMM contract.
+     *      Some fields are simplified or fixed values for testing compatibility.
+     *
+     * @param _user Address of the liquidity provider to query
+     * @param _marketId Market identifier for the position
+     *
+     * @return operator Address that can operate on the position (this contract)
+     * @return token0 Address of the first token in the pair (tokenA)
+     * @return token1 Address of the second token in the pair (tokenB)
+     * @return fee Fee tier of the pool (fixed at 3000 for 0.3%)
+     * @return liquidity Amount of liquidity the user has in this pool
+     * @return tickLower Lower tick bound (fixed at 0 for simplified version)
+     * @return tickUpper Upper tick bound (fixed at 0 for simplified version)
+     * @return tokensOwed0 Amount of tokenA fees owed (0 in simplified version)
+     * @return tokensOwed1 Amount of tokenB fees owed (0 in simplified version)  
+     * @return amount0 Estimated amount of tokenA in the position
+     * @return amount1 Estimated amount of tokenB in the position
+     *
+     * @custom:compatibility Returns data in same format as main contract for interface compatibility
+     * @custom:simplified Some fields are fixed values since this version doesn't use tick-based liquidity
+     */
     function getUserPositionInPool(address _user, bytes32 _marketId)
         external
         view
