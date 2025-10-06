@@ -511,6 +511,15 @@ contract Test_AMMContract is Ownable {
         );
     }
 
+    /**
+     * @notice Retrieves all pools created by this contract
+     * @dev Returns the complete array of PoolData structs for analytics and enumeration
+     *
+     * @return Array of PoolData structs representing all managed pools
+     *
+     * @custom:analytics Useful for building dashboards and analyzing pool performance
+     * @custom:enumeration Provides way to iterate through all pools when mapping keys unknown
+     */
     function getAllPools() external view returns (PoolData[] memory) {
         return pools;
     }
