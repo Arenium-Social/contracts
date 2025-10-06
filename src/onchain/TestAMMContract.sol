@@ -523,4 +523,9 @@ contract Test_AMMContract is Ownable {
     function getAllPools() external view returns (PoolData[] memory) {
         return pools;
     }
+
+    function getPoolReserves(bytes32 marketId) external view returns (uint256 reserve0, uint256 reserve1) {
+        PoolData memory pool = marketIdToPool[marketId];
+        return (pool.reserveA, pool.reserveB);
+    }
 }
