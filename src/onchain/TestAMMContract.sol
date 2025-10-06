@@ -469,7 +469,7 @@ contract Test_AMMContract is Ownable {
      * @return tickLower Lower tick bound (fixed at 0 for simplified version)
      * @return tickUpper Upper tick bound (fixed at 0 for simplified version)
      * @return tokensOwed0 Amount of tokenA fees owed (0 in simplified version)
-     * @return tokensOwed1 Amount of tokenB fees owed (0 in simplified version)  
+     * @return tokensOwed1 Amount of tokenB fees owed (0 in simplified version)
      * @return amount0 Estimated amount of tokenA in the position
      * @return amount1 Estimated amount of tokenB in the position
      *
