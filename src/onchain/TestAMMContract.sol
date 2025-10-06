@@ -523,4 +523,24 @@ contract Test_AMMContract is Ownable {
     function getAllPools() external view returns (PoolData[] memory) {
         return pools;
     }
+
+    /**
+     * @notice Retrieves current token reserves for a specified pool
+     * @dev Returns the current reserve amounts for both tokens in the pool
+     *
+     * @param marketId Unique identifier for the prediction market
+     *
+     * @return reserve0 Current reserve amount of tokenA in the pool
+     * @return reserve1 Current reserve amount of tokenB in the pool
+     *
+     * Requirements:
+     * - Pool must exist (will return 0,0 for non-existent pools)
+     *
+     * @custom:reserves These represent actual token balances held by this contract for the pool
+     * @custom:analytics Useful for calculating current pool ratios and available liquidity
+     */
+    function getPoolReserves(bytes32 marketId) external view returns (uint256 reserve0, uint256 reserve1) {
+        PoolData memory pool = marketIdToPool[marketId];
+        return (pool.reserveA, pool.reserveB);
+    }
 }
