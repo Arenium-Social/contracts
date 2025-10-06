@@ -510,4 +510,8 @@ contract Test_AMMContract is Ownable {
             userLiq / 2 // amount1 - simplified estimation
         );
     }
+
+    function getAllPools() external view returns (PoolData[] memory) {
+        return pools;
+    }
 }
