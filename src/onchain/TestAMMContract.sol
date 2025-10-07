@@ -543,4 +543,25 @@ contract Test_AMMContract is Ownable {
         PoolData memory pool = marketIdToPool[marketId];
         return (pool.reserveA, pool.reserveB);
     }
+
+        function getAmountOut(bytes32 marketId, uint256 amountIn, bool zeroForOne) 
+        external 
+        view 
+        returns (uint256 amountOut) 
+    {
+        require(amountIn > 0, "Amount in must be greater than zero");
+        
+        PoolData memory pool = marketIdToPool[marketId];
+        require(pool.poolInitialized, "Pool not active");
+
+        uint256 reserveIn = zeroForOne ? pool.reserveA : pool.reserveB;
+        uint256 reserveOut = zeroForOne ? pool.reserveB : pool.reserveA;
+        
+        require(reserveIn > 0 && reserveOut > 0, "Insufficient pool liquidity");
+
+        // Calculate output using constant product formula
+        amountOut = (reserveOut * amountIn) / (reserveIn + amountIn);
+        
+        return amountOut;
+    }
 }
