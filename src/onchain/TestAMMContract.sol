@@ -544,6 +544,25 @@ contract Test_AMMContract is Ownable {
         return (pool.reserveA, pool.reserveB);
     }
 
+    /**
+     * @notice Calculates the expected output amount for a given input in a swap
+     * @dev Uses the constant product formula to calculate swap output without executing the trade.
+     *      Useful for UI previews and slippage calculations.
+     *
+     * @param marketId Unique identifier for the prediction market
+     * @param amountIn Amount of input tokens for the hypothetical swap
+     * @param zeroForOne Direction of swap: true for tokenA→tokenB, false for tokenB→tokenA
+     *
+     * @return amountOut Expected amount of output tokens that would be received
+     *
+     * Requirements:
+     * - Pool must exist and be initialized
+     * - Pool must have sufficient liquidity
+     * - amountIn must be greater than zero
+     *
+     * @custom:preview This is a view function that doesn't modify state
+     * @custom:formula Uses same constant product calculation as the actual swap function
+     */
     function getAmountOut(bytes32 marketId, uint256 amountIn, bool zeroForOne)
         external
         view
